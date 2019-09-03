@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package msg;
+
+message ProtoTest {
+    // 字段数字标识符范围 [1,15] 占用1个字节
+    //                  [16,2047] 占用2个字节
+    // 尽量为频繁出现的消息元素保留[1,15]预留标识号
+    int32   n32 = 1;                // 使用变长编码，对于负值的效率很低，如果你的域有可能有负值，请使用sint64替代
+    sint32  sn32 = 2;               // 使用变长编码，这些编码在负值时比int32高效的多
+    sint64  sn64 = 3;               // 使用变长编码，有符号的整型值。编码时比通常的int64高效
+
+    uint32  un32 = 4;
+    uint64  un64 = 5; 
+
+    string str = 10;                // 一个字符串必须是UTF-8编码或者7-bit ASCII编码的文本
+    bytes   b = 11;                 // 可能包含任意顺序的字节数据
+
+    // 枚举值不推荐有负数
+    enum ETest {                    
+        option allow_alias = true;  // 是否允许别名, true，允许枚举常量具有相同的值
+        DEFAULT = 0;
+        START = 1;
+        STOP = 2;
+        RUNING = 3;
+        WAITING = 3;
+    }
+    ETest etest = 12;
+    
+    // 嵌套其他消息结构，repeated也是ary
+    repeated ProtoTest2 pt2 = 13;
+
+    // 嵌套子消息结构
+    message ProtoTest3 {
+        uint32 uid = 1;
+        string str = 2;
+    }
+    repeated ProtoTest3 pt3 = 14;
+
+    // map支持
+    map<string, ProtoTest2> pt2map = 15;
+}
+
+message ProtoTest2 {
+    uint32  uid = 1;
+    string  str = 2;
+}
