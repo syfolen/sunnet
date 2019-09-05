@@ -72,7 +72,7 @@ module sunnet {
             this.$state = NetConnectionStateEnum.CONNECTING;
 
             this.$socket = new Laya.Socket();
-            this.$socket.endian = "LITTLE_ENDIAN";
+            this.$socket.endian = Laya.Byte.LITTLE_ENDIAN;
             this.$socket.on(Laya.Event.OPEN, this, this.$onOpen);
             this.$socket.on(Laya.Event.CLOSE, this, this.$onClose);
             this.$socket.on(Laya.Event.ERROR, this, this.$onError);
@@ -142,6 +142,13 @@ module sunnet {
             if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
                 suncom.Logger.error("NetConnection=> sendBytes 发送数据失败！！！");
             }
+        }
+
+        /**
+         * 发送数据
+         */
+        flush(): void {
+            this.$socket.flush();
         }
 
         /**

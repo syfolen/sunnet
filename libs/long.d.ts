@@ -21,9 +21,15 @@
  * see: https://github.com/dcodeIO/long.js for details
  */
 declare module dcodeIO {
+
     export class Long {
+
         static fromNumber(num: number): Long;
-        static fromString(str: string): Long;
+
+        /**
+         * @param unsigned 是否为无符号类型，默认为false
+         */
+        static fromString(str: string, unsigned?: boolean): Long;
 
         low: number;
         high: number;
@@ -31,7 +37,7 @@ declare module dcodeIO {
         add(value: Long): Long;
         mul(value: Long): Long;
 
-        toNumber():number;
-        toString():string;
+        toNumber(): number;
+        toString(): string;
     }
 }

@@ -24,6 +24,11 @@ module sunnet {
         send(buffer: ArrayBuffer): void;
 
         /**
+         * 发送数据
+         */
+        flush(): void;
+
+        /**
          * 发送protobuf数据
          * @data: 只能是protobuf
          * @ip: 目标地址，允许为空 

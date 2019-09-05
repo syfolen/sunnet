@@ -13,8 +13,8 @@ module sunnet {
         recv(cmd: number, srvId: number, buffer: ArrayBuffer, data?: any): Array<any> {
             const input: Laya.Byte = this.$connection.input;
 
-            cmd = input.getInt32();
-            srvId = input.getInt32();
+            cmd = input.getUint16();
+            srvId = input.getUint16();
             buffer = input.buffer.slice(input.pos);
 
             if (cmd === HeartbeatCommandEnum.RESPONSE) {

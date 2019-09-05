@@ -11,7 +11,7 @@ module sunnet {
         /**
          * 通知网络消息
          */
-        notify(cmd: number, data: any): void {
+        static notify(cmd: number, data: any): void {
             if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
                 suncom.Logger.log(`NetConnectionNotifier=> notify cmd:${cmd.toString(16)}, data:${JSON.stringify(data)}`);
             }
@@ -21,7 +21,7 @@ module sunnet {
         /**
          * 注册网络消息监听
          */
-        register(cmd: number, method: Function, caller: Object): void {
+        static register(cmd: number, method: Function, caller: Object): void {
             if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
                 suncom.Logger.log(`NetConnectionNotifier=>register cmd:${cmd.toString(16)}`);
             }
@@ -31,7 +31,7 @@ module sunnet {
         /**
          * 移除网络消息监听
          */
-        unregister(cmd: number, method: Function, caller: Object): void {
+        static unregister(cmd: number, method: Function, caller: Object): void {
             if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
                 suncom.Logger.log(`NetConnectionNotifier=>unregister cmd:${cmd.toString(16)}`);
             }

@@ -10,14 +10,15 @@ module sunnet {
 		 * 拦截数据
 		 */
         send(cmd: number, bytes: ArrayBuffer, ip?: string, port?: number): Array<any> {
-            const input: Laya.Byte = this.$connection.input;
+            const output: Laya.Byte = this.$connection.output;
 
             // 写入包头
-            input.writeUint16(cmd);
-            input.writeUint16(0);
+            output.writeUint16(cmd);
+            output.writeUint16(0);
 
             // 写入包体
-            bytes !== null && input.writeArrayBuffer(bytes);
+            bytes !== null && output.writeArrayBuffer(bytes);
+            this.$connection.flush();
 
             if (cmd === HeartbeatCommandEnum.REQUEST) {
                 if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) === suncom.DebugMode.NETWORK_HEARTBEAT) {

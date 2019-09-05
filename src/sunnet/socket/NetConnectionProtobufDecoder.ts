@@ -24,7 +24,8 @@ module sunnet {
                 throw Error("请勿返回未处理的消息！！！");
             }
             // 消息解析成功
-            suncore.System.addSocketMessage(cmd, newData);
+            // suncore.System.addSocketMessage(cmd, newData);
+            sunnet.NetConnectionNotifier.notify(cmd, newData);
             // 消息解析成功
             return [cmd, srvId, buffer, newData];
         }
