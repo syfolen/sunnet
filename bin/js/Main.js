@@ -36,7 +36,8 @@ setTimeout(function () {
         PSAppUtils.getInstance().pipeline.add(sunnet.NetConnectionHeartBeat);
         PSAppUtils.getInstance().pipeline.add(sunnet.NetConnectionWatchDog);
         PSAppUtils.getInstance().pipeline.add("recv", ProtobufDecoder);
-        PSAppUtils.getInstance().sendBytes(1, bytes2, "192.168.0.190", 3653);
+        PSAppUtils.getInstance().sendBytes(1, bytes2, "192.168.0.168", 3653);
+        PSAppUtils.getInstance().sendBytes(1, bytes2, "192.168.0.168", 3653);
         // PSAppUtils.getInstance().sendBytes(1, bytes, "127.0.0.1", 8999);
     })));
 }, 1000);

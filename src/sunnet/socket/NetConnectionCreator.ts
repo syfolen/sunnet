@@ -59,6 +59,10 @@ module sunnet {
 		 */
         send(cmd: number, bytes?: ArrayBuffer, ip?: string, port?: number): Array<any> {
             if (this.$needCreate(ip, port) == false) {
+                // 网络尚未成功连接
+                if (this.$connection.state === NetConnectionStateEnum.CONNECTING) {
+                    return null;
+                }
                 return [cmd, bytes, ip, port];
             }
             this.$connection.connect(ip, port, false);

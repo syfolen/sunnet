@@ -19,8 +19,6 @@ module ui.test {
         
             super.createChildren();
             this.createView(ui.test.TestPageUI.uiView);
-
         }
-
     }
 }

@@ -66,6 +66,10 @@ var sunnet;
          */
         NetConnectionCreator.prototype.send = function (cmd, bytes, ip, port) {
             if (this.$needCreate(ip, port) == false) {
+                // 网络尚未成功连接
+                if (this.$connection.state === sunnet.NetConnectionStateEnum.CONNECTING) {
+                    return null;
+                }
                 return [cmd, bytes, ip, port];
             }
             this.$connection.connect(ip, port, false);
