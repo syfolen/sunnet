@@ -4,7 +4,7 @@ module sunnet {
     /**
      * protobuf管理类
      */
-    export class ProtobufManager implements IProtobufManager {
+    export class ProtobufManager {
 
         private static $protos: Array<any> = [];
 
