@@ -8,7 +8,7 @@ setTimeout(() => {
 
 	sunnet.ProtobufManager.buildProto(["other/test.proto"]);
 
-	sunnet.NetConnectionNotifier.register(2, (data) => {
+	suncore.MessageNotifier.register(2, (data) => {
 		console.log(JSON.stringify(data));
 	}, null);
 

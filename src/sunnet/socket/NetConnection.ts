@@ -45,7 +45,7 @@ module sunnet {
          */
         private $pipeline: INetConnectionPipeline = new NetConnectionPipeline(this);
 
-        constructor(name) {
+        constructor(name: string) {
             super();
             // 网络连接名字
             this.$name = name;

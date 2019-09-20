@@ -5,7 +5,7 @@ setTimeout(function () {
     puremvc.Facade.getInstance().registerCommand(suncore.NotifyKey.CREATE_TIMELINE, suncore.CreateTimelineCommand);
     puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.CREATE_TIMELINE);
     sunnet.ProtobufManager.buildProto(["other/test.proto"]);
-    sunnet.NetConnectionNotifier.register(2, function (data) {
+    suncore.MessageNotifier.register(2, function (data) {
         console.log(JSON.stringify(data));
     }, null);
     suncore.System.addTask(suncore.ModuleEnum.SYSTEM, new suncore.SimpleTask(suncom.Handler.create(_this, function () {

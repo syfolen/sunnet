@@ -32,12 +32,6 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-/**
- * @license suncore.js (c) 2013 Binfeng Sun <christon.sun@qq.com>
- * Released under the Apache License, Version 2.0
- * https://github.com/syfolen/suncore
- * https://blog.csdn.net/syfolen
- */
 var suncore;
 (function (suncore) {
     var MessagePriorityEnum;
@@ -158,6 +152,22 @@ var suncore;
         return MessageManager;
     }());
     suncore.MessageManager = MessageManager;
+    var MessageNotifier = (function () {
+        function MessageNotifier() {
+        }
+        MessageNotifier.notify = function (cmd, data) {
+            MessageNotifier.inst.dispatchEvent(cmd.toString(), data);
+        };
+        MessageNotifier.register = function (cmd, method, caller) {
+            MessageNotifier.inst.addEventListener(cmd.toString(), method, caller);
+        };
+        MessageNotifier.unregister = function (cmd, method, caller) {
+            MessageNotifier.inst.removeEventListener(cmd.toString(), method, caller);
+        };
+        MessageNotifier.inst = new suncom.EventSystem();
+        return MessageNotifier;
+    }());
+    suncore.MessageNotifier = MessageNotifier;
     var MessageQueue = (function () {
         function MessageQueue(mod) {
             this.$queues = [];
@@ -213,9 +223,6 @@ var suncore;
                         }
                     }
                     dealCount += count;
-                    if ((suncom.Global.debugMode & suncom.DebugMode.ENGINE) === suncom.DebugMode.ENGINE) {
-                        ignoreCount && suncom.Logger.log("MessageQueue=> mod:" + this.$mod + ", priority:" + priority + ", count:" + count + ", ignoreCount:" + ignoreCount);
-                    }
                 }
             }
             if (remainCount === 0 && this.$messages0.length === 0) {

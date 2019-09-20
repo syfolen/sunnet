@@ -71,7 +71,7 @@ module sunnet {
 		 */
         send(cmd: number, bytes?: ArrayBuffer, ip?: string, port?: number): Array<any> {
             for (let i: number = this.$items.length - 1; i > -1; i--) {
-            // 数据将保持传递，直至处理完毕
+                // 数据将保持传递，直至处理完毕
                 const item: INetConnectionPipelineItem = this.$items[i];
                 if (item.type === "recv") {
                     continue;

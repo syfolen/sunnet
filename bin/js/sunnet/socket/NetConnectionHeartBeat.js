@@ -26,18 +26,18 @@ var sunnet;
          */
         NetConnectionHeartBeat.prototype.$onConnected = function () {
             this.$lastRecvTime = this.$lastSendTime = new Date().valueOf();
-            puremvc.Facade.getInstance().registerObserver(suncore.NotifyKey.ENTER_FRAME, this.$onEnterFrame, this);
+            puremvc.Facade.getInstance().registerObserver(suncore.NotifyKey.FRAME_ENTER, this.$onFrameEnter, this);
         };
         /**
          * 连接断开后不再发送心跳
          */
         NetConnectionHeartBeat.prototype.$onDisconnected = function () {
-            puremvc.Facade.getInstance().removeObserver(suncore.NotifyKey.ENTER_FRAME, this.$onEnterFrame, this);
+            puremvc.Facade.getInstance().removeObserver(suncore.NotifyKey.FRAME_ENTER, this.$onFrameEnter, this);
         };
         /**
          * 心跳验证
          */
-        NetConnectionHeartBeat.prototype.$onEnterFrame = function () {
+        NetConnectionHeartBeat.prototype.$onFrameEnter = function () {
             var timestamp = suncore.System.engine.getTime();
             // 心跳未回复
             if (this.$lastRecvTime < this.$lastSendTime) {
