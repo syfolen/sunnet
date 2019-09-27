@@ -152,16 +152,9 @@ module sunnet {
         }
 
         /**
-         * 发送protobuf数据
-         */
-        sendPB(cmd: number, data?: any, ip?: string, port?: number): void {
-            this.$pipeline.send(cmd, null, ip, port);
-        }
-
-        /**
          * 发送二进制数据
          */
-        sendBytes(cmd: number, bytes: Uint8Array, ip?: string, port?: number): void {
+        sendBytes(cmd: number, bytes: Uint8Array = null, ip?: string, port?: number): void {
             this.$pipeline.send(cmd, bytes, ip, port);
         }
 

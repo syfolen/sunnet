@@ -54,7 +54,7 @@ module sunnet {
                 // 记录心跳被发送的时间
                 this.$lastSendTime = timestamp;
                 // 发送心跳
-                this.$connection.sendPB(HeartbeatCommandEnum.REQUEST);
+                this.$connection.sendBytes(HeartbeatCommandEnum.REQUEST);
             }
         }
 

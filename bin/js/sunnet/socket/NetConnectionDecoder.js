@@ -25,7 +25,7 @@ var sunnet;
         /**
          * 数据接收拦截接口
          */
-        NetConnectionDecoder.prototype.recv = function (cmd, srvId, bytes, data) {
+        NetConnectionDecoder.prototype.recv = function (ccmdode, srvId, bytes, data) {
             var input = this.$connection.input;
             cmd = input.getUint16();
             srvId = input.getUint16();

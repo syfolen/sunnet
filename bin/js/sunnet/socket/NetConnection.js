@@ -129,15 +129,10 @@ var sunnet;
             this.$socket.flush();
         };
         /**
-         * 发送protobuf数据
-         */
-        NetConnection.prototype.sendPB = function (cmd, data, ip, port) {
-            this.$pipeline.send(cmd, null, ip, port);
-        };
-        /**
          * 发送二进制数据
          */
         NetConnection.prototype.sendBytes = function (cmd, bytes, ip, port) {
+            if (bytes === void 0) { bytes = null; }
             this.$pipeline.send(cmd, bytes, ip, port);
         };
         /**

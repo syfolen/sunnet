@@ -39,8 +39,9 @@ var sunnet;
             if (newData === bytes) {
                 throw Error("请勿返回未处理的消息！！！");
             }
-            // 消息解析成功
-            suncore.System.addSocketMessage(cmd, newData);
+            // 消息解析成功，需要将cmd转化为name才能让消息进入队列
+            var protocal = sunnet.ProtobufManager.getInstance().getProtocalByCommand(cmd);
+            suncore.System.addSocketMessage(protocal.Name, newData);
             // 消息解析成功
             return [cmd, srvId, bytes, newData];
         };

@@ -12,7 +12,7 @@ var sunnet;
             /**
              * 命令集合
              */
-            this.$codes = null;
+            this.$commands = null;
             /**
              * 协议信息集合
              */
@@ -35,22 +35,22 @@ var sunnet;
          */
         ProtobufManager.prototype.buildProtocal = function (url) {
             var json = Laya.loader.getRes("other/protocal.json");
-            this.$codes = Object.keys(json);
+            this.$commands = Object.keys(json);
             this.$protocals = json.data;
         };
         /**
          * 根据编号获取协议信息
          */
-        ProtobufManager.prototype.getProtocalByCode = function (code) {
-            return this.$protocals[code] || null;
+        ProtobufManager.prototype.getProtocalByCommand = function (cmd) {
+            return this.$protocals[cmd] || null;
         };
         /**
          * 根据名字获取协议信息
          */
         ProtobufManager.prototype.getProtocalByName = function (name) {
-            for (var i = 0; i < this.$codes.length; i++) {
-                var code = this.$codes[i];
-                var protocal = this.getProtocalByCode(code);
+            for (var i = 0; i < this.$commands.length; i++) {
+                var cmd = this.$commands[i];
+                var protocal = this.getProtocalByCommand(cmd);
                 if (protocal === null) {
                     continue;
                 }

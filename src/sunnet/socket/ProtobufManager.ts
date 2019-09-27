@@ -22,7 +22,7 @@ module sunnet {
         /**
          * 命令集合
          */
-        private $codes: Array<string> = null;
+        private $commands: Array<string> = null;
 
         /**
          * 协议信息集合
@@ -35,7 +35,7 @@ module sunnet {
         buildProto(url: string): void {
             const root = new Laya.Browser.window.protobuf.Root();
             const protostr = Laya.loader.getRes(url);
-            Laya.Browser.window.protobuf.parse(protostr, root);
+            Laya.Browser.window.protobuf.parse(protostr, root, { keepCase: true });
             this.$proto = root;
         }
 
@@ -43,25 +43,25 @@ module sunnet {
          * 构建协议信息
          */
         buildProtocal(url: string): void {
-            const json = Laya.loader.getRes("other/protocal.json");
-            this.$codes = Object.keys(json);
+            const json = Laya.loader.getRes(url);
+            this.$commands = Object.keys(json.data);
             this.$protocals = json.data;
         }
 
         /**
          * 根据编号获取协议信息
          */
-        getProtocalByCode(code): any {
-            return this.$protocals[code] || null;
+        getProtocalByCommand(cmd): any {
+            return this.$protocals[cmd] || null;
         }
 
         /**
          * 根据名字获取协议信息
          */
         getProtocalByName(name: string): any {
-            for (let i = 0; i < this.$codes.length; i++) {
-                const code = this.$codes[i];
-                const protocal = this.getProtocalByCode(code);
+            for (let i = 0; i < this.$commands.length; i++) {
+                const command = this.$commands[i];
+                const protocal = this.getProtocalByCommand(command);
                 if (protocal === null) {
                     continue;
                 }

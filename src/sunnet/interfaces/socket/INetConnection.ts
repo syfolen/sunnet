@@ -29,20 +29,12 @@ module sunnet {
         flush(): void;
 
         /**
-         * 发送protobuf数据
-         * @data: 只能是protobuf
-         * @ip: 目标地址，允许为空 
-         * @port: 目标端口，允许为空
-         */
-        sendPB(cmd: number, data?: any, ip?: string, port?: number): void;
-
-        /**
-         * 发送protobuf数据
+         * 发送数据
          * @bytes: 只能是Uint8Array
          * @ip: 目标地址，允许为空 
          * @port: 目标端口，允许为空
          */
-        sendBytes(cmd: number, bytes: Uint8Array, ip?: string, port?: number): void;
+        sendBytes(cmd: number, bytes?: Uint8Array, ip?: string, port?: number): void;
 
         /**
          * 网络连接名称
