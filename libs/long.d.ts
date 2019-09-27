@@ -23,7 +23,7 @@
 declare module dcodeIO {
     export class Long {
         static fromNumber(num: number): Long;
-        static fromString(str: string): Long;
+        static fromString(str: string, unsigned?: boolean): Long;
 
         low: number;
         high: number;
@@ -31,7 +31,7 @@ declare module dcodeIO {
         add(value: Long): Long;
         mul(value: Long): Long;
 
-        toNumber():number;
-        toString():string;
+        toNumber(): number;
+        toString(): string;
     }
 }

@@ -14,15 +14,11 @@ module sunnet {
         static buildProto(urls: Array<string>): void {
             for (let i: number = 0; i < urls.length; i++) {
                 const url: string = urls[i];
-                suncore.System.addTask(suncore.ModuleEnum.SYSTEM, new BuildProtoTask(url));
+                const root = new Laya.Browser.window.protobuf.Root();
+                const protostr = Laya.loader.getRes(url);
+                Laya.Browser.window.protobuf.parse(protostr, root);
+                ProtobufManager.$protos.push(root);
             }
-        }
-
-        /**
-         * 添加protobuf库
-         */
-        static addProto(root: any): void {
-            ProtobufManager.$protos.push(root);
         }
 
         /**

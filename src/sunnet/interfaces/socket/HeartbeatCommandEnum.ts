@@ -6,11 +6,11 @@ module sunnet {
         /**
          * 请求
          */
-        REQUEST = 0,
+        REQUEST = -1,
 
         /**
          * 回复
          */
-        RESPONSE
+        RESPONSE = -2
     }
 }

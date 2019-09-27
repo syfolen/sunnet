@@ -15,7 +15,9 @@ module sunnet {
 
             cmd = input.getUint16();
             srvId = input.getUint16();
+
             buffer = input.buffer.slice(input.pos);
+            input.pos += buffer.byteLength;
 
             if (cmd === HeartbeatCommandEnum.RESPONSE) {
                 if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) === suncom.DebugMode.NETWORK_HEARTBEAT) {
@@ -24,12 +26,12 @@ module sunnet {
             }
             else {
                 if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
-                    suncom.Logger.log("NetConnection=> 响应消息 cmd:" + cmd + ", srvId:" + srvId + ", length:" + input.bytesAvailable);
+                    suncom.Logger.log("NetConnection=> 响应消息 cmd:" + cmd + ", srvId:" + srvId + ", length:" + buffer.byteLength);
                 }
             }
 
             // 清除缓冲区中的数据
-            input.clear();
+            // input.clear();
 
             return [cmd, srvId, buffer, data];
         }

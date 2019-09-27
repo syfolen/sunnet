@@ -20,6 +20,7 @@ module sunnet {
             if (newData === null) {
                 return [cmd, srvId, buffer, data];
             }
+            suncom.Logger.log("消息解析成功 ==> " + JSON.stringify(newData));
             if (newData === buffer) {
                 throw Error("请勿返回未处理的消息！！！");
             }
