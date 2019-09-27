@@ -57,7 +57,7 @@ module sunnet {
 		/**
 		 * 数据发送拦截接口
 		 */
-        send(cmd: number, bytes?: ArrayBuffer, ip?: string, port?: number): Array<any> {
+        send(cmd: number, bytes?: Uint8Array, ip?: string, port?: number): Array<any> {
             if (this.$needCreate(ip, port) == false) {
                 // 网络尚未成功连接
                 if (this.$connection.state === NetConnectionStateEnum.CONNECTING) {

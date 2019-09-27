@@ -10,7 +10,7 @@ module sunnet {
         /**
          * 数据流
          */
-        bytes: ArrayBuffer;
+        bytes: Uint8Array;
 
         /**
          * 服务器地址

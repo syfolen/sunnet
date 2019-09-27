@@ -114,9 +114,9 @@ var sunnet;
         /**
          * 发送二进制数据
          */
-        NetConnection.prototype.send = function (buffer) {
+        NetConnection.prototype.send = function (bytes) {
             if (this.$state === sunnet.NetConnectionStateEnum.CONNECTED) {
-                this.$socket.send(buffer);
+                this.$socket.send(bytes);
             }
             if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
                 suncom.Logger.error("NetConnection=> sendBytes 发送数据失败！！！");
@@ -137,8 +137,8 @@ var sunnet;
         /**
          * 发送二进制数据
          */
-        NetConnection.prototype.sendBytes = function (cmd, buffer, ip, port) {
-            this.$pipeline.send(cmd, buffer, ip, port);
+        NetConnection.prototype.sendBytes = function (cmd, bytes, ip, port) {
+            this.$pipeline.send(cmd, bytes, ip, port);
         };
         /**
          * 连接成功

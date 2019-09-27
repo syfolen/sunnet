@@ -10,29 +10,29 @@ module sunnet {
 		/**
 		 * 数据接收拦截
 		 */
-        recv(cmd: number, srvId: number, buffer: any, data?: any): Array<any> {
+        recv(cmd: number, srvId: number, bytes: Uint8Array, data?: any): Array<any> {
             // 若 data 不为 void 0 ，则说明己处理
             if (data !== void 0) {
-                return [cmd, srvId, buffer, data];
+                return [cmd, srvId, bytes, data];
             }
             // 消息解析失败时返回 null
-            const newData: any = this.$decode(cmd, buffer);
+            const newData: any = this.$decode(cmd, bytes);
             if (newData === null) {
-                return [cmd, srvId, buffer, data];
+                return [cmd, srvId, bytes, data];
             }
             suncom.Logger.log("消息解析成功 ==> " + JSON.stringify(newData));
-            if (newData === buffer) {
+            if (newData === bytes) {
                 throw Error("请勿返回未处理的消息！！！");
             }
             // 消息解析成功
             suncore.System.addSocketMessage(cmd, newData);
             // 消息解析成功
-            return [cmd, srvId, buffer, newData];
+            return [cmd, srvId, bytes, newData];
         }
 
         /**
          * 数据解析执行函数
          */
-        protected abstract $decode(cmd: number, buffer: ArrayBuffer): any;
+        protected abstract $decode(cmd: number, bytes: Uint8Array): any;
     }
 }

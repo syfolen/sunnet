@@ -14,11 +14,11 @@ module sunnet {
         /**
          * 数据发送拦截接口
          */
-        send(cmd: number, bytes?: ArrayBuffer, ip?: string, port?: number): Array<any>;
+        send(cmd: number, bytes?: Uint8Array, ip?: string, port?: number): Array<any>;
 
         /**
          * 数据接收拦截接口
          */
-        recv(cmd: number, srvId: number, buffer: ArrayBuffer, data?: any): Array<any>;
+        recv(cmd: number, srvId: number, bytes: Uint8Array, data?: any): Array<any>;
     }
 }

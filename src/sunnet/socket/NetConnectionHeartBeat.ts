@@ -61,12 +61,12 @@ module sunnet {
 		/**
 		 * 数据接收拦截接口
 		 */
-        recv(cmd: number, srvId: number, buffer: ArrayBuffer, data?: any): Array<any> {
+        recv(cmd: number, srvId: number, bytes: Uint8Array, data?: any): Array<any> {
             if (cmd === HeartbeatCommandEnum.RESPONSE) {
                 // 记录心跳响应的时间
                 this.$lastRecvTime = suncore.System.engine.getTime();
             }
-            return [cmd, srvId, buffer, data];
+            return [cmd, srvId, bytes, data];
         }
     }
 }

@@ -246,6 +246,7 @@ var suncore;
         };
         MessageQueue.prototype.$dealSocketMessage = function (message) {
             var data = message.data;
+            MessageNotifier.notify(data.cmd, data.socData);
         };
         MessageQueue.prototype.$dealTriggerMessage = function (message) {
             if (message.timeout > System.getModuleTimestamp(this.$mod)) {

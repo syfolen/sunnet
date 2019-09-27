@@ -29,7 +29,7 @@ var sunnet;
             // 写入包头
             output.writeUint16(cmd);
             output.writeUint16(0);
-            // 写入包体
+            // 写入包体，这里实际上可以直接写入Uint8Array
             bytes !== null && output.writeArrayBuffer(bytes);
             this.$connection.flush();
             if (cmd === sunnet.HeartbeatCommandEnum.REQUEST) {

@@ -135,9 +135,9 @@ module sunnet {
         /**
          * 发送二进制数据
          */
-        send(buffer: ArrayBuffer): void {
+        send(bytes: Uint8Array): void {
             if (this.$state === NetConnectionStateEnum.CONNECTED) {
-                this.$socket.send(buffer);
+                this.$socket.send(bytes);
             }
             if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
                 suncom.Logger.error("NetConnection=> sendBytes 发送数据失败！！！");
@@ -161,8 +161,8 @@ module sunnet {
         /**
          * 发送二进制数据
          */
-        sendBytes(cmd: number, buffer: ArrayBuffer, ip?: string, port?: number): void {
-            this.$pipeline.send(cmd, buffer, ip, port);
+        sendBytes(cmd: number, bytes: Uint8Array, ip?: string, port?: number): void {
+            this.$pipeline.send(cmd, bytes, ip, port);
         }
 
         /**

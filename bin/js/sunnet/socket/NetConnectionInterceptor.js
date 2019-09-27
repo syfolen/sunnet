@@ -37,8 +37,8 @@ var sunnet;
         /**
          * 数据接收拦截接口
          */
-        NetConnectionInterceptor.prototype.recv = function (cmd, srvId, buffer, data) {
-            return [cmd, srvId, buffer, data];
+        NetConnectionInterceptor.prototype.recv = function (cmd, srvId, bytes, data) {
+            return [cmd, srvId, bytes, data];
         };
         return NetConnectionInterceptor;
     }());

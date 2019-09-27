@@ -19,9 +19,12 @@ var ProtobufDecoder = /** @class */ (function (_super) {
     /**
      * 数据解析执行函数
      */
-    ProtobufDecoder.prototype.$decode = function (cmd, buffer) {
+    ProtobufDecoder.prototype.$decode = function (cmd, bytes) {
+        if (cmd === 1) {
+            return sunnet.ProtobufManager.getInstance().decode("msg.LoginTest", bytes);
+        }
         if (cmd === 2) {
-            return sunnet.ProtobufManager.decode("msg.ProtoTest2", new Uint8Array(buffer));
+            return sunnet.ProtobufManager.getInstance().decode("msg.LoginRet", bytes);
         }
         return null;
     };

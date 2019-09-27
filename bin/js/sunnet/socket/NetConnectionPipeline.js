@@ -53,8 +53,8 @@ var sunnet;
         /**
          * 数据接收拦截接口
          */
-        NetConnectionPipeline.prototype.recv = function (cmd, srvId, buffer, data) {
-            var params = [cmd, srvId, buffer, data];
+        NetConnectionPipeline.prototype.recv = function (cmd, srvId, bytes, data) {
+            var params = [cmd, srvId, bytes, data];
             // 数据将保持传递，直至处理完毕，或返回 null
             for (var i = 0; i < this.$items.length; i++) {
                 var item = this.$items[i];

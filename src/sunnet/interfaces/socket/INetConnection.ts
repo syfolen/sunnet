@@ -21,7 +21,7 @@ module sunnet {
         /**
          * 发送二进制数据
          */
-        send(buffer: ArrayBuffer): void;
+        send(bytes: Uint8Array): void;
 
         /**
          * 发送数据
@@ -38,11 +38,11 @@ module sunnet {
 
         /**
          * 发送protobuf数据
-         * @bytes: 只能是ArrayBuffer
+         * @bytes: 只能是Uint8Array
          * @ip: 目标地址，允许为空 
          * @port: 目标端口，允许为空
          */
-        sendBytes(cmd: number, bytes: ArrayBuffer, ip?: string, port?: number): void;
+        sendBytes(cmd: number, bytes: Uint8Array, ip?: string, port?: number): void;
 
         /**
          * 网络连接名称

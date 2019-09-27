@@ -42,8 +42,8 @@ module sunnet {
 		/**
 		 * 数据接收拦截接口
 		 */
-        recv(cmd: number, srvId: number, buffer: any, data?: any): Array<any> {
-            let params: Array<any> = [cmd, srvId, buffer, data];
+        recv(cmd: number, srvId: number, bytes: Uint8Array, data?: any): Array<any> {
+            let params: Array<any> = [cmd, srvId, bytes, data];
 
             // 数据将保持传递，直至处理完毕，或返回 null
             for (let i: number = 0; i < this.$items.length; i++) {
@@ -69,7 +69,7 @@ module sunnet {
 		/**
 		 * 数据发送拦截接口
 		 */
-        send(cmd: number, bytes?: ArrayBuffer, ip?: string, port?: number): Array<any> {
+        send(cmd: number, bytes?: Uint8Array, ip?: string, port?: number): Array<any> {
             for (let i: number = this.$items.length - 1; i > -1; i--) {
                 // 数据将保持传递，直至处理完毕
                 const item: INetConnectionPipelineItem = this.$items[i];

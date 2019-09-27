@@ -63,12 +63,12 @@ var sunnet;
         /**
          * 数据接收拦截接口
          */
-        NetConnectionHeartBeat.prototype.recv = function (cmd, srvId, buffer, data) {
+        NetConnectionHeartBeat.prototype.recv = function (cmd, srvId, bytes, data) {
             if (cmd === sunnet.HeartbeatCommandEnum.RESPONSE) {
                 // 记录心跳响应的时间
                 this.$lastRecvTime = suncore.System.engine.getTime();
             }
-            return [cmd, srvId, buffer, data];
+            return [cmd, srvId, bytes, data];
         };
         return NetConnectionHeartBeat;
     }(sunnet.NetConnectionInterceptor));

@@ -25,11 +25,13 @@ var sunnet;
         /**
          * 数据接收拦截接口
          */
-        NetConnectionDecoder.prototype.recv = function (cmd, srvId, buffer, data) {
+        NetConnectionDecoder.prototype.recv = function (cmd, srvId, bytes, data) {
             var input = this.$connection.input;
             cmd = input.getUint16();
             srvId = input.getUint16();
-            buffer = input.buffer.slice(input.pos);
+            var buffer = input.buffer.slice(input.pos);
+            input.pos += buffer.byteLength;
+            bytes = new Uint8Array(buffer);
             if (cmd === sunnet.HeartbeatCommandEnum.RESPONSE) {
                 if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) === suncom.DebugMode.NETWORK_HEARTBEAT) {
                     suncom.Logger.log("响应心跳");
@@ -37,12 +39,12 @@ var sunnet;
             }
             else {
                 if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
-                    suncom.Logger.log("NetConnection=> 响应消息 cmd:" + cmd + ", srvId:" + srvId + ", length:" + input.bytesAvailable);
+                    suncom.Logger.log("NetConnection=> 响应消息 cmd:" + cmd + ", srvId:" + srvId + ", length:" + bytes.byteLength);
                 }
             }
             // 清除缓冲区中的数据
-            input.clear();
-            return [cmd, srvId, buffer, data];
+            // input.clear();
+            return [cmd, srvId, bytes, data];
         };
         return NetConnectionDecoder;
     }(sunnet.NetConnectionInterceptor));

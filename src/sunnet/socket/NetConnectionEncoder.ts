@@ -9,14 +9,14 @@ module sunnet {
 		/**
 		 * 拦截数据
 		 */
-        send(cmd: number, bytes: ArrayBuffer, ip?: string, port?: number): Array<any> {
+        send(cmd: number, bytes: Uint8Array, ip?: string, port?: number): Array<any> {
             const output: Laya.Byte = this.$connection.output;
 
             // 写入包头
             output.writeUint16(cmd);
             output.writeUint16(0);
 
-            // 写入包体
+            // 写入包体，这里实际上可以直接写入Uint8Array
             bytes !== null && output.writeArrayBuffer(bytes);
             this.$connection.flush();
 
