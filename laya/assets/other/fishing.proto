@@ -1,0 +1,164 @@
+syntax = "proto3";
+
+package msg;
+
+enum RetCodeType {
+	RetCode_Success 			= 0;		// 成功
+	RetCode_AccountIllegal 		= 1;		// 账号非法
+	RetCode_DBErr		 		= 2;		// 数据库错误
+}
+
+// 登录
+message LoginTest {
+	string Acount = 1;						// 账号，64字节
+	string Nick = 2;						// 昵称
+	//string Device = 3;
+	//string DeviceUUID = 4;
+	//string MobileOS = 5;
+	//string MobileCompany = 6;
+	string Timezone = 7;					// 时区
+}
+
+message LoginRet {
+	RetCodeType RetCode 		= 1;		// 登录结果码
+	string RetDesc 				= 2;		// 登录结果描述
+	repeated MultiAttr Attrs 	= 3;		// 玩家属性集
+	int64 SvrTime				= 4;		// 服务器时间(ms)，客户端可以保存服务器时间戳与客户端时间戳间隔，之后的客户端时间戳
+											// 获取时都会减去间隔，得到与服务器一致的时间戳
+}
+
+// 属性类型
+enum AttrType {
+	//option allow_alias 	= true;
+	Attr_UID				= 0;			// 玩家UID，in32
+	Attr_Account 			= 1;			// 玩家账号，string
+	Attr_Nick				= 2;			// 玩家昵称，string
+	Attr_Level				= 3;			// 玩家等级，int32
+	Attr_Exp				= 4;			// 玩家经验，int32
+	Attr_Gold				= 5;			// 玩家金币，int64
+	Attr_Diamond			= 6;			// 玩家钻石，int32
+	Attr_CannonID			= 7;			// 玩家加农炮ID，int32(枚举)
+}
+
+// 属性标识
+enum AttrFlag {
+	AttrFlag_Null			= 0;
+	AttrFlag_Level			= 1;			// 0x1
+	AttrFlag_Exp			= 2;			// 0x2
+	AttrFlag_Gold			= 4;			// 0x4
+	AttrFlag_Diamond		= 8;			// 0x8
+	AttrFlag_CannonID		= 16;			// 0x10
+}
+
+// 更新单个属性，int32类型
+message SigleAttr_int32 {
+	AttrType Type 	= 1;
+	int32 Val 		= 2;
+}
+// 更新单个属性，int64类型
+message SigleAttr_int64 {
+	AttrType Type 	= 1;
+	int64 Val 		= 2;
+}
+// 更新单个属性，string类型
+message SigleAttr_string {
+	AttrType Type 	= 1;
+	string Val 		= 2;
+}
+// 更新多个属性
+message MultiAttr {
+	repeated SigleAttr_int32 Attr_int32 	= 1;
+	repeated SigleAttr_int64 Attr_int64 	= 2;
+	repeated SigleAttr_string Attr_string 	= 3;
+}
+
+// 玩家所在渔场位置
+enum FisheryPos {
+	FisheryPos_Center_Bottom = 0;	// 中间底部
+	FisheryPos_Center_Top 	= 1;	// 中间上方
+	FisheryPos_Left_Bottom 	= 2;	// 左下
+	FisheryPos_Right_Bottom	= 3;	// 右下
+	FisheryPos_Left_Top 	= 4;	// 左上
+	FisheryPos_Right_Top 	= 5;	// 右上
+}
+
+// 鱼移除类型
+enum FishRemoveType {
+	FishRemove_Kill = 0;			// 鱼被击杀
+	FishRemove_Timeout = 1;			// 鱼超时(游出渔场)
+}
+
+// 进入渔场
+message EnterFishery {
+	bool Enter 				= 1;	// true请求进入，false退出
+	int32 FisheryID_Cfg 	= 2;	// 渔场ID
+}
+
+// 渔场玩家
+message Fisherman {
+	int32 PlrUID = 1;				// 玩家UID
+	string Nick = 2;				// 玩家昵称
+	int32 CannonID_Cfg = 3;			// 玩家加农炮ID
+	FisheryPos Pos = 4;				// 玩家位置
+	bool Enter = 5;					// 进入/退出，退出的同时移除对应的渔场内子弹
+}
+
+// 渔场鱼对象
+message FishObj {
+	int32 FishID = 1;				// 鱼分配ID
+	int32 FishID_Cfg = 2;			// 鱼表ID
+	int64 CreateTime = 3;			// 鱼生成时间(ms)
+	int32 PathID_Cfg = 4;			// 鱼路径表ID
+}
+
+// 渔场子弹对象
+message BulletObj {
+	int32 BulletID = 1;				// 子弹分配ID
+	int32 CannonID_Cfg = 2;			// 子弹所属加农炮ID
+	int64 CreateTime = 3;			// 子弹生成时间(ms)
+	int32 PlrUID = 4;				// 拥有者(玩家)UID
+	int32 TargetX = 6; 				// 目标位置X
+	int32 TargetY = 7; 				// 目标位置Y
+	int32 FishID = 8;				// 目标鱼分配ID
+	repeated int32 SkillID_Cfg = 9;	// 子弹所属玩家当前携带技能表ID
+}
+
+// 渔场信息
+message FisheryInfo {
+	repeated Fisherman Fishers = 1;	// 玩家集
+	repeated FishObj Fishs = 2;		// 鱼集
+	repeated BulletObj Bullets = 3;	// 子弹集
+	int32 FisheryID_Cfg = 4;		// 渔场表ID
+}
+
+// 鱼潮来临
+message BunchComing {
+	int32 BunchID_Cfg = 1;			// 鱼潮表ID
+}
+
+// 发射子弹
+message CannonFire {
+	int32 PlrUID = 1;				// 玩家UID
+	int32 TargetX = 2;				// 目标位置X
+	int32 TargetY = 3;				// 目标位置Y
+	int32 FishID = 4;				// 目标鱼ID(锁定状态下)
+}
+
+// 释放技能
+message SkillFire {
+	int32 PlrUID = 1;				// 玩家UID 
+	int32 SkillID_Cfg = 2;			// 技能表ID
+}
+
+// 击中鱼
+message BulletHit {
+	int32 BulletID = 1;				// 子弹ID
+	int32 FishID = 2;				// 鱼ID
+}
+
+// 鱼移除
+message FishRemove {
+	FishRemoveType Type = 1;		// 移除类型 
+	int32 KillerUID = 2;			// 玩家UID
+	int32 FishID = 3;				// 鱼ID
+}
