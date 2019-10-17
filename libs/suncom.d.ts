@@ -397,12 +397,12 @@ declare module suncom {
         /**
          * 服务端地址
          */
-        static readonly TCP_IP: string;
+        static TCP_IP: string;
 
         /**
          * 服务端端口
          */
-        static readonly TCP_PORT: number;
+        static TCP_PORT: number;
 
         /**
          * 游戏版本

@@ -69,7 +69,7 @@ module sunnet {
         private $onDoingConnect(): void {
             // 只有在网络处于未连接状态时才会进行重连
             if (this.$connection.state === NetConnectionStateEnum.DISCONNECTED) {
-                this.$connection.connect(suncom.Global.TCP_IP, suncom.Global.TCP_PORT, true);
+                this.$connection.connect(this.$ip, this.$port, true);
             }
             else {
                 if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
