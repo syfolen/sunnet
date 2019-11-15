@@ -90,6 +90,7 @@ module sunnet {
          * 编码
          */
         encode(name: string, data: any): Uint8Array {
+            console.log(`打包数据成功 ==> ${JSON.stringify(data)}`);
             return this.getProtoClass(name).encode(data).finish();
         }
 

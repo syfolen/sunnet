@@ -280,8 +280,8 @@ declare module suncore {
         // 系统命令
         static readonly STARTUP: string;
         static readonly SHUTDOWN: string;
-        static readonly FRAME_ENTER: string;
-        static readonly FRAME_LATER: string;
+        static readonly ENTER_FRAME: string;
+        static readonly LATER_FRAME: string;
 
         // 时间轴命令
         static readonly CREATE_TIMELINE: string;

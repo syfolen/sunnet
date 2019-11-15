@@ -61,7 +61,7 @@ module sunnet {
             // 消息解析失败
             if (params[3] === void 0) {
                 if (suncom.Global.debugMode) {
-                    suncom.Logger.warn(`NetConnectionPipeline=> decode 意外的指令 cmd:${params[0].toString(16)}, buff:${params[1] ? "[Object]" : "null"}`);
+                    suncom.Logger.warn(`NetConnectionPipeline=> decode 意外的指令 cmd:${params[0].toString()}, buff:${params[1] ? "[Object]" : "null"}`);
                 }
             }
         }

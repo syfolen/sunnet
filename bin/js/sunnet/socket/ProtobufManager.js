@@ -27,15 +27,15 @@ var sunnet;
         ProtobufManager.prototype.buildProto = function (url) {
             var root = new Laya.Browser.window.protobuf.Root();
             var protostr = Laya.loader.getRes(url);
-            Laya.Browser.window.protobuf.parse(protostr, root);
+            Laya.Browser.window.protobuf.parse(protostr, root, { keepCase: true });
             this.$proto = root;
         };
         /**
          * 构建协议信息
          */
         ProtobufManager.prototype.buildProtocal = function (url) {
-            var json = Laya.loader.getRes("other/protocal.json");
-            this.$commands = Object.keys(json);
+            var json = Laya.loader.getRes(url);
+            this.$commands = Object.keys(json.data);
             this.$protocals = json.data;
         };
         /**
@@ -49,8 +49,8 @@ var sunnet;
          */
         ProtobufManager.prototype.getProtocalByName = function (name) {
             for (var i = 0; i < this.$commands.length; i++) {
-                var cmd = this.$commands[i];
-                var protocal = this.getProtocalByCommand(cmd);
+                var command = this.$commands[i];
+                var protocal = this.getProtocalByCommand(command);
                 if (protocal === null) {
                     continue;
                 }

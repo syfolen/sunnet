@@ -22,11 +22,11 @@ module sunnet {
 
             if (cmd === HeartbeatCommandEnum.REQUEST) {
                 if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) === suncom.DebugMode.NETWORK_HEARTBEAT) {
-                    suncom.Logger.log(`发送数据 cmd:${cmd.toString(16)}, bytes:${bytes === null ? 0 : bytes.byteLength}`);
+                    suncom.Logger.log(`发送数据 cmd:${cmd.toString()}, bytes:${bytes === null ? 0 : bytes.byteLength}`);
                 }
             }
             else if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
-                suncom.Logger.log(`发送数据 cmd:${cmd.toString(16)}, bytes:${bytes === null ? 0 : bytes.byteLength}`);
+                suncom.Logger.log(`发送数据 cmd:${cmd.toString()}, bytes:${bytes === null ? 0 : bytes.byteLength}`);
             }
 
             return null;

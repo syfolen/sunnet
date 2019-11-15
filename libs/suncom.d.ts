@@ -395,16 +395,6 @@ declare module suncom {
         static height: number;
 
         /**
-         * 服务端地址
-         */
-        static TCP_IP: string;
-
-        /**
-         * 服务端端口
-         */
-        static TCP_PORT: number;
-
-        /**
          * 游戏版本
          */
         static readonly VERSION: string;

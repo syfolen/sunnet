@@ -21,6 +21,10 @@ var sunnet;
         __extends(NetConnectionWatchDog, _super);
         function NetConnectionWatchDog(connection) {
             var _this = _super.call(this, connection) || this;
+            /**
+             * 重连次数
+             */
+            _this.$retryCount = 0;
             _this.$connection.addEventListener(sunnet.EventKey.KILL_WATCH_DOG, _this.$onKillWatchDog, _this);
             return _this;
         }
@@ -35,6 +39,7 @@ var sunnet;
          * 当网络连接被建立时，需要移除检测狗
          */
         NetConnectionWatchDog.prototype.$onConnected = function () {
+            this.$retryCount = 0;
             this.$onKillWatchDog();
         };
         /**
@@ -45,9 +50,13 @@ var sunnet;
                 if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) === suncom.DebugMode.NETWORK_HEARTBEAT) {
                     suncom.Logger.log("NetConnectionWatchDog=> \u7F51\u7EDC\u8FDE\u63A5\u5F02\u5E38\uFF0C1000\u6BEB\u79D2\u540E\u91CD\u8FDE\uFF01");
                 }
+                if (this.$retryCount >= suncom.Global.MAX_RETRY_TIME) {
+                    puremvc.Facade.getInstance().sendNotification(sunnet.NotifyKey.SOCKET_STATE_CHANGE, 2);
+                    return;
+                }
                 this.$ip = this.$connection.ip;
                 this.$port = this.$connection.port;
-                this.$timerId = suncore.System.addTimer(suncore.ModuleEnum.SYSTEM, 1000, this.$onDoingConnect, this);
+                this.$timerId = suncore.System.addTimer(suncore.ModuleEnum.SYSTEM, 15000, this.$onDoingConnect, this);
             }
         };
         /**
@@ -62,7 +71,8 @@ var sunnet;
         NetConnectionWatchDog.prototype.$onDoingConnect = function () {
             // 只有在网络处于未连接状态时才会进行重连
             if (this.$connection.state === sunnet.NetConnectionStateEnum.DISCONNECTED) {
-                this.$connection.connect(suncom.Global.TCP_IP, suncom.Global.TCP_PORT, true);
+                this.$retryCount++;
+                this.$connection.connect(this.$ip, this.$port, true);
             }
             else {
                 if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
