@@ -51,7 +51,7 @@ module sunnet {
         /**
          * 根据编号获取协议信息
          */
-        getProtocalByCommand(cmd): any {
+        getProtocalByCommand(cmd: any): any {
             return this.$protocals[cmd] || null;
         }
 
@@ -82,7 +82,7 @@ module sunnet {
         /**
          * 根据protobuf枚举定义
          */
-        getProtoEnum(name) {
+        getProtoEnum(name: string): any {
             return this.getProtoClass(name).values;
         }
 
