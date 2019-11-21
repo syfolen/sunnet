@@ -3,6 +3,7 @@ module sunnet {
 
     /**
      * 网络状态枚举
+     * export
      */
     export enum NetConnectionStateEnum {
         /**

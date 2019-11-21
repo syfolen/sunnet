@@ -4,6 +4,7 @@ module sunnet {
     /**
      * 网络状态检测狗
      * 用于检测网络是否掉线
+     * export
      */
     export class NetConnectionWatchDog extends NetConnectionInterceptor {
 
@@ -54,15 +55,17 @@ module sunnet {
         protected $onDisconnected(byError: boolean): void {
             if (byError === true) {
                 if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) === suncom.DebugMode.NETWORK_HEARTBEAT) {
-                    suncom.Logger.log(`NetConnectionWatchDog=> 网络连接异常，1000毫秒后重连！`);
+                    suncom.Logger.log(`NetConnectionWatchDog=> 网络连接异常，${Config.TCP_RETRY_DELAY}毫秒后重连！`);
                 }
                 if (this.$retryCount >= Config.TCP_MAX_RETRY_TIME) {
+                    this.$retryCount = 0;
                     puremvc.Facade.getInstance().sendNotification(NotifyKey.SOCKET_STATE_CHANGE, 2);
                     return;
                 }
                 this.$ip = this.$connection.ip;
                 this.$port = this.$connection.port;
                 this.$timerId = suncore.System.addTimer(suncore.ModuleEnum.SYSTEM, Config.TCP_RETRY_DELAY, this.$onDoingConnect, this);
+                puremvc.Facade.getInstance().sendNotification(NotifyKey.SOCKET_STATE_ANOMALY, this.$retryCount);
             }
         }
 
@@ -80,6 +83,7 @@ module sunnet {
             // 只有在网络处于未连接状态时才会进行重连
             if (this.$connection.state === NetConnectionStateEnum.DISCONNECTED) {
                 this.$retryCount++;
+                puremvc.Facade.getInstance().sendNotification(NotifyKey.SOCKET_RETRY_CONNECT, this.$retryCount);
                 this.$connection.connect(this.$ip, this.$port, true);
             }
             else {

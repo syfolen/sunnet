@@ -4,6 +4,7 @@ module sunnet {
     /**
      * WebSocket Protobuf数据 解码器
      * 解码器可存在多个，任意一个解码成功，则会自动跳过其它解码器
+     * export
      */
     export abstract class NetConnectionProtobufDecoder extends NetConnectionInterceptor {
 
@@ -26,13 +27,15 @@ module sunnet {
             }
             // 消息解析成功，需要将cmd转化为name才能让消息进入队列
             const protocal = ProtobufManager.getInstance().getProtocalByCommand(cmd);
-            suncore.System.addSocketMessage(protocal.Name, newData);
+            // suncore.System.addSocketMessage(protocal.Name, newData);
+            suncore.MessageNotifier.notify(protocal.Name, newData);
             // 消息解析成功
             return [cmd, srvId, bytes, newData];
         }
 
         /**
          * 数据解析执行函数
+         * export
          */
         protected abstract $decode(cmd: number, bytes: Uint8Array): any;
     }

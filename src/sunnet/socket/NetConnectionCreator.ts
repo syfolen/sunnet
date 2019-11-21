@@ -1,6 +1,8 @@
 
 module sunnet {
-
+    /**
+     * export
+     */
     export class NetConnectionCreator extends NetConnectionInterceptor {
 
         /**

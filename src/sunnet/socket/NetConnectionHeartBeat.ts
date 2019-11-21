@@ -3,6 +3,7 @@ module sunnet {
 
     /**
      * 心跳检测器
+     * export
      */
     export class NetConnectionHeartBeat extends NetConnectionInterceptor {
 

@@ -3,13 +3,16 @@ module sunnet {
 
     /**
      * protobuf管理类
+     * export
      */
     export class ProtobufManager {
         /**
          * 单例对象
          */
         private static instance: ProtobufManager = new ProtobufManager();
-
+        /**
+         * export
+         */
         static getInstance(): ProtobufManager {
             return ProtobufManager.instance;
         }
@@ -31,6 +34,7 @@ module sunnet {
 
         /**
          * 构建protobuf
+         * export
          */
         buildProto(url: string): void {
             const root = new Laya.Browser.window.protobuf.Root();
@@ -41,6 +45,7 @@ module sunnet {
 
         /**
          * 构建协议信息
+         * export
          */
         buildProtocal(url: string): void {
             const json = Laya.loader.getRes(url);
@@ -57,6 +62,7 @@ module sunnet {
 
         /**
          * 根据名字获取协议信息
+         * export
          */
         getProtocalByName(name: string): any {
             for (let i = 0; i < this.$commands.length; i++) {
@@ -81,6 +87,7 @@ module sunnet {
 
         /**
          * 根据protobuf枚举定义
+         * export
          */
         getProtoEnum(name: string): any {
             return this.getProtoClass(name).values;
@@ -88,6 +95,7 @@ module sunnet {
 
         /**
          * 编码
+         * export
          */
         encode(name: string, data: any): Uint8Array {
             console.log(`打包数据成功 ==> ${JSON.stringify(data)}`);
@@ -96,6 +104,7 @@ module sunnet {
 
         /**
          * 解码
+         * export
          */
         decode(name: string, bytes: Uint8Array): any {
             return this.getProtoClass(name).decode(bytes);

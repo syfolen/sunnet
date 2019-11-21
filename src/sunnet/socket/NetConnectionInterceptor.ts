@@ -4,6 +4,7 @@ module sunnet {
     /**
      * 网络消息拦截器
      * 自定义拦截器需要继承此类
+     * export
      */
     export abstract class NetConnectionInterceptor implements INetConnectionInterceptor {
 

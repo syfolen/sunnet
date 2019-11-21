@@ -1,8 +1,35 @@
 
+/**
+ * MIT License
+ * 
+ * Copyright (c) 2019 Binfeng Sun<christon.sun@qq.com>
+ * https://blog.csdn.net/syfolen
+ * https://github.com/syfolen/sunnet
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ * export
+ */
 module sunnet {
 
     /**
      * 网络连接象
+     * export
      */
     export class NetConnection extends suncom.EventSystem implements INetConnection {
         /**
@@ -45,6 +72,9 @@ module sunnet {
          */
         private $pipeline: INetConnectionPipeline = new NetConnectionPipeline(this);
 
+        /**
+         * export
+         */
         constructor(name: string) {
             super();
             // 网络连接名字
@@ -56,6 +86,7 @@ module sunnet {
         /**
          * 请求连接
          * @byDog: 是否由检测狗发起，默认为false
+         * export
          */
         connect(ip: string, port: number, byDog: boolean): void {
             // 正常关闭连接
@@ -87,6 +118,7 @@ module sunnet {
         /**
          * 关闭 websocket
          * @byError: 是否因为网络错误而关闭，默认为false
+         * export
          */
         close(byError: boolean = false): void {
             // 主动断网
@@ -100,7 +132,7 @@ module sunnet {
                 // 清除队列消息
                 this.dispatchEvent(EventKey.CLEAR_MESSAGE_QUEUE);
                 // 异常断网时，需要通知
-                puremvc.Facade.getInstance().sendNotification(NotifyKey.SOCKET_STATE_CHANGE, 0);
+                puremvc.Facade.getInstance().sendNotification(NotifyKey.SOCKET_STATE_CHANGE, 1);
             }
 
             if (this.$socket !== null) {
@@ -153,6 +185,7 @@ module sunnet {
 
         /**
          * 发送二进制数据
+         * export
          */
         sendBytes(cmd: number, bytes: Uint8Array = null, ip?: string, port?: number): void {
             this.$pipeline.send(cmd, bytes, ip, port);
@@ -170,7 +203,7 @@ module sunnet {
             // 若是异常断网成功重连，则需要通知网络状态变更
             if (this.$closedByError === true) {
                 this.$closedByError = false;
-                puremvc.Facade.getInstance().sendNotification(NotifyKey.SOCKET_STATE_CHANGE, 1);
+                puremvc.Facade.getInstance().sendNotification(NotifyKey.SOCKET_STATE_CHANGE, 0);
             }
 
             // 网络重连成功
@@ -227,6 +260,7 @@ module sunnet {
 
         /**
          * 网络连接状态
+         * export
          */
         get state(): NetConnectionStateEnum {
             return this.$state;
@@ -248,6 +282,7 @@ module sunnet {
 
         /**
          * 获取消息管道对象
+         * export
          */
         get pipeline(): INetConnectionPipeline {
             return this.$pipeline;

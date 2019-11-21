@@ -3,6 +3,7 @@ module sunnet {
 
     /**
      * WebSocket 数据编码器，负责打包发送前的数据
+     * export
      */
     export class NetConnectionEncoder extends NetConnectionInterceptor {
 

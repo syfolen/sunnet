@@ -4,6 +4,7 @@ module sunnet {
     /**
      * WebSocket Protobuf数据 解码器
      * 解码器可存在多个，任意一个解码成功，则会自动跳过其它解码器
+     * export
      */
     export class NetConnectionDecoder extends NetConnectionInterceptor {
 
