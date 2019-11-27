@@ -1,6 +1,8 @@
 
 module sunnet {
-
+    /**
+     * 套接字数据在消息管道中传递时的数据结构
+     */
     export interface ISocketData {
         /**
          * 协议号

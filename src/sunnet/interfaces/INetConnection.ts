@@ -1,6 +1,5 @@
 
 module sunnet {
-
     /**
      * 网络连接对象接口
      * export

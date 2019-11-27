@@ -1,6 +1,5 @@
 
 module sunnet {
-
     /**
      * 消息处理管道
      * 此类以责任链模式处理即将发送或己接收的网络数据，专门为 core.NetConnection 服务

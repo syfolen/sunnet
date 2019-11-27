@@ -2,6 +2,7 @@ var sunnet;
 (function (sunnet) {
     /**
      * protobuf管理类
+     * export
      */
     var ProtobufManager = /** @class */ (function () {
         function ProtobufManager() {
@@ -18,11 +19,15 @@ var sunnet;
              */
             this.$protocals = null;
         }
+        /**
+         * export
+         */
         ProtobufManager.getInstance = function () {
             return ProtobufManager.instance;
         };
         /**
          * 构建protobuf
+         * export
          */
         ProtobufManager.prototype.buildProto = function (url) {
             var root = new Laya.Browser.window.protobuf.Root();
@@ -32,6 +37,7 @@ var sunnet;
         };
         /**
          * 构建协议信息
+         * export
          */
         ProtobufManager.prototype.buildProtocal = function (url) {
             var json = Laya.loader.getRes(url);
@@ -46,6 +52,7 @@ var sunnet;
         };
         /**
          * 根据名字获取协议信息
+         * export
          */
         ProtobufManager.prototype.getProtocalByName = function (name) {
             for (var i = 0; i < this.$commands.length; i++) {
@@ -68,18 +75,22 @@ var sunnet;
         };
         /**
          * 根据protobuf枚举定义
+         * export
          */
         ProtobufManager.prototype.getProtoEnum = function (name) {
             return this.getProtoClass(name).values;
         };
         /**
          * 编码
+         * export
          */
         ProtobufManager.prototype.encode = function (name, data) {
+            console.log("\u6253\u5305\u6570\u636E\u6210\u529F ==> " + JSON.stringify(data));
             return this.getProtoClass(name).encode(data).finish();
         };
         /**
          * 解码
+         * export
          */
         ProtobufManager.prototype.decode = function (name, bytes) {
             return this.getProtoClass(name).decode(bytes);

@@ -16,6 +16,7 @@ var sunnet;
     /**
      * 网络状态检测狗
      * 用于检测网络是否掉线
+     * export
      */
     var NetConnectionWatchDog = /** @class */ (function (_super) {
         __extends(NetConnectionWatchDog, _super);
@@ -48,15 +49,17 @@ var sunnet;
         NetConnectionWatchDog.prototype.$onDisconnected = function (byError) {
             if (byError === true) {
                 if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) === suncom.DebugMode.NETWORK_HEARTBEAT) {
-                    suncom.Logger.log("NetConnectionWatchDog=> \u7F51\u7EDC\u8FDE\u63A5\u5F02\u5E38\uFF0C1000\u6BEB\u79D2\u540E\u91CD\u8FDE\uFF01");
+                    suncom.Logger.log("NetConnectionWatchDog=> \u7F51\u7EDC\u8FDE\u63A5\u5F02\u5E38\uFF0C" + sunnet.Config.TCP_RETRY_DELAY + "\u6BEB\u79D2\u540E\u91CD\u8FDE\uFF01");
                 }
-                if (this.$retryCount >= suncom.Global.MAX_RETRY_TIME) {
+                if (this.$retryCount >= sunnet.Config.TCP_MAX_RETRY_TIME) {
+                    this.$retryCount = 0;
                     puremvc.Facade.getInstance().sendNotification(sunnet.NotifyKey.SOCKET_STATE_CHANGE, 2);
                     return;
                 }
                 this.$ip = this.$connection.ip;
                 this.$port = this.$connection.port;
-                this.$timerId = suncore.System.addTimer(suncore.ModuleEnum.SYSTEM, 15000, this.$onDoingConnect, this);
+                this.$timerId = suncore.System.addTimer(suncore.ModuleEnum.SYSTEM, sunnet.Config.TCP_RETRY_DELAY, this.$onDoingConnect, this);
+                puremvc.Facade.getInstance().sendNotification(sunnet.NotifyKey.SOCKET_STATE_ANOMALY, this.$retryCount);
             }
         };
         /**
@@ -72,6 +75,7 @@ var sunnet;
             // 只有在网络处于未连接状态时才会进行重连
             if (this.$connection.state === sunnet.NetConnectionStateEnum.DISCONNECTED) {
                 this.$retryCount++;
+                puremvc.Facade.getInstance().sendNotification(sunnet.NotifyKey.SOCKET_RETRY_CONNECT, this.$retryCount);
                 this.$connection.connect(this.$ip, this.$port, true);
             }
             else {

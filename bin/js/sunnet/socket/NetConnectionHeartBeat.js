@@ -15,6 +15,7 @@ var sunnet;
 (function (sunnet) {
     /**
      * 心跳检测器
+     * export
      */
     var NetConnectionHeartBeat = /** @class */ (function (_super) {
         __extends(NetConnectionHeartBeat, _super);
@@ -26,19 +27,19 @@ var sunnet;
          */
         NetConnectionHeartBeat.prototype.$onConnected = function () {
             this.$lastRecvTime = this.$lastSendTime = new Date().valueOf();
-            puremvc.Facade.getInstance().registerObserver(suncore.NotifyKey.FRAME_ENTER, this.$onFrameEnter, this);
+            puremvc.Facade.getInstance().registerObserver(suncore.NotifyKey.ENTER_FRAME, this.$onEnterFrame, this);
         };
         /**
          * 连接断开后不再发送心跳
          */
         NetConnectionHeartBeat.prototype.$onDisconnected = function () {
-            puremvc.Facade.getInstance().removeObserver(suncore.NotifyKey.FRAME_ENTER, this.$onFrameEnter, this);
+            puremvc.Facade.getInstance().removeObserver(suncore.NotifyKey.ENTER_FRAME, this.$onEnterFrame, this);
         };
         /**
          * 心跳验证
          */
-        NetConnectionHeartBeat.prototype.$onFrameEnter = function () {
-            var timestamp = suncore.System.engine.getTime();
+        NetConnectionHeartBeat.prototype.$onEnterFrame = function () {
+            var timestamp = suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM);
             // 心跳未回复
             if (this.$lastRecvTime < this.$lastSendTime) {
                 // 若时间己超过6秒，则视为网络掉线
@@ -57,16 +58,16 @@ var sunnet;
                 // 记录心跳被发送的时间
                 this.$lastSendTime = timestamp;
                 // 发送心跳
-                this.$connection.sendBytes(sunnet.HeartbeatCommandEnum.REQUEST);
+                this.$connection.sendBytes(sunnet.Config.HEARTBEAT_REQUEST_COMMAND);
             }
         };
         /**
          * 数据接收拦截接口
          */
         NetConnectionHeartBeat.prototype.recv = function (cmd, srvId, bytes, data) {
-            if (cmd === sunnet.HeartbeatCommandEnum.RESPONSE) {
+            if (cmd === sunnet.Config.HEARTBEAT_RESPONSE_COMMAND) {
                 // 记录心跳响应的时间
-                this.$lastRecvTime = suncore.System.engine.getTime();
+                this.$lastRecvTime = suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM);
             }
             return [cmd, srvId, bytes, data];
         };

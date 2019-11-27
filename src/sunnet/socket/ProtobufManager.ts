@@ -1,6 +1,5 @@
 
 module sunnet {
-
     /**
      * protobuf管理类
      * export
@@ -10,6 +9,7 @@ module sunnet {
          * 单例对象
          */
         private static instance: ProtobufManager = new ProtobufManager();
+
         /**
          * export
          */

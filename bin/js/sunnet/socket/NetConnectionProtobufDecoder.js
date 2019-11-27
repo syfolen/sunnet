@@ -16,6 +16,7 @@ var sunnet;
     /**
      * WebSocket Protobuf数据 解码器
      * 解码器可存在多个，任意一个解码成功，则会自动跳过其它解码器
+     * export
      */
     var NetConnectionProtobufDecoder = /** @class */ (function (_super) {
         __extends(NetConnectionProtobufDecoder, _super);
@@ -41,7 +42,7 @@ var sunnet;
             }
             // 消息解析成功，需要将cmd转化为name才能让消息进入队列
             var protocal = sunnet.ProtobufManager.getInstance().getProtocalByCommand(cmd);
-            suncore.System.addSocketMessage(protocal.Name, newData);
+            sunnet.MessageNotifier.notify(protocal.Name, newData);
             // 消息解析成功
             return [cmd, srvId, bytes, newData];
         };

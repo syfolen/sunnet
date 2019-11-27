@@ -1,18 +1,28 @@
 var sunnet;
 (function (sunnet) {
-    var Config = /** @class */ (function () {
-        function Config() {
-        }
+    /**
+     * export
+     */
+    var Config;
+    (function (Config) {
         /**
          * 重连延时
+         * export
          */
         Config.TCP_RETRY_DELAY = 20 * 1000;
         /**
          * 最大重连次数
+         * export
          */
-        Config.TCP_RETRY_MAX_COUNT = 10;
-        return Config;
-    }());
-    sunnet.Config = Config;
+        Config.TCP_MAX_RETRY_TIME = 10;
+        /**
+         * 心跳发送指令
+         */
+        Config.HEARTBEAT_REQUEST_COMMAND = -1;
+        /**
+         * 心跳接收指令
+         */
+        Config.HEARTBEAT_RESPONSE_COMMAND = -1;
+    })(Config = sunnet.Config || (sunnet.Config = {}));
 })(sunnet || (sunnet = {}));
 //# sourceMappingURL=Config.js.map

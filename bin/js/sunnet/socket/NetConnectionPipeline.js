@@ -70,7 +70,7 @@ var sunnet;
             // 消息解析失败
             if (params[3] === void 0) {
                 if (suncom.Global.debugMode) {
-                    suncom.Logger.warn("NetConnectionPipeline=> decode \u610F\u5916\u7684\u6307\u4EE4 cmd:" + params[0].toString(16) + ", buff:" + (params[1] ? "[Object]" : "null"));
+                    suncom.Logger.warn("NetConnectionPipeline=> decode \u610F\u5916\u7684\u6307\u4EE4 cmd:" + params[0].toString() + ", buff:" + (params[1] ? "[Object]" : "null"));
                 }
             }
         };

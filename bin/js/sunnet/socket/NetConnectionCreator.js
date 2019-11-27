@@ -13,6 +13,9 @@ var __extends = (this && this.__extends) || (function () {
 })();
 var sunnet;
 (function (sunnet) {
+    /**
+     * export
+     */
     var NetConnectionCreator = /** @class */ (function (_super) {
         __extends(NetConnectionCreator, _super);
         function NetConnectionCreator(connection) {

@@ -1,6 +1,5 @@
 
 module sunnet {
-
     /**
      * 消息处理管道接口
      * export

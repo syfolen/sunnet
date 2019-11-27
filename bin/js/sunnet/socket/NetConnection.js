@@ -11,13 +11,43 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+/**
+ * MIT License
+ *
+ * Copyright (c) 2019 Binfeng Sun<christon.sun@qq.com>
+ * https://blog.csdn.net/syfolen
+ * https://github.com/syfolen/sunnet
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ * export
+ */
 var sunnet;
 (function (sunnet) {
     /**
      * 网络连接象
+     * export
      */
     var NetConnection = /** @class */ (function (_super) {
         __extends(NetConnection, _super);
+        /**
+         * export
+         */
         function NetConnection(name) {
             var _this = _super.call(this) || this;
             /**
@@ -45,6 +75,7 @@ var sunnet;
         /**
          * 请求连接
          * @byDog: 是否由检测狗发起，默认为false
+         * export
          */
         NetConnection.prototype.connect = function (ip, port, byDog) {
             // 正常关闭连接
@@ -72,6 +103,7 @@ var sunnet;
         /**
          * 关闭 websocket
          * @byError: 是否因为网络错误而关闭，默认为false
+         * export
          */
         NetConnection.prototype.close = function (byError) {
             if (byError === void 0) { byError = false; }
@@ -86,7 +118,7 @@ var sunnet;
                 // 清除队列消息
                 this.dispatchEvent(sunnet.EventKey.CLEAR_MESSAGE_QUEUE);
                 // 异常断网时，需要通知
-                puremvc.Facade.getInstance().sendNotification(sunnet.NotifyKey.SOCKET_STATE_CHANGE, 0);
+                puremvc.Facade.getInstance().sendNotification(sunnet.NotifyKey.SOCKET_STATE_CHANGE, 1);
             }
             if (this.$socket !== null) {
                 if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
@@ -130,6 +162,7 @@ var sunnet;
         };
         /**
          * 发送二进制数据
+         * export
          */
         NetConnection.prototype.sendBytes = function (cmd, bytes, ip, port) {
             if (bytes === void 0) { bytes = null; }
@@ -146,7 +179,7 @@ var sunnet;
             // 若是异常断网成功重连，则需要通知网络状态变更
             if (this.$closedByError === true) {
                 this.$closedByError = false;
-                puremvc.Facade.getInstance().sendNotification(sunnet.NotifyKey.SOCKET_STATE_CHANGE, 1);
+                puremvc.Facade.getInstance().sendNotification(sunnet.NotifyKey.SOCKET_STATE_CHANGE, 0);
             }
             // 网络重连成功
             this.dispatchEvent(sunnet.EventKey.SOCKET_CONNECTED);
@@ -208,6 +241,7 @@ var sunnet;
         Object.defineProperty(NetConnection.prototype, "state", {
             /**
              * 网络连接状态
+             * export
              */
             get: function () {
                 return this.$state;
@@ -238,6 +272,7 @@ var sunnet;
         Object.defineProperty(NetConnection.prototype, "pipeline", {
             /**
              * 获取消息管道对象
+             * export
              */
             get: function () {
                 return this.$pipeline;

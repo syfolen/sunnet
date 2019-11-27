@@ -4,7 +4,6 @@ module sunnet {
      * export
      */
     export class NetConnectionCreator extends NetConnectionInterceptor {
-
         /**
          * 等待发送的消息队列
          */

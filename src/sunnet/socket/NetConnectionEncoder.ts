@@ -1,6 +1,5 @@
 
 module sunnet {
-
     /**
      * WebSocket 数据编码器，负责打包发送前的数据
      * export
@@ -21,7 +20,7 @@ module sunnet {
             bytes !== null && output.writeArrayBuffer(bytes);
             this.$connection.flush();
 
-            if (cmd === HeartbeatCommandEnum.REQUEST) {
+            if (cmd === Config.HEARTBEAT_REQUEST_COMMAND) {
                 if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) === suncom.DebugMode.NETWORK_HEARTBEAT) {
                     suncom.Logger.log(`发送数据 cmd:${cmd.toString()}, bytes:${bytes === null ? 0 : bytes.byteLength}`);
                 }

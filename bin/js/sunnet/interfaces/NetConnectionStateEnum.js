@@ -2,6 +2,7 @@ var sunnet;
 (function (sunnet) {
     /**
      * 网络状态枚举
+     * export
      */
     var NetConnectionStateEnum;
     (function (NetConnectionStateEnum) {

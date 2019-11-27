@@ -1,7 +1,7 @@
-// const ip = "192.168.0.190";
-// const port = 3653;
-var ip = "127.0.0.1";
-var port = 8999;
+var ip = "192.168.0.168";
+var port = 3653;
+// const ip = "127.0.0.1";
+// const port = 8999;
 var Main = /** @class */ (function () {
     function Main() {
         //程序入口
@@ -12,9 +12,8 @@ var Main = /** @class */ (function () {
         ], Laya.Handler.create(this, this.$onLoadProto));
     }
     Main.prototype.$onLoadProto = function () {
-        puremvc.Facade.getInstance().registerCommand(suncore.NotifyKey.CREATE_TIMELINE, suncore.CreateTimelineCommand);
-        puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.CREATE_TIMELINE);
-        suncore.System.timeStamp.resume();
+        puremvc.Facade.getInstance().registerCommand(suncore.NotifyKey.START_TIMELINE, suncore.StartTimelineCommand);
+        puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.START_TIMELINE, suncore.ModuleEnum.SYSTEM);
         sunnet.ProtobufManager.getInstance().buildProto("other/fishing.proto");
         sunnet.ProtobufManager.getInstance().buildProtocal("other/protocal.json");
         PSAppUtils.getInstance().pipeline.add("recv", sunnet.NetConnectionDecoder);

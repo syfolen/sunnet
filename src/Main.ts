@@ -1,10 +1,10 @@
 
 
-// const ip = "192.168.0.190";
-// const port = 3653;
+const ip = "192.168.0.168";
+const port = 3653;
 
-const ip = "127.0.0.1";
-const port = 8999;
+// const ip = "127.0.0.1";
+// const port = 8999;
 
 class Main {
 
@@ -19,10 +19,8 @@ class Main {
 	}
 
 	private $onLoadProto(): void {
-		puremvc.Facade.getInstance().registerCommand(suncore.NotifyKey.CREATE_TIMELINE, suncore.CreateTimelineCommand);
-		puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.CREATE_TIMELINE);
-
-		suncore.System.timeStamp.resume();
+		puremvc.Facade.getInstance().registerCommand(suncore.NotifyKey.START_TIMELINE, suncore.StartTimelineCommand);
+		puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.START_TIMELINE, suncore.ModuleEnum.SYSTEM);
 
 		sunnet.ProtobufManager.getInstance().buildProto("other/fishing.proto");
 		sunnet.ProtobufManager.getInstance().buildProtocal("other/protocal.json");

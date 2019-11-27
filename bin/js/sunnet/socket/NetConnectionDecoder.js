@@ -16,6 +16,7 @@ var sunnet;
     /**
      * WebSocket Protobuf数据 解码器
      * 解码器可存在多个，任意一个解码成功，则会自动跳过其它解码器
+     * export
      */
     var NetConnectionDecoder = /** @class */ (function (_super) {
         __extends(NetConnectionDecoder, _super);
@@ -32,7 +33,7 @@ var sunnet;
             var buffer = input.buffer.slice(input.pos);
             input.pos += buffer.byteLength;
             bytes = new Uint8Array(buffer);
-            if (cmd === sunnet.HeartbeatCommandEnum.RESPONSE) {
+            if (cmd === sunnet.Config.HEARTBEAT_RESPONSE_COMMAND) {
                 if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) === suncom.DebugMode.NETWORK_HEARTBEAT) {
                     suncom.Logger.log("响应心跳");
                 }

@@ -26,7 +26,6 @@
  * export
  */
 module sunnet {
-
     /**
      * 网络连接象
      * export

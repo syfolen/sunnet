@@ -1,6 +1,5 @@
 
 module sunnet {
-
     /**
      * 心跳检测器
      * export
@@ -36,7 +35,7 @@ module sunnet {
 		 * 心跳验证
 		 */
         private $onEnterFrame(): void {
-            const timestamp: number = suncore.System.engine.getTime();
+            const timestamp: number = suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM);
             // 心跳未回复
             if (this.$lastRecvTime < this.$lastSendTime) {
                 // 若时间己超过6秒，则视为网络掉线
@@ -55,7 +54,7 @@ module sunnet {
                 // 记录心跳被发送的时间
                 this.$lastSendTime = timestamp;
                 // 发送心跳
-                this.$connection.sendBytes(HeartbeatCommandEnum.REQUEST);
+                this.$connection.sendBytes(Config.HEARTBEAT_REQUEST_COMMAND);
             }
         }
 
@@ -63,9 +62,9 @@ module sunnet {
 		 * 数据接收拦截接口
 		 */
         recv(cmd: number, srvId: number, bytes: Uint8Array, data?: any): Array<any> {
-            if (cmd === HeartbeatCommandEnum.RESPONSE) {
+            if (cmd === Config.HEARTBEAT_RESPONSE_COMMAND) {
                 // 记录心跳响应的时间
-                this.$lastRecvTime = suncore.System.engine.getTime();
+                this.$lastRecvTime = suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM);
             }
             return [cmd, srvId, bytes, data];
         }

@@ -1,6 +1,5 @@
 
 module sunnet {
-
     /**
      * 网络消息拦截器接口
      * export
