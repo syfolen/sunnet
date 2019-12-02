@@ -54,6 +54,15 @@ module sunnet {
         }
 
         /**
+         * 构建协议信息
+         * export
+         */
+        buildProtocalJson(json: any): void {
+            this.$commands = Object.keys(json);
+            this.$protocals = json;
+        }
+
+        /**
          * 根据编号获取协议信息
          */
         getProtocalByCommand(cmd: any): any {
@@ -98,7 +107,9 @@ module sunnet {
          * export
          */
         encode(name: string, data: any): Uint8Array {
-            console.log(`打包数据成功 ==> ${JSON.stringify(data)}`);
+            if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
+                console.log(`打包数据成功 ==> ${JSON.stringify(data)}`);
+            }
             return this.getProtoClass(name).encode(data).finish();
         }
 
