@@ -10,7 +10,11 @@ module sunnet {
 		 * 拦截数据
 		 */
         send(cmd: number, bytes: Uint8Array, ip?: string, port?: number): Array<any> {
-            const output: Laya.Byte = this.$connection.output;
+            const output: Laya.Byte = this.$connection.output || null;
+            if (output === null) {
+                console.error(`Encoder 网络己断开！！！`);
+                return;
+            }
 
             // 写入包头
             output.writeUint16(cmd);

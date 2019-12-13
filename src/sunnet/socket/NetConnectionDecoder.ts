@@ -11,7 +11,11 @@ module sunnet {
 		 * 数据接收拦截接口
 		 */
         recv(cmd: number, srvId: number, bytes: Uint8Array, data?: any): Array<any> {
-            const input: Laya.Byte = this.$connection.input;
+            const input: Laya.Byte = this.$connection.input || null;
+            if (input === null) {
+                console.error(`Decoder 网络己断开！！！`);
+                return;
+            }
 
             cmd = input.getUint16();
             srvId = input.getUint16();
