@@ -26,7 +26,11 @@ var sunnet;
          * 拦截数据
          */
         NetConnectionEncoder.prototype.send = function (cmd, bytes, ip, port) {
-            var output = this.$connection.output;
+            var output = this.$connection.output || null;
+            if (output === null) {
+                console.error("Encoder \u7F51\u7EDC\u5DF1\u65AD\u5F00\uFF01\uFF01\uFF01");
+                return;
+            }
             // 写入包头
             output.writeUint16(cmd);
             output.writeUint16(0);

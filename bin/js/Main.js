@@ -1,4 +1,4 @@
-var ip = "192.168.0.168";
+var ip = "192.168.0.190";
 var port = 3653;
 // const ip = "127.0.0.1";
 // const port = 8999;
@@ -16,6 +16,8 @@ var Main = /** @class */ (function () {
         puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.START_TIMELINE, suncore.ModuleEnum.SYSTEM);
         sunnet.ProtobufManager.getInstance().buildProto("other/fishing.proto");
         sunnet.ProtobufManager.getInstance().buildProtocal("other/protocal.json");
+        sunnet.Config.HEARTBEAT_REQUEST_COMMAND = 103;
+        sunnet.Config.HEARTBEAT_RESPONSE_COMMAND = 103;
         PSAppUtils.getInstance().pipeline.add("recv", sunnet.NetConnectionDecoder);
         PSAppUtils.getInstance().pipeline.add("send", sunnet.NetConnectionEncoder);
         PSAppUtils.getInstance().pipeline.add("send", sunnet.NetConnectionCreator);

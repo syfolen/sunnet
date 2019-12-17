@@ -26,7 +26,7 @@ var sunnet;
          * 当网络成功连接时，开始心跳
          */
         NetConnectionHeartBeat.prototype.$onConnected = function () {
-            this.$lastRecvTime = this.$lastSendTime = new Date().valueOf();
+            this.$lastRecvTime = this.$lastSendTime = suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM);
             puremvc.Facade.getInstance().registerObserver(suncore.NotifyKey.ENTER_FRAME, this.$onEnterFrame, this);
         };
         /**
@@ -42,23 +42,24 @@ var sunnet;
             var timestamp = suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM);
             // 心跳未回复
             if (this.$lastRecvTime < this.$lastSendTime) {
-                // 若时间己超过6秒，则视为网络掉线
-                if (timestamp - this.$lastSendTime > 6000) {
+                // 若时间己超过5秒，则视为网络掉线
+                if (timestamp - this.$lastSendTime > 1000) {
                     // 更新最新接收消息的时间，防止任务连续被派发
                     this.$lastRecvTime = this.$lastSendTime;
                     // 强行关闭网络连接
                     this.$connection.close(true);
                 }
             }
-            // 若心跳己回复，则5秒后再次发送心跳
-            else if (timestamp - this.$lastSendTime > 5000) {
+            // 若心跳己回复，则3秒后再次发送心跳
+            else if (timestamp - this.$lastSendTime > 3000) {
                 if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
                     suncom.Logger.log("send heatbeat=> current timestamp:" + suncom.Common.formatDate("hh:mm:ss", timestamp));
                 }
                 // 记录心跳被发送的时间
                 this.$lastSendTime = timestamp;
                 // 发送心跳
-                this.$connection.sendBytes(sunnet.Config.HEARTBEAT_REQUEST_COMMAND);
+                var bytes = sunnet.ProtobufManager.getInstance().encode("msg.Common_Heartbeat", { Cnt: 1 });
+                this.$connection.sendBytes(sunnet.Config.HEARTBEAT_REQUEST_COMMAND, bytes);
             }
         };
         /**

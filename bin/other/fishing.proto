@@ -2,25 +2,60 @@ syntax = "proto3";
 
 package msg;
 
-enum RetCodeType {
-	RetCode_Success 			= 0;		// 成功
-	RetCode_AccountIllegal 		= 1;		// 账号非法
-	RetCode_DBErr		 		= 2;		// 数据库错误
+// 错误返回
+enum ErrorCode {
+	Verify = 0;						// 服务器校验错误
+	LoginDuplicate = 1;				// 账号重复登录，旧的账号会被T出
+}
+
+message Common_Err {
+	string Desc = 1;				// 错误描述
+	ErrorCode Code = 2;				// 错误码
+}
+
+// Tips
+enum TipPos {
+	Center = 0;						// 0 中间飘字
+	Lamp = 1;						// 0x1 跑马灯
+	Win = 2;						// 0x2 弹窗
+}
+
+message Common_Tip {
+	TipPos Pos = 1;					// 位置类型
+	string Tips = 2;				// Tips串
+}
+
+// 客户端报错
+message Common_ClientErr {
+	string Dump = 1;				// 客户端报错堆栈信息
+}
+
+// 心跳
+message Common_Heartbeat {
+	int32 Cnt = 1;					// 发送次数计数
 }
 
 // 登录
+enum LoginCode {
+	Success 			= 0;		// 成功
+	AccountIllegal 		= 1;		// 账号非法
+	DBErr		 		= 2;		// 数据库错误
+	NoService		 	= 3;		// 服务器维护中
+}
+
 message LoginTest {
 	string Acount = 1;						// 账号，64字节
 	string Nick = 2;						// 昵称
 	//string Device = 3;
 	//string DeviceUUID = 4;
-	//string MobileOS = 5;
+	string MobileOS = 5;
 	//string MobileCompany = 6;
 	string Timezone = 7;					// 时区
+	string RobotKey = 8;					// 机器人码
 }
 
 message LoginRet {
-	RetCodeType RetCode 		= 1;		// 登录结果码
+	LoginCode RetCode 			= 1;		// 登录结果码
 	string RetDesc 				= 2;		// 登录结果描述
 	repeated MultiAttr Attrs 	= 3;		// 玩家属性集
 	int64 SvrTime				= 4;		// 服务器时间(ms)，客户端可以保存服务器时间戳与客户端时间戳间隔，之后的客户端时间戳
@@ -30,24 +65,43 @@ message LoginRet {
 // 属性类型
 enum AttrType {
 	//option allow_alias 	= true;
-	Attr_UID				= 0;			// 玩家UID，in32
-	Attr_Account 			= 1;			// 玩家账号，string
-	Attr_Nick				= 2;			// 玩家昵称，string
-	Attr_Level				= 3;			// 玩家等级，int32
-	Attr_Exp				= 4;			// 玩家经验，int32
-	Attr_Gold				= 5;			// 玩家金币，int64
-	Attr_Diamond			= 6;			// 玩家钻石，int32
-	Attr_CannonID			= 7;			// 玩家加农炮ID，int32(枚举)
+	Attr_UID				= 0;		// 玩家UID，in32
+	Attr_Account 			= 1;		// 玩家账号，string
+	Attr_Nick				= 2;		// 玩家昵称，string
+	Attr_Level				= 3;		// 玩家等级，int32
+	Attr_Exp				= 4;		// 玩家经验，int32
+	Attr_Gold				= 5;		// 玩家金币，int64
+	Attr_Diamond			= 6;		// 玩家钻石，int32
+
+	Attr_CannonID1			= 7;		// 玩家新手场加农炮ID，int32
+	Attr_CannonID2			= 8;		// 玩家初级场加农炮ID，int32
+	Attr_CannonID3			= 9;		// 玩家中级场加农炮ID，int32
+	Attr_CannonID4			= 10;		// 玩家高级场加农炮ID，int32
+
+	Attr_JPRoll1			= 11;		// 玩家新手场幸运抽奖进度，int32
+	Attr_JPRoll2			= 12;		// 玩家初级场幸运抽奖进度，int32
+	Attr_JPRoll3			= 13;		// 玩家中级场幸运抽奖进度，int32
+	Attr_JPRoll4			= 14;		// 玩家高级场幸运抽奖进度，int32
 }
 
-// 属性标识
+// 属性标识，服务器使用
 enum AttrFlag {
-	AttrFlag_Null			= 0;
-	AttrFlag_Level			= 1;			// 0x1
-	AttrFlag_Exp			= 2;			// 0x2
-	AttrFlag_Gold			= 4;			// 0x4
-	AttrFlag_Diamond		= 8;			// 0x8
-	AttrFlag_CannonID		= 16;			// 0x10
+	Flag_Null		= 0;
+
+	Level			= 1;			// 0x1
+	Exp				= 2;			// 0x2
+	Gold			= 4;			// 0x4
+	Diamond			= 8;			// 0x8
+
+	Abandon			= 16;			// 0x10
+	CannonID		= 32;			// 0x20
+	Ratio			= 64;			// 0x40
+	JPRoll			= 128;			// 0x80
+
+	Status			= 256;			// 0x100
+	Effect			= 512;			// 0x200
+
+	Vip				= 1024;			// 0x400
 }
 
 // 更新单个属性，int32类型
@@ -74,18 +128,17 @@ message MultiAttr {
 
 // 玩家所在渔场位置
 enum FisheryPos {
-	FisheryPos_Center_Bottom = 0;	// 中间底部
-	FisheryPos_Center_Top 	= 1;	// 中间上方
-	FisheryPos_Left_Bottom 	= 2;	// 左下
-	FisheryPos_Right_Bottom	= 3;	// 右下
-	FisheryPos_Left_Top 	= 4;	// 左上
-	FisheryPos_Right_Top 	= 5;	// 右上
+	Center_Bottom 	= 0;	// 中间底部
+	Center_Top 		= 1;	// 中间上方
+	Left_Bottom 	= 2;	// 左下
+	Right_Bottom	= 3;	// 右下
+	Left_Top 		= 4;	// 左上
+	Right_Top 		= 5;	// 右上
 }
 
 // 鱼移除类型
 enum FishRemoveType {
-	FishRemove_Kill = 0;			// 鱼被击杀
-	FishRemove_Timeout = 1;			// 鱼超时(游出渔场)
+	Kill = 0;				// 鱼被击杀
 }
 
 // 进入渔场
@@ -101,6 +154,11 @@ message Fisherman {
 	int32 CannonID_Cfg = 3;			// 玩家加农炮ID
 	FisheryPos Pos = 4;				// 玩家位置
 	bool Enter = 5;					// 进入/退出，退出的同时移除对应的渔场内子弹
+	int64 Gold = 6;					// 玩家金币
+	int32 Diamond = 7;				// 玩家钻石
+	int32 Ratio = 8;				// 子弹倍数
+
+	repeated EffectStatus Effect = 9;	// 特殊效果状态同步
 }
 
 // 渔场鱼对象
@@ -108,7 +166,8 @@ message FishObj {
 	int32 FishID = 1;				// 鱼分配ID
 	int32 FishID_Cfg = 2;			// 鱼表ID
 	int64 CreateTime = 3;			// 鱼生成时间(ms)
-	int32 PathID_Cfg = 4;			// 鱼路径表ID
+	string PathName = 4;			// 鱼路径名字
+	int64 TideTime = 5;				// 鱼潮来临时间
 }
 
 // 渔场子弹对象
@@ -117,10 +176,11 @@ message BulletObj {
 	int32 CannonID_Cfg = 2;			// 子弹所属加农炮ID
 	int64 CreateTime = 3;			// 子弹生成时间(ms)
 	int32 PlrUID = 4;				// 拥有者(玩家)UID
-	int32 TargetX = 6; 				// 目标位置X
-	int32 TargetY = 7; 				// 目标位置Y
-	int32 FishID = 8;				// 目标鱼分配ID
-	repeated int32 SkillID_Cfg = 9;	// 子弹所属玩家当前携带技能表ID
+	int32 TargetX = 5; 				// 目标位置X
+	int32 TargetY = 6; 				// 目标位置Y
+	int32 FishID = 7;				// 目标鱼分配ID
+	repeated int32 SkillID_Cfg = 8;	// 子弹所属玩家当前携带技能表ID
+	int32 Ratio = 9;				// 子弹的倍数
 }
 
 // 渔场信息
@@ -132,8 +192,15 @@ message FisheryInfo {
 }
 
 // 鱼潮来临
-message BunchComing {
-	int32 BunchID_Cfg = 1;			// 鱼潮表ID
+message TideComing {
+	int32 ChapterID_Cfg = 1;		// 鱼潮对应章节表ID 
+}
+
+// 渔场玩家货币同步
+message FishermanMoney {
+	int32 PlrUID = 1;				// 玩家UID
+	int64 Gold = 2;					// 身上金币值
+	int32 Diamond = 3;				// 身上钻石值
 }
 
 // 发射子弹
@@ -142,6 +209,8 @@ message CannonFire {
 	int32 TargetX = 2;				// 目标位置X
 	int32 TargetY = 3;				// 目标位置Y
 	int32 FishID = 4;				// 目标鱼ID(锁定状态下)
+	repeated BulletObj Bullet = 5;	// 发射子弹
+	repeated FishermanMoney Money = 6;	// 服务器下发子弹消息时，同步发射玩家货币信息 
 }
 
 // 释放技能
@@ -154,6 +223,7 @@ message SkillFire {
 message BulletHit {
 	int32 BulletID = 1;				// 子弹ID
 	int32 FishID = 2;				// 鱼ID
+	repeated FishermanMoney Money = 3;	// 服务器下发子弹消息时，同步发射玩家货币信息
 }
 
 // 鱼移除
@@ -161,4 +231,87 @@ message FishRemove {
 	FishRemoveType Type = 1;		// 移除类型 
 	int32 KillerUID = 2;			// 玩家UID
 	int32 FishID = 3;				// 鱼ID
+	int64 RewardGold = 4;			// 击杀获得金币值
+	repeated FishermanMoney Money = 5;	// 服务器下发击杀鱼消息时，同步击杀玩家货币信息
+	repeated EffectStatus Effect = 6;	// 特殊效果状态同步
+}
+
+// 调整倍数
+message CannonRatio {
+	int32 PlrUID = 1;				// 玩家UID 
+	int32 Ratio = 2;				// 倍数
+}
+
+// 特殊效果类型
+enum DieEffectType {
+	Effect_Null				= 0;
+	Lightning			= 1;	// 连锁闪电
+	Vortex				= 2;	// 旋涡
+	Trident				= 3;	// 三叉戟
+	Shell				= 4;	// 贝壳珍珠
+	Ship				= 5;	// 藏宝船
+	Poseidon			= 6;	// 海神(波塞冬)
+}
+
+// 特殊鱼死亡效果状态
+message EffectStatus {
+	// 死亡特殊效果类型
+	DieEffectType EffectType = 1;
+	// 死亡特殊效果参数集合，根据具体类型解析
+	// 连锁闪电格式： 获得倍数值|生效鱼倍数限制
+	// 旋涡格式：	 获得倍数值|生效鱼倍数限制|旋涡时长(ms)
+	// 三叉戟格式：	 三叉戟炮台ID|是否开启(0未开1开启)
+	// 贝壳珍珠：	 珍珠倍数1|珍珠倍数2|珍珠倍数3|珍珠倍数4|珍珠倍数5
+	// 藏宝船：		 倍数
+	// 海神：		 打开次数(6)|必开倍数1|必开倍数2|必开倍数3|必开倍数4|必开倍数5|必开倍数6
+	repeated int32 EffectVals = 2;
+}
+
+// 特殊鱼死亡效果处理/同步
+message DieEffect {
+	int32 PlrUID = 1;				// 玩家UID 
+	int64 Gold = 2;					// 获得金币
+
+	// 死亡特殊效果类型，用于校验(FishRemove下发过)
+	DieEffectType Type = 3;			// 特殊效果类型值
+	// 死亡特殊效果参数集合，根据类型塞入数据
+	// 连锁闪电格式 c->s： 鱼id1|鱼id2|鱼id3|鱼id4..
+	// 连锁闪电格式 s->c： 鱼id1|金币1|鱼id2|金币2|鱼id3|金币3|鱼id4|金币4..
+	// 开启三叉戟格式：	c->s 无
+	// 开启三叉戟格式： s->c 炮台ID|是否开启
+	// 贝壳珍珠：	 无
+	// 藏宝船：		 无
+	// 海神 c->s：	第1次打开位置|第2次打开位置|第3次打开位置|第4次打开位置...当打开位置的倍数一致上发到服务器
+	// 海神 s->c：	除必开倍数之后剩余的3个宝箱的倍数
+	repeated int32 Vals = 4;
+}
+
+// 旋涡效果处理/同步
+message VortexEffect {
+	int32 PlrUID = 1;				// 玩家UID 
+	int64 Gold = 2;					// 获得金币
+	// 旋涡格式 c->s：	 鱼id1|鱼id2|鱼id3|鱼id4..
+	// 旋涡格式 s->c：	 鱼id1|金币1|鱼id2|金币2|鱼id3|金币3|鱼id4|金币4..
+	repeated int32 Vals = 3;		// 参数集
+	bool Finish = 4;				// 是否结束
+}
+
+// 设置加农炮，本协议只变更渔场内炮台，加农炮字段更新使用属性更新协议
+message ChangeCannon {
+	int32 PlrUID = 1;				// 玩家UID
+	int32 CannonID_Cfg = 2;			// 炮台表ID
+}
+
+// 获得最新的JackPot奖池(客户端定时请求)
+message GetJackPot {
+	int32 Level = 1;				// JackPot场次
+	int64 PoolGold = 2;				// 场次对应奖金池金币值
+}
+
+// JackPot抽奖
+message JackPotRoll {
+	int32 Level = 1;				// JackPot场次(0, 1, 2, 3)
+	int64 Gold = 2;					// 获得金币
+	int32 JPRoll = 3;				// 新的进度值，对应场次
+	int64 PoolGold = 4;				// 新的场次对应的奖金池金币值
 }

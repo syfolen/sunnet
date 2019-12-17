@@ -1,6 +1,6 @@
 
 
-const ip = "192.168.0.168";
+const ip = "192.168.0.190";
 const port = 3653;
 
 // const ip = "127.0.0.1";
@@ -24,6 +24,9 @@ class Main {
 
 		sunnet.ProtobufManager.getInstance().buildProto("other/fishing.proto");
 		sunnet.ProtobufManager.getInstance().buildProtocal("other/protocal.json");
+
+		sunnet.Config.HEARTBEAT_REQUEST_COMMAND = 103;
+		sunnet.Config.HEARTBEAT_RESPONSE_COMMAND = 103;
 
 		PSAppUtils.getInstance().pipeline.add("recv", sunnet.NetConnectionDecoder);
 		PSAppUtils.getInstance().pipeline.add("send", sunnet.NetConnectionEncoder);

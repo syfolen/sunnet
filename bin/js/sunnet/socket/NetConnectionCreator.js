@@ -50,6 +50,9 @@ var sunnet;
          * 是否需要重连
          */
         NetConnectionCreator.prototype.$needCreate = function (ip, port) {
+            if (ip === void 0 || port === void 0) {
+                return false;
+            }
             // 若网络未连接，则需要重连
             if (this.$connection.state === sunnet.NetConnectionStateEnum.DISCONNECTED) {
                 return true;
@@ -57,7 +60,7 @@ var sunnet;
             // 若网络己连接
             if (this.$connection.state === sunnet.NetConnectionStateEnum.CONNECTED) {
                 // 若IP和PORT有效且与请求的数据不一致，则需要重连
-                if (ip !== void 0 && port !== void 0 && this.$connection.ip !== ip && this.$connection.port !== port) {
+                if (this.$connection.ip !== ip && this.$connection.port !== port) {
                     return true;
                 }
             }
@@ -75,7 +78,9 @@ var sunnet;
                 }
                 return [cmd, bytes, ip, port];
             }
-            this.$connection.connect(ip, port, false);
+            if (ip !== void 0 && port !== void 0) {
+                this.$connection.connect(ip, port, false);
+            }
             var data = {
                 cmd: cmd,
                 bytes: bytes,

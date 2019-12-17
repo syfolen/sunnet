@@ -45,6 +45,14 @@ var sunnet;
             this.$protocals = json.data;
         };
         /**
+         * 构建协议信息
+         * export
+         */
+        ProtobufManager.prototype.buildProtocalJson = function (json) {
+            this.$commands = Object.keys(json);
+            this.$protocals = json;
+        };
+        /**
          * 根据编号获取协议信息
          */
         ProtobufManager.prototype.getProtocalByCommand = function (cmd) {
@@ -85,7 +93,9 @@ var sunnet;
          * export
          */
         ProtobufManager.prototype.encode = function (name, data) {
-            console.log("\u6253\u5305\u6570\u636E\u6210\u529F ==> " + JSON.stringify(data));
+            if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
+                console.log("\u6253\u5305\u6570\u636E\u6210\u529F ==> " + JSON.stringify(data));
+            }
             return this.getProtoClass(name).encode(data).finish();
         };
         /**
