@@ -64,6 +64,7 @@ module sunnet {
 
         /**
          * 根据编号获取协议信息
+         * export
          */
         getProtocalByCommand(cmd: any): any {
             return this.$protocals[cmd] || null;

@@ -30,11 +30,13 @@ module sunnet {
 
 		/**
 		 * 心跳发送指令
+		 * export
 		 */
 		export let HEARTBEAT_REQUEST_COMMAND: number = -1;
 
 		/**
 		 * 心跳接收指令
+		 * export
 		 */
 		export let HEARTBEAT_RESPONSE_COMMAND: number = -1;
 	}

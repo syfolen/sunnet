@@ -249,6 +249,10 @@ module sunnet {
          * 数据接收缓冲区
          */
         get input(): Laya.Byte {
+            const socket = this.$socket || null;
+            if (socket === null) {
+                return null;
+            }
             return this.$socket.input;
         }
 
@@ -256,6 +260,10 @@ module sunnet {
          * 数据发送缓冲区
          */
         get output(): Laya.Byte {
+            const socket = this.$socket || null;
+            if (socket === null) {
+                return null;
+            }
             return this.$socket.output;
         }
 
