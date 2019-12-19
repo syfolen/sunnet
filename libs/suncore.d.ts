@@ -74,7 +74,7 @@ declare module suncore {
          * 系统模块
          * 此模块为常驻模块，该模块下的消息永远不会被清理
          */
-        SYSTEM,
+        SYSTEM = 0,
 
         /**
          * 通用模块
@@ -90,13 +90,46 @@ declare module suncore {
     }
 
     /**
+     * MsgQId枚举
+     */
+    enum MsgQIdEnum {
+        /**
+         * 网络层消息枚举
+         */
+        NET_MSG_ID_BEGIN = 1,
+
+        NET_MSG_ID_END = 10,
+
+        /**
+         * CUI消息枚举
+         */
+        CUI_MSG_ID_BEGIN = NET_MSG_ID_END,
+
+        CUI_MSG_ID_END = 100,
+
+        /**
+         * GUI消息枚举
+         */
+        GUI_MSG_ID_BEGIN = CUI_MSG_ID_END,
+
+        GUI_MSG_ID_END = 200,
+
+        /**
+         * 逻辑层消息枚举
+         */
+        OSL_MSG_ID_BEGIN = GUI_MSG_ID_END,
+
+        OSL_MSG_ID_END = 300
+    }
+
+    /**
      * MsgQ的模块枚举
      */
     enum MsgQModEnum {
         /**
          * 逻辑层
          */
-        OSL,
+        OSL = 0,
 
         /**
          * 网络层
@@ -104,9 +137,14 @@ declare module suncore {
         NET,
 
         /**
-         * 表现层
+         * 通用界面
          */
-        MMI
+        CUI,
+
+        /**
+         * 游戏界面
+         */
+        GUI
     }
 
     /**
@@ -266,12 +304,13 @@ declare module suncore {
     namespace MsgQ {
 
         /**
-         * 发送消息
+         * 发送消息（异步）
          */
         function send(src: MsgQModEnum, dest: MsgQModEnum, id: number, data: any): void;
 
         /**
          * 获取消息
+         * @id: 只获取指定ID消息，若为void 0则不校验
          */
         function fetch(mod: MsgQModEnum, id?: number): IMsgQMsg;
 
@@ -284,26 +323,6 @@ declare module suncore {
          * 设置模块是否己激活
          */
         function setModuleActive(mod: MsgQModEnum, active: boolean): void;
-    }
-
-    /**
-     * MsgQId枚举
-     */
-    namespace MsgQIdEnum {
-        /**
-         * 网络消息枚举
-         */
-        const NET_MSG_ID_BEGIN: number;
-
-        /**
-         * 系统消息枚举
-         */
-        const OSL_NET_ID_BEGIN: number;
-
-        /**
-         * UI消息枚举
-         */
-        const MMI_NET_ID_BEGIN: number;
     }
 
     /**

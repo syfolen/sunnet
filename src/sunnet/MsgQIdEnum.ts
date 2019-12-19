@@ -9,7 +9,7 @@ module sunnet {
          * 发送数据
          * export
          */
-        NET_SEND_DATA = 0,
+        NET_SEND_DATA = suncore.MsgQIdEnum.NET_MSG_ID_BEGIN,
 
         /**
          * 接收数据
