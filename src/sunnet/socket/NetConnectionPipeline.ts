@@ -4,12 +4,28 @@ module sunnet {
      * 消息处理管道
      * 此类以责任链模式处理即将发送或己接收的网络数据，专门为 core.NetConnection 服务
      */
-    export class NetConnectionPipeline extends NetConnectionInterceptor implements INetConnectionPipeline {
+    export class NetConnectionPipeline implements INetConnectionInterceptor, INetConnectionPipeline {
 
         /**
          * 拦截器列表
          */
         private $items: Array<INetConnectionPipelineItem> = [];
+
+        protected $connection: INetConnection;
+
+        constructor(connection: INetConnection) {
+            this.$connection = connection;
+        }
+
+        /**
+         * 销毁拦截器
+         */
+        destroy(): void {
+            while (this.$items.length > 0) {
+                const item: INetConnectionPipelineItem = this.$items.shift();
+                item.interceptor.destroy();
+            }
+        }
 
         /**
          * 新增责任处理者

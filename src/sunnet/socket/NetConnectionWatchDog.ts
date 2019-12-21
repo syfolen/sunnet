@@ -58,13 +58,13 @@ module sunnet {
                 }
                 if (this.$retryCount >= Config.TCP_MAX_RETRY_TIME) {
                     this.$retryCount = 0;
-                    puremvc.Facade.getInstance().sendNotification(NotifyKey.SOCKET_STATE_CHANGE, 2);
+                    this.facade.sendNotification(NotifyKey.SOCKET_STATE_CHANGE, 2);
                     return;
                 }
                 this.$ip = this.$connection.ip;
                 this.$port = this.$connection.port;
                 this.$timerId = suncore.System.addTimer(suncore.ModuleEnum.SYSTEM, Config.TCP_RETRY_DELAY, this.$onDoingConnect, this);
-                puremvc.Facade.getInstance().sendNotification(NotifyKey.SOCKET_STATE_ANOMALY, this.$retryCount);
+                this.facade.sendNotification(NotifyKey.SOCKET_STATE_ANOMALY, this.$retryCount);
             }
         }
 
@@ -82,7 +82,7 @@ module sunnet {
             // 只有在网络处于未连接状态时才会进行重连
             if (this.$connection.state === NetConnectionStateEnum.DISCONNECTED) {
                 this.$retryCount++;
-                puremvc.Facade.getInstance().sendNotification(NotifyKey.SOCKET_RETRY_CONNECT, this.$retryCount);
+                this.facade.sendNotification(NotifyKey.SOCKET_RETRY_CONNECT, this.$retryCount);
                 this.$connection.connect(this.$ip, this.$port, true);
             }
             else {

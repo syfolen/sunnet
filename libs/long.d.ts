@@ -22,14 +22,21 @@
  */
 declare module dcodeIO {
     export class Long {
-        static fromNumber(num: number): Long;
+        static fromNumber(num: number, unsigned?: boolean): Long;
         static fromString(str: string, unsigned?: boolean): Long;
+
+        static fromValue(value: number | string | Long, unsigned?: boolean): Long;
 
         low: number;
         high: number;
 
-        add(value: Long): Long;
-        mul(value: Long): Long;
+        add(value: Long | number | string): Long;
+        sub(value: Long | number | string): Long;
+        mul(value: Long | number | string): Long;
+
+        ge(value: Long | number | string): boolean;
+        eq(value: Long | number | string): boolean;
+        lt(value: Long | number | string): boolean;
 
         toNumber(): number;
         toString(): string;

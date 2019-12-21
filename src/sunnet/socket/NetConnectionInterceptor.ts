@@ -5,11 +5,12 @@ module sunnet {
      * 自定义拦截器需要继承此类
      * export
      */
-    export abstract class NetConnectionInterceptor implements INetConnectionInterceptor {
+    export abstract class NetConnectionInterceptor extends puremvc.Notifier implements INetConnectionInterceptor {
 
         protected $connection: INetConnection;
 
         constructor(connection: INetConnection) {
+            super(suncore.MsgQModEnum.NET);
             this.$connection = connection;
             this.$connection.addEventListener(EventKey.SOCKET_CONNECTED, this.$onConnected, this);
             this.$connection.addEventListener(EventKey.SOCKET_DISCONNECTED, this.$onDisconnected, this);

@@ -7,37 +7,37 @@ declare module suncom {
         /**
          * 调试信息
          */
-        DEBUG,
+        DEBUG = 0x1,
 
         /**
          * 工程模式
          */
-        ENGINEER,
+        ENGINEER = 0x02,
 
         /**
          * 框架
          */
-        ENGINE,
+        ENGINE = 0x4,
 
         /**
          * 原生
          */
-        NATIVE,
+        NATIVE = 0x8,
 
         /**
          * 网络
          */
-        NETWORK,
+        NETWORK = 0x10,
 
         /**
          * 网络心跳
          */
-        NETWORK_HEARTBEAT,
+        NETWORK_HEARTBEAT = 0x20,
 
         /**
          * 普通
          */
-        NORMAL
+        NORMAL = 0x40
     }
 
     /**
@@ -47,7 +47,7 @@ declare module suncom {
         /**
          * 开发环境
          */
-        DEVELOP,
+        DEVELOP = 0,
 
         /**
          * 调试模式

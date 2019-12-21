@@ -1,1 +1,0 @@
-{"version":3,"file":"HeartbeatCommandEnum.js","sourceRoot":"","sources":["../../../../../src/net/interfaces/socket/HeartbeatCommandEnum.ts"],"names":[],"mappings":"AACA,IAAO,MAAM,CAcZ;AAdD,WAAO,MAAM;IAET,IAAY,oBAWX;IAXD,WAAY,oBAAoB;QAE5B;;WAEG;QACH,qEAAW,CAAA;QAEX;;WAEG;QACH,uEAAQ,CAAA;IACZ,CAAC,EAXW,oBAAoB,GAApB,2BAAoB,KAApB,2BAAoB,QAW/B;AACL,CAAC,EAdM,MAAM,KAAN,MAAM,QAcZ"}

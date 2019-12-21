@@ -127,24 +127,24 @@ declare module suncore {
      */
     enum MsgQModEnum {
         /**
-         * 逻辑层
-         */
-        OSL = 0,
-
-        /**
-         * 网络层
-         */
-        NET,
-
-        /**
          * 通用界面
          */
-        CUI,
+        CUI = 1,
 
         /**
          * 游戏界面
          */
-        GUI
+        GUI,
+
+        /**
+         * 逻辑层
+         */
+        OSL,
+
+        /**
+         * 网络层
+         */
+        NET
     }
 
     /**
@@ -164,7 +164,7 @@ declare module suncore {
         /**
          * 消息编号
          */
-        id: number;
+        id: MsgQIdEnum;
 
         /**
          * 消息挂载的数据
@@ -222,6 +222,63 @@ declare module suncore {
     }
 
     /**
+     * 服务（主要用于逻辑层架构）
+     * 说明：
+     * 1. 每个服务均有独立的生命周期。
+     * 2. 服务被设计用来处理与表现层无关的有状态的业务。
+     */
+    abstract class BaseService extends puremvc.Notifier {
+
+        /**
+         * 服务启动入口
+         */
+        run(): void;
+
+        /**
+         * 服务停止接口
+         */
+        stop(): void;
+
+        /**
+         * 启动回调
+         */
+        protected abstract $onRun(): void;
+
+        /**
+         * 停止回调
+         */
+        protected abstract $onStop(): void;
+
+        /**
+         * 服务是否正在运行
+         */
+        readonly running: boolean;
+    }
+
+    /**
+     * MsgQ服务类（主要用于模块间的解偶）
+     * 说明：
+     * 1. 理论上每个MsgQ模块都必须实现一个MsgQService对象，否则此模块的消息不能被处理
+     */
+    abstract class MsgQService extends BaseService {
+
+        /**
+         * 启动回调
+         */
+        protected $onRun(): void;
+
+        /**
+         * 停止回调
+         */
+        protected $onStop(): void;
+
+        /**
+         * 处理MsgQ消息
+         */
+        protected abstract $dealMsgQMsg(msg:IMsgQMsg): void;
+    }
+
+    /**
      * 命令枚举
      */
     abstract class NotifyKey {
@@ -234,11 +291,6 @@ declare module suncore {
 
         static readonly PAUSE_TIMELINE: string;
 
-        /**
-         * 同步网络消息
-         */
-        static readonly NOTIFY_MESSAGE: string;
-
         static readonly PHYSICS_FRAME: string;
 
         static readonly PHYSICS_PREPARE: string;
@@ -246,11 +298,6 @@ declare module suncore {
         static readonly ENTER_FRAME: string;
 
         static readonly LATER_FRAME: string;
-
-        /**
-         * MsgQ业务
-         */
-        static readonly MSG_Q_BUSINESS: string;
     }
 
     /**
@@ -306,23 +353,84 @@ declare module suncore {
         /**
          * 发送消息（异步）
          */
-        function send(src: MsgQModEnum, dest: MsgQModEnum, id: number, data: any): void;
+        function send(src: MsgQModEnum, dest: MsgQModEnum, id: MsgQIdEnum, data: any): void;
 
         /**
          * 获取消息
          * @id: 只获取指定ID消息，若为void 0则不校验
          */
-        function fetch(mod: MsgQModEnum, id?: number): IMsgQMsg;
+        function fetch(mod: MsgQModEnum, id?: MsgQIdEnum): IMsgQMsg;
 
         /**
          * 判断模块是否己激活
          */
         function isModuleActive(mod: MsgQModEnum): boolean;
+    }
+
+    /**
+     * 互斥体，用于实现模块之间的互斥
+     */
+    namespace Mutex {
+        /**
+         * 激活互斥体的MsgQ模块
+         * 说明：
+         * 1. 当此变量的值为-1时，允许激活互斥体
+         * 2. 首次引用互斥体视为激活互斥体
+         * 3. 激活互斥体的模块将被记录在此变量中
+         * 4. 若激活消息的模块为MMI模块，则此记录值允许被替换成其它MMI模块的消息，仅第一次生效
+         * 5. 此变量会在互斥引用为0时重新置为-1
+         */
+        let actMsgQMod: MsgQModEnum;
 
         /**
-         * 设置模块是否己激活
+         * 是否校验消息前缀，默认为false
          */
-        function setModuleActive(mod: MsgQModEnum, active: boolean): void;
+        let checkPrefix: boolean;
+
+        /**
+         * 表现层模块集
+         */
+        const mmiMsgQMap: { [prefix: string]: MsgQModEnum };
+
+        /**
+         * 表现层前缀集
+         */
+        const mmiMsgQCmd: { [msgQMod: number]: string };
+
+        /**
+         * 激活互斥体
+         */
+        function active(msgQMod: MsgQModEnum): void;
+
+        /**
+         * 关闭互斥体
+         */
+        function deactive(): void;
+
+        /**
+         * 锁定互斥体
+         */
+        function lock(name: string): void;
+
+        /**
+         * 释放互斥体
+         */
+        function unlock(name: string): void;
+
+        /**
+         * 判断是否允许执行MMI的行为
+         */
+        function enableMMIAction(): boolean;
+
+        /**
+         * 为对象初始化一个互斥量
+         */
+        function create(name: string, target: Object): void;
+
+        /**
+         * 释放互斥量
+         */
+        function release(name: string, target: Object): void;
     }
 
     /**

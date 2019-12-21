@@ -10,7 +10,7 @@ module sunnet {
      * 网络连接象
      * export
      */
-    export class NetConnection extends suncom.EventSystem implements INetConnection {
+    export class NetConnection extends puremvc.Notifier implements suncom.IEventSystem {
         /**
          * 包头长度
          */
@@ -49,17 +49,24 @@ module sunnet {
         /**
          * 网络消息管道
          */
-        private $pipeline: INetConnectionPipeline = new NetConnectionPipeline(this);
+        private $pipeline: INetConnectionPipeline = null;
+
+        /**
+         * 实现事件系统接口
+         */
+        private $dispatcher: suncom.IEventSystem = null;
 
         /**
          * export
          */
         constructor(name: string) {
-            super();
+            super(suncore.MsgQModEnum.NET);
             // 网络连接名字
             this.$name = name;
             // 消息处理管道
             this.$pipeline = new NetConnectionPipeline(this);
+            // 事件接口
+            this.$dispatcher = new suncom.EventSystem();
         }
 
         /**
@@ -111,7 +118,7 @@ module sunnet {
                 // 清除队列消息
                 this.dispatchEvent(EventKey.CLEAR_MESSAGE_QUEUE);
                 // 异常断网时，需要通知
-                puremvc.Facade.getInstance().sendNotification(NotifyKey.SOCKET_STATE_CHANGE, 1);
+                this.facade.sendNotification(NotifyKey.SOCKET_STATE_CHANGE, 1);
             }
 
             if (this.$socket !== null) {
@@ -182,7 +189,7 @@ module sunnet {
             // 若是异常断网成功重连，则需要通知网络状态变更
             if (this.$closedByError === true) {
                 this.$closedByError = false;
-                puremvc.Facade.getInstance().sendNotification(NotifyKey.SOCKET_STATE_CHANGE, 0);
+                this.facade.sendNotification(NotifyKey.SOCKET_STATE_CHANGE, 0);
             }
 
             // 网络重连成功
@@ -214,6 +221,38 @@ module sunnet {
          */
         private $onMessage(event: Laya.Event): void {
             this.$pipeline.recv(null, null, null);
+        }
+
+        /**
+         * 取消当前正在派发的事件
+         */
+        dispatchCancel(): void {
+            this.$dispatcher.dispatchCancel();
+        }
+
+        /**
+         * 事件派发
+         * @args[]: 参数列表，允许为任意类型的数据
+         * @cancelable: 事件是否允许被中断，默认为false
+         */
+        dispatchEvent(type: string, args?: any, cancelable?: boolean): void {
+            this.$dispatcher.dispatchEvent(type, args, cancelable);
+        }
+
+        /**
+         * 事件注册
+         * @receiveOnce: 是否只响应一次，默认为false
+         * @priority: 事件优先级，优先级高的先被执行，默认为 1
+         */
+        addEventListener(type: string, method: Function, caller: Object, receiveOnce?: boolean, priority?: number): void {
+            this.$dispatcher.addEventListener(type, method, caller, receiveOnce, priority);
+        }
+
+        /**
+         * 移除事件
+         */
+        removeEventListener(type: string, method: Function, caller: Object): void {
+            this.$dispatcher.removeEventListener(type, method, caller);
         }
 
         /**

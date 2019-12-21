@@ -28,6 +28,8 @@ class Main {
 		sunnet.Config.HEARTBEAT_REQUEST_COMMAND = 103;
 		sunnet.Config.HEARTBEAT_RESPONSE_COMMAND = 103;
 
+		suncom.Global.debugMode = suncom.DebugMode.NETWORK;
+
 		PSAppUtils.getInstance().pipeline.add("recv", sunnet.NetConnectionDecoder);
 		PSAppUtils.getInstance().pipeline.add("send", sunnet.NetConnectionEncoder);
 		PSAppUtils.getInstance().pipeline.add("send", sunnet.NetConnectionCreator);
