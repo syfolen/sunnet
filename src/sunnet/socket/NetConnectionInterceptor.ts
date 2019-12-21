@@ -9,6 +9,9 @@ module sunnet {
 
         protected $connection: INetConnection;
 
+        /**
+         * export
+         */
         constructor(connection: INetConnection) {
             super(suncore.MsgQModEnum.NET);
             this.$connection = connection;
