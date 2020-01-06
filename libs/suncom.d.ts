@@ -410,6 +410,11 @@ declare module suncom {
         function put(name: number, data: any): void;
 
         /**
+         * 是否存在
+         */
+        function exist(name: number): boolean;
+
+        /**
          * 删除数据
          */
         function drop(name: number): void;

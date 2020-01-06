@@ -60,7 +60,7 @@ module sunnet {
          * export
          */
         constructor(name: string) {
-            super(suncore.MsgQModEnum.NET);
+            super(suncore.MsgQModEnum.NSL);
             // 网络连接名字
             this.$name = name;
             // 消息处理管道

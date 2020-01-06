@@ -32,7 +32,7 @@ module sunnet {
                 name: null,
                 data: newData
             };
-            suncore.MsgQ.send(suncore.MsgQModEnum.NET, suncore.MsgQModEnum.NET, <any>MsgQIdEnum.NET_RECV_DATA, msg);
+            suncore.MsgQ.send(suncore.MsgQModEnum.NSL, suncore.MsgQModEnum.NSL, <any>MsgQIdEnum.NSL_RECV_DATA, msg);
             // 消息解析成功
             return [cmd, srvId, bytes, newData];
         }

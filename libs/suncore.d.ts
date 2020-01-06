@@ -96,30 +96,44 @@ declare module suncore {
         /**
          * 网络层消息枚举
          */
-        NET_MSG_ID_BEGIN = 1,
+        NSL_MSG_ID_BEGIN = 1,
 
-        NET_MSG_ID_END = 10,
+        NSL_MSG_ID_END = 10,
+
+        /**
+         * KAL消息枚举
+         */
+        KAL_MSG_ID_BEGIN = NSL_MSG_ID_END,
+
+        KAL_MSG_ID_END = 100,
+
+        /**
+         * MMI消息枚举
+         */
+        MMI_MSG_ID_BEGIN = KAL_MSG_ID_END,
+
+        MMI_MSG_ID_END = MMI_MSG_ID_BEGIN + 100,
 
         /**
          * CUI消息枚举
          */
-        CUI_MSG_ID_BEGIN = NET_MSG_ID_END,
+        CUI_MSG_ID_BEGIN = MMI_MSG_ID_END,
 
-        CUI_MSG_ID_END = 100,
+        CUI_MSG_ID_END = CUI_MSG_ID_BEGIN + 100,
 
         /**
          * GUI消息枚举
          */
         GUI_MSG_ID_BEGIN = CUI_MSG_ID_END,
 
-        GUI_MSG_ID_END = 200,
+        GUI_MSG_ID_END = GUI_MSG_ID_BEGIN + 200,
 
         /**
          * 逻辑层消息枚举
          */
-        OSL_MSG_ID_BEGIN = GUI_MSG_ID_END,
+        L4C_MSG_ID_BEGIN = GUI_MSG_ID_END,
 
-        OSL_MSG_ID_END = 300
+        L4C_MSG_ID_END = L4C_MSG_ID_BEGIN + 300
     }
 
     /**
@@ -127,9 +141,24 @@ declare module suncore {
      */
     enum MsgQModEnum {
         /**
+         * 系统层
+         * 说明：
+         * 1. 此为保留值，仅用于支持puremvc框架中对通用指令的传递合法性校验
+         * 2. 请勿修改此值，否则可能会引起MsgQ消息传递合法性校验失效
+         */
+        KAL = 0,
+
+        /**
+         * 表现层
+         * 说明：
+         * 1. 同MMI
+         */
+        MMI,
+
+        /**
          * 通用界面
          */
-        CUI = 1,
+        CUI,
 
         /**
          * 游戏界面
@@ -139,12 +168,12 @@ declare module suncore {
         /**
          * 逻辑层
          */
-        OSL,
+        L4C,
 
         /**
          * 网络层
          */
-        NET
+        NSL
     }
 
     /**
@@ -353,11 +382,11 @@ declare module suncore {
         /**
          * 发送消息（异步）
          */
-        function send(src: MsgQModEnum, dest: MsgQModEnum, id: number, data: any): void;
+        function send(src: MsgQModEnum, dest: MsgQModEnum, id: number, data?: any): void;
     }
 
     /**
-     * 互斥体，用于实现模块之间的互斥
+     * 互斥体，用于实现模块之间的消息互斥
      */
     namespace Mutex {
         /**
@@ -366,7 +395,7 @@ declare module suncore {
          * 1. 当此变量的值为-1时，允许激活互斥体
          * 2. 首次引用互斥体视为激活互斥体
          * 3. 激活互斥体的模块将被记录在此变量中
-         * 4. 若激活消息的模块为MMI模块，则此记录值允许被替换成其它MMI模块的消息，仅第一次生效
+         * 4. 若激活消息的模块为MMI通用模块，则此记录值允许被替换成任意的其它MMI模块，仅第一次生效
          * 5. 此变量会在互斥引用为0时重新置为-1
          */
         let actMsgQMod: MsgQModEnum;
@@ -377,14 +406,24 @@ declare module suncore {
         let checkPrefix: boolean;
 
         /**
-         * 表现层模块集
+         * MsgQ模块集
          */
-        const mmiMsgQMap: { [prefix: string]: MsgQModEnum };
+        const msgQMap: { [prefix: string]: MsgQModEnum };
 
         /**
-         * 表现层前缀集
+         * MsgQ模块前缀集
          */
-        const mmiMsgQCmd: { [msgQMod: number]: string };
+        const msgQCmd: { [msgQMod: number]: string };
+
+        /**
+         * 表现层MsgQ模块集
+         */
+        const mmiMsgQMap: { [msgQMod: number]: boolean };
+
+        /**
+         * 判断是否允许执行MMI的行为
+         */
+        function enableMMIAction(): boolean;
 
         /**
          * 激活互斥体
@@ -405,11 +444,6 @@ declare module suncore {
          * 释放互斥体
          */
         function unlock(name: string): void;
-
-        /**
-         * 判断是否允许执行MMI的行为
-         */
-        function enableMMIAction(): boolean;
 
         /**
          * 为对象初始化一个互斥量

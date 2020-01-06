@@ -13,7 +13,7 @@ module sunnet {
          * export
          */
         constructor(connection: INetConnection) {
-            super(suncore.MsgQModEnum.NET);
+            super(suncore.MsgQModEnum.NSL);
             this.$connection = connection;
             this.$connection.addEventListener(EventKey.SOCKET_CONNECTED, this.$onConnected, this);
             this.$connection.addEventListener(EventKey.SOCKET_DISCONNECTED, this.$onDisconnected, this);
