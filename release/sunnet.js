@@ -21,8 +21,8 @@ var sunnet;
     })(HttpResStatus = sunnet.HttpResStatus || (sunnet.HttpResStatus = {}));
     var MsgQIdEnum;
     (function (MsgQIdEnum) {
-        MsgQIdEnum[MsgQIdEnum["NET_SEND_DATA"] = 1] = "NET_SEND_DATA";
-        MsgQIdEnum[MsgQIdEnum["NET_RECV_DATA"] = 2] = "NET_RECV_DATA";
+        MsgQIdEnum[MsgQIdEnum["NSL_SEND_DATA"] = 1] = "NSL_SEND_DATA";
+        MsgQIdEnum[MsgQIdEnum["NSL_RECV_DATA"] = 2] = "NSL_RECV_DATA";
     })(MsgQIdEnum = sunnet.MsgQIdEnum || (sunnet.MsgQIdEnum = {}));
     var NetConnectionStateEnum;
     (function (NetConnectionStateEnum) {
@@ -33,7 +33,7 @@ var sunnet;
     var NetConnection = (function (_super) {
         __extends(NetConnection, _super);
         function NetConnection(name) {
-            var _this = _super.call(this, suncore.MsgQModEnum.NET) || this;
+            var _this = _super.call(this, suncore.MsgQModEnum.NSL) || this;
             _this.$closedByError = false;
             _this.$socket = null;
             _this.$state = NetConnectionStateEnum.DISCONNECTED;
@@ -211,7 +211,7 @@ var sunnet;
     var NetConnectionInterceptor = (function (_super) {
         __extends(NetConnectionInterceptor, _super);
         function NetConnectionInterceptor(connection) {
-            var _this = _super.call(this, suncore.MsgQModEnum.NET) || this;
+            var _this = _super.call(this, suncore.MsgQModEnum.NSL) || this;
             _this.$connection = connection;
             _this.$connection.addEventListener(EventKey.SOCKET_CONNECTED, _this.$onConnected, _this);
             _this.$connection.addEventListener(EventKey.SOCKET_DISCONNECTED, _this.$onDisconnected, _this);
@@ -328,7 +328,7 @@ var sunnet;
                 name: null,
                 data: newData
             };
-            suncore.MsgQ.send(suncore.MsgQModEnum.NET, suncore.MsgQModEnum.NET, MsgQIdEnum.NET_RECV_DATA, msg);
+            suncore.MsgQ.send(suncore.MsgQModEnum.NSL, suncore.MsgQModEnum.NSL, MsgQIdEnum.NSL_RECV_DATA, msg);
             return [cmd, srvId, bytes, newData];
         };
         return NetConnectionProtobufDecoder;

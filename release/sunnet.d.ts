@@ -14,12 +14,12 @@ declare module sunnet {
         /**
          * 发送数据
          */
-        NET_SEND_DATA = suncore.MsgQIdEnum.NET_MSG_ID_BEGIN,
+        NSL_SEND_DATA = suncore.MsgQIdEnum.NSL_MSG_ID_BEGIN,
 
         /**
          * 接收数据
          */
-        NET_RECV_DATA
+        NSL_RECV_DATA
     }
 
     /**

@@ -35,23 +35,27 @@ var suncore;
     })(ModuleEnum = suncore.ModuleEnum || (suncore.ModuleEnum = {}));
     var MsgQIdEnum;
     (function (MsgQIdEnum) {
-        MsgQIdEnum[MsgQIdEnum["NET_MSG_ID_BEGIN"] = 1] = "NET_MSG_ID_BEGIN";
-        MsgQIdEnum[MsgQIdEnum["NET_MSG_ID_END"] = 10] = "NET_MSG_ID_END";
-        MsgQIdEnum[MsgQIdEnum["CUI_MSG_ID_BEGIN"] = 10] = "CUI_MSG_ID_BEGIN";
-        MsgQIdEnum[MsgQIdEnum["CUI_MSG_ID_END"] = 100] = "CUI_MSG_ID_END";
-        MsgQIdEnum[MsgQIdEnum["GUI_MSG_ID_BEGIN"] = 100] = "GUI_MSG_ID_BEGIN";
-        MsgQIdEnum[MsgQIdEnum["GUI_MSG_ID_END"] = 200] = "GUI_MSG_ID_END";
-        MsgQIdEnum[MsgQIdEnum["OSL_MSG_ID_BEGIN"] = 200] = "OSL_MSG_ID_BEGIN";
-        MsgQIdEnum[MsgQIdEnum["OSL_MSG_ID_END"] = 300] = "OSL_MSG_ID_END";
+        MsgQIdEnum[MsgQIdEnum["NSL_MSG_ID_BEGIN"] = 1] = "NSL_MSG_ID_BEGIN";
+        MsgQIdEnum[MsgQIdEnum["NSL_MSG_ID_END"] = 10] = "NSL_MSG_ID_END";
+        MsgQIdEnum[MsgQIdEnum["KAL_MSG_ID_BEGIN"] = 10] = "KAL_MSG_ID_BEGIN";
+        MsgQIdEnum[MsgQIdEnum["KAL_MSG_ID_END"] = 100] = "KAL_MSG_ID_END";
+        MsgQIdEnum[MsgQIdEnum["MMI_MSG_ID_BEGIN"] = 100] = "MMI_MSG_ID_BEGIN";
+        MsgQIdEnum[MsgQIdEnum["MMI_MSG_ID_END"] = 200] = "MMI_MSG_ID_END";
+        MsgQIdEnum[MsgQIdEnum["CUI_MSG_ID_BEGIN"] = 200] = "CUI_MSG_ID_BEGIN";
+        MsgQIdEnum[MsgQIdEnum["CUI_MSG_ID_END"] = 300] = "CUI_MSG_ID_END";
+        MsgQIdEnum[MsgQIdEnum["GUI_MSG_ID_BEGIN"] = 300] = "GUI_MSG_ID_BEGIN";
+        MsgQIdEnum[MsgQIdEnum["GUI_MSG_ID_END"] = 500] = "GUI_MSG_ID_END";
+        MsgQIdEnum[MsgQIdEnum["L4C_MSG_ID_BEGIN"] = 500] = "L4C_MSG_ID_BEGIN";
+        MsgQIdEnum[MsgQIdEnum["L4C_MSG_ID_END"] = 800] = "L4C_MSG_ID_END";
     })(MsgQIdEnum = suncore.MsgQIdEnum || (suncore.MsgQIdEnum = {}));
     var MsgQModEnum;
     (function (MsgQModEnum) {
-        MsgQModEnum[MsgQModEnum["MMI"] = 9527] = "MMI";
-        MsgQModEnum[MsgQModEnum["SYS"] = 0] = "SYS";
-        MsgQModEnum[MsgQModEnum["CUI"] = 1] = "CUI";
-        MsgQModEnum[MsgQModEnum["GUI"] = 2] = "GUI";
-        MsgQModEnum[MsgQModEnum["OSL"] = 3] = "OSL";
-        MsgQModEnum[MsgQModEnum["NET"] = 4] = "NET";
+        MsgQModEnum[MsgQModEnum["KAL"] = 0] = "KAL";
+        MsgQModEnum[MsgQModEnum["MMI"] = 1] = "MMI";
+        MsgQModEnum[MsgQModEnum["CUI"] = 2] = "CUI";
+        MsgQModEnum[MsgQModEnum["GUI"] = 3] = "GUI";
+        MsgQModEnum[MsgQModEnum["L4C"] = 4] = "L4C";
+        MsgQModEnum[MsgQModEnum["NSL"] = 5] = "NSL";
     })(MsgQModEnum = suncore.MsgQModEnum || (suncore.MsgQModEnum = {}));
     var AbstractTask = (function (_super) {
         __extends(AbstractTask, _super);
@@ -111,7 +115,7 @@ var suncore;
     var Engine = (function (_super) {
         __extends(Engine, _super);
         function Engine() {
-            var _this = _super.call(this, MsgQModEnum.SYS) || this;
+            var _this = _super.call(this, MsgQModEnum.KAL) || this;
             _this.$delta = 0;
             _this.$runTime = 0;
             _this.$localTime = new Date().valueOf();
@@ -137,8 +141,7 @@ var suncore;
             if (System.isModulePaused(ModuleEnum.CUSTOM) === false) {
                 M.timeStamp.lapse(delta);
             }
-            MsgQ.seqId++;
-            this.facade.sendNotification(NotifyKey.MSG_Q_BUSINESS, MsgQModEnum.NET);
+            this.facade.sendNotification(NotifyKey.MSG_Q_BUSINESS, MsgQModEnum.NSL);
             this.facade.sendNotification(NotifyKey.PHYSICS_PREPARE);
             this.facade.sendNotification(NotifyKey.PHYSICS_FRAME);
             this.facade.sendNotification(NotifyKey.ENTER_FRAME);
@@ -363,23 +366,23 @@ var suncore;
         };
         MsgQService.prototype.$onMsgQBusiness = function (mod) {
             var msg = null;
-            if (mod !== void 0 && mod !== this.msgQMod) {
-                return;
-            }
-            while (true) {
-                if (mod === MsgQModEnum.NET) {
-                    msg = MsgQ.fetch(MsgQModEnum.NET, 2);
+            if (mod === void 0 || mod === this.msgQMod) {
+                while (true) {
+                    if (mod === MsgQModEnum.NSL) {
+                        msg = MsgQ.fetch(MsgQModEnum.NSL, 2);
+                    }
+                    else if (this.msgQMod === MsgQModEnum.NSL) {
+                        msg = MsgQ.fetch(MsgQModEnum.NSL, 1);
+                    }
+                    else {
+                        msg = MsgQ.fetch(this.msgQMod);
+                    }
+                    if (msg === null) {
+                        break;
+                    }
+                    this.$dealMsgQMsg(msg);
                 }
-                else if (this.msgQMod === MsgQModEnum.NET) {
-                    msg = MsgQ.fetch(MsgQModEnum.NET, 1);
-                }
-                else {
-                    msg = MsgQ.fetch(this.msgQMod);
-                }
-                if (msg === null) {
-                    break;
-                }
-                this.$dealMsgQMsg(msg);
+                MsgQ.seqId++;
             }
         };
         return MsgQService;
@@ -732,7 +735,7 @@ var suncore;
             }
             for (var i = 0; i < queue.length; i++) {
                 var msg = queue[i];
-                if (mod === MsgQModEnum.NET || msg.seqId < MsgQ.seqId) {
+                if (mod === MsgQModEnum.NSL || msg.seqId < MsgQ.seqId) {
                     if (id === void 0 || msg.id === id) {
                         queue.splice(i, 1);
                         return msg;
@@ -744,13 +747,13 @@ var suncore;
         MsgQ.fetch = fetch;
         function check(mod, id) {
             var min, max;
-            if (mod === MsgQModEnum.NET) {
-                min = MsgQIdEnum.NET_MSG_ID_BEGIN;
-                max = MsgQIdEnum.NET_MSG_ID_END;
+            if (mod === MsgQModEnum.NSL) {
+                min = MsgQIdEnum.NSL_MSG_ID_BEGIN;
+                max = MsgQIdEnum.NSL_MSG_ID_END;
             }
-            else if (mod === MsgQModEnum.OSL) {
-                min = MsgQIdEnum.OSL_MSG_ID_BEGIN;
-                max = MsgQIdEnum.OSL_MSG_ID_END;
+            else if (mod === MsgQModEnum.KAL) {
+                min = MsgQIdEnum.KAL_MSG_ID_BEGIN;
+                max = MsgQIdEnum.KAL_MSG_ID_END;
             }
             else if (mod === MsgQModEnum.CUI) {
                 min = MsgQIdEnum.CUI_MSG_ID_BEGIN;
@@ -784,44 +787,75 @@ var suncore;
     })(MsgQ = suncore.MsgQ || (suncore.MsgQ = {}));
     var Mutex;
     (function (Mutex) {
+        var MMI_COMMAND_PREFIX = "MMI";
         var SYSTEM_COMMAND_PREFIX = "sun";
         var MUTEX_PREFIX_KEY = "suncore$mutex$prefix";
         var MUTEX_MUTEXES_KEY = "suncore$mutex$mutexes";
-        var MUTEX_REFERENCES_KEY = "suncore$mutex$references";
+        var MUTEX_MMI_REFERENCES_KEY = "suncore$mutex$references";
         var mutexes = 0;
+        var threshold = 0;
         var references = 0;
-        var currentPrefix = null;
         Mutex.actMsgQMod = -1;
         Mutex.checkPrefix = false;
+        Mutex.msgQMap = { "MMI": 9527 };
+        Mutex.msgQCmd = {};
         Mutex.mmiMsgQMap = {};
-        Mutex.mmiMsgQCmd = {};
         function getCommandPrefix(name) {
+            if (name.substr(0, 3) === SYSTEM_COMMAND_PREFIX) {
+                return SYSTEM_COMMAND_PREFIX;
+            }
             var index = name.indexOf("_");
             if (index < 1) {
-                throw Error("\u5FC5\u987B\u4E3A\u547D\u4EE4\u6307\u5B9A\u4E00\u4E2A\u6A21\u5757\u540D\uFF0C\u683C\u5F0F\u4E3A MOD_" + name);
+                throw Error("\u5FC5\u987B\u4E3A\u547D\u4EE4\u6307\u5B9A\u4E00\u4E2A\u6A21\u5757\u540D\uFF0C\u683C\u5F0F\u5982 MOD_" + name);
             }
             return name.substr(0, index);
         }
-        function isSunCmd(name) {
-            return name.substr(0, 3) === SYSTEM_COMMAND_PREFIX;
-        }
         function isMMIPrefix(prefix) {
-            var msgQMod = Mutex.mmiMsgQMap[prefix] || -1;
-            return msgQMod !== -1;
+            var msgQMod = Mutex.msgQMap[prefix] || -1;
+            return msgQMod !== -1 && Mutex.mmiMsgQMap[msgQMod] === true;
         }
         function asserts(prefix) {
-            var yes = isMMIPrefix(prefix);
+            if (prefix === SYSTEM_COMMAND_PREFIX) {
+                return prefix;
+            }
+            if (Mutex.msgQMap[prefix] === void 0) {
+                throw Error("\u672A\u6CE8\u518C\u7684MsgQ\u6D88\u606F\u524D\u7F00\uFF1A" + prefix);
+            }
             if (Mutex.actMsgQMod === MsgQModEnum.MMI) {
-                if (yes === true) {
-                    Mutex.actMsgQMod = Mutex.mmiMsgQMap[prefix];
-                    currentPrefix = prefix;
+                if (isMMIPrefix(prefix) === true) {
+                    Mutex.actMsgQMod = Mutex.msgQMap[prefix];
                 }
-                else {
-                    throw Error("\u7981\u6B62\u8DE8\u6A21\u5757\u4F20\u9012\u6D88\u606F src:MMI, dest:" + prefix);
+                else if (prefix !== MMI_COMMAND_PREFIX) {
+                    throw Error("\u7981\u6B62\u8DE8\u6A21\u5757\u4F20\u9012\u6D88\u606F src:" + MMI_COMMAND_PREFIX + ", dest:" + suncore.MsgQModEnum[Mutex.msgQMap[prefix]]);
+                }
+            }
+            else if (Mutex.actMsgQMod !== suncore.MsgQModEnum.KAL) {
+                var cmd = Mutex.msgQCmd[Mutex.actMsgQMod] || null;
+                if (cmd === null) {
+                    throw Error("\u610F\u5916\u7684MsgQMod " + Mutex.actMsgQMod);
+                }
+                if (cmd !== prefix) {
+                    var yes = isMMIPrefix(cmd);
+                    if (yes === false || (yes === true && prefix !== MMI_COMMAND_PREFIX)) {
+                        throw Error("\u7981\u6B62\u8DE8\u6A21\u5757\u4F20\u9012\u6D88\u606F src:" + suncore.MsgQModEnum[Mutex.msgQMap[cmd]] + ", dest:" + suncore.MsgQModEnum[Mutex.msgQMap[prefix]]);
+                    }
                 }
             }
             return prefix;
         }
+        function enableMMIAction() {
+            if (Mutex.checkPrefix === false) {
+                return true;
+            }
+            if (Mutex.actMsgQMod === -1 || Mutex.actMsgQMod === MsgQModEnum.KAL) {
+                return true;
+            }
+            if (Mutex.actMsgQMod === MsgQModEnum.MMI) {
+                return true;
+            }
+            return Mutex.mmiMsgQMap[Mutex.actMsgQMod] === true;
+        }
+        Mutex.enableMMIAction = enableMMIAction;
         function active(msgQMod) {
             if (Mutex.checkPrefix === false) {
                 return;
@@ -835,7 +869,7 @@ var suncore;
             if (Mutex.checkPrefix === false) {
                 return;
             }
-            if (references === 0 && Mutex.actMsgQMod !== -1) {
+            if (references === 0 && mutexes === 0 && Mutex.actMsgQMod !== -1) {
                 Mutex.actMsgQMod = -1;
             }
         }
@@ -844,20 +878,16 @@ var suncore;
             if (Mutex.checkPrefix === false) {
                 return;
             }
-            if (isSunCmd(name) === true) {
+            var prefix = asserts(getCommandPrefix(name));
+            if (Mutex.actMsgQMod === suncore.MsgQModEnum.KAL && prefix !== SYSTEM_COMMAND_PREFIX) {
+                threshold = references;
+                Mutex.actMsgQMod = Mutex.msgQMap[prefix];
+            }
+            if (prefix === SYSTEM_COMMAND_PREFIX || prefix === MMI_COMMAND_PREFIX) {
                 references++;
             }
             else {
-                var prefix = asserts(getCommandPrefix(name));
-                if (currentPrefix === null || currentPrefix === prefix) {
-                    mutexes++;
-                    if (mutexes === 1) {
-                        currentPrefix = prefix;
-                    }
-                }
-                else {
-                    throw Error("\u7981\u6B62\u8DE8\u6A21\u5757\u4F20\u9012\u6D88\u606F\uFF0Csrc:" + prefix + ", dest:" + getCommandPrefix(name));
-                }
+                mutexes++;
             }
         }
         Mutex.lock = lock;
@@ -865,37 +895,22 @@ var suncore;
             if (Mutex.checkPrefix === false) {
                 return;
             }
-            if (isSunCmd(name) === true) {
+            var prefix = getCommandPrefix(name);
+            if (prefix === SYSTEM_COMMAND_PREFIX || prefix === MMI_COMMAND_PREFIX) {
                 references--;
             }
             else {
-                var prefix = getCommandPrefix(name);
-                if (currentPrefix === null || prefix === currentPrefix) {
-                    mutexes--;
-                    if (mutexes === 0) {
-                        currentPrefix = null;
-                    }
-                    else if (mutexes < 0) {
-                        throw Error("\u4E92\u65A5\u4F53\u91CA\u653E\u9519\u8BEF\uFF1A" + mutexes);
-                    }
+                mutexes--;
+                if (mutexes < 0) {
+                    throw Error("\u4E92\u65A5\u4F53\u91CA\u653E\u9519\u8BEF\uFF1A" + mutexes);
                 }
-                else {
-                    throw Error("\u7981\u6B62\u8DE8\u6A21\u5757\u4F20\u9012\u6D88\u606F\uFF0Csrc:" + prefix + ", dest:" + getCommandPrefix(name));
-                }
+            }
+            if (threshold === references && mutexes === 0) {
+                threshold = 0;
+                Mutex.actMsgQMod = MsgQModEnum.KAL;
             }
         }
         Mutex.unlock = unlock;
-        function enableMMIAction() {
-            if (Mutex.checkPrefix === false) {
-                return true;
-            }
-            if (currentPrefix === null) {
-                return true;
-            }
-            var msgQMod = Mutex.mmiMsgQMap[currentPrefix] || -1;
-            return msgQMod !== -1;
-        }
-        Mutex.enableMMIAction = enableMMIAction;
         function create(name, target) {
             if (Mutex.checkPrefix === false) {
                 return;
@@ -903,23 +918,37 @@ var suncore;
             if (target === null || target === puremvc.Controller.inst || target === puremvc.View.inst) {
                 return;
             }
-            if (isSunCmd(name) === true) {
+            var prefix = asserts(getCommandPrefix(name));
+            if (prefix === SYSTEM_COMMAND_PREFIX) {
                 return;
             }
             var mutex = target[MUTEX_MUTEXES_KEY] || 0;
-            if (mutex > 0) {
-                var prefix = target[MUTEX_PREFIX_KEY] || null;
-                if (prefix === null) {
-                    throw Error("\u610F\u5916\u7684\u4E92\u65A5\u91CF mutex:" + mutex);
+            var references = target[MUTEX_MMI_REFERENCES_KEY] || 0;
+            var str = target[MUTEX_PREFIX_KEY] || MMI_COMMAND_PREFIX;
+            if (prefix === MMI_COMMAND_PREFIX) {
+                if (mutex > 0 && isMMIPrefix(str) === false) {
+                    throw Error("\u7981\u6B62\u8DE8\u6A21\u5757\u76D1\u542C\u6D88\u606F\uFF0Csrc:" + suncore.MsgQModEnum[Mutex.msgQMap[str]] + ", dest:" + suncore.MsgQModEnum[Mutex.msgQMap[prefix]]);
                 }
-                if (prefix !== getCommandPrefix(name)) {
-                    throw Error("\u7981\u6B62\u8DE8\u6A21\u5757\u76D1\u542C\u6D88\u606F\uFF0Csrc:" + prefix + ", dest:" + getCommandPrefix(name));
+            }
+            else if (isMMIPrefix(prefix) === true) {
+                if (mutex > 0 && str !== prefix) {
+                    throw Error("\u7981\u6B62\u8DE8\u6A21\u5757\u76D1\u542C\u6D88\u606F\uFF0Csrc:" + suncore.MsgQModEnum[Mutex.msgQMap[str]] + ", dest:" + suncore.MsgQModEnum[Mutex.msgQMap[prefix]]);
                 }
             }
             else {
-                target[MUTEX_PREFIX_KEY] = getCommandPrefix(name);
+                if (references > 0 || (mutex > 0 && str !== prefix)) {
+                    throw Error("\u7981\u6B62\u8DE8\u6A21\u5757\u76D1\u542C\u6D88\u606F\uFF0Csrc:" + suncore.MsgQModEnum[Mutex.msgQMap[str]] + ", dest:" + suncore.MsgQModEnum[Mutex.msgQMap[prefix]]);
+                }
             }
-            target[MUTEX_MUTEXES_KEY] = mutex + 1;
+            if (prefix === MMI_COMMAND_PREFIX) {
+                target[MUTEX_MMI_REFERENCES_KEY] = references + 1;
+            }
+            else {
+                target[MUTEX_MUTEXES_KEY] = mutex + 1;
+                if (mutex === 0) {
+                    target[MUTEX_PREFIX_KEY] = prefix;
+                }
+            }
         }
         Mutex.create = create;
         function release(name, target) {
@@ -929,26 +958,43 @@ var suncore;
             if (target === null || target === puremvc.Controller.inst || target === puremvc.View.inst) {
                 return;
             }
-            if (isSunCmd(name) === true) {
+            var prefix = asserts(getCommandPrefix(name));
+            if (prefix === SYSTEM_COMMAND_PREFIX) {
                 return;
             }
             var mutex = target[MUTEX_MUTEXES_KEY] || 0;
-            if (mutex <= 0) {
-                throw Error("\u4E92\u65A5\u91CF\u4E0D\u5B58\u5728");
+            var references = target[MUTEX_MMI_REFERENCES_KEY] || 0;
+            if (mutex <= 0 && references <= 0) {
+                throw Error("\u4E92\u65A5\u91CF\u72B6\u6001\u6709\u8BEF");
             }
-            var prefix = target[MUTEX_PREFIX_KEY] || null;
-            if (prefix === null) {
-                throw Error("\u4E92\u65A5\u4F53\u4E0D\u5B58\u5728");
+            var str = target[MUTEX_PREFIX_KEY] || MMI_COMMAND_PREFIX;
+            if (prefix === MMI_COMMAND_PREFIX) {
+                if (mutex > 0 && isMMIPrefix(str) === false) {
+                    throw Error("\u7981\u6B62\u8DE8\u6A21\u5757\u76D1\u542C\u6D88\u606F\uFF0Csrc:" + suncore.MsgQModEnum[Mutex.msgQMap[str]] + ", dest:" + suncore.MsgQModEnum[Mutex.msgQMap[prefix]]);
+                }
             }
-            if (prefix !== getCommandPrefix(name)) {
-                throw Error("\u7981\u6B62\u8DE8\u6A21\u5757\u76D1\u542C\u6D88\u606F\uFF0Csrc:" + prefix + ", dest:" + getCommandPrefix(name));
+            else if (isMMIPrefix(prefix) === true) {
+                if (mutex > 0 && str !== prefix) {
+                    throw Error("\u7981\u6B62\u8DE8\u6A21\u5757\u76D1\u542C\u6D88\u606F\uFF0Csrc:" + suncore.MsgQModEnum[Mutex.msgQMap[str]] + ", dest:" + suncore.MsgQModEnum[Mutex.msgQMap[prefix]]);
+                }
             }
-            if (mutex - 1 === 0) {
-                delete target[MUTEX_PREFIX_KEY];
-                delete target[MUTEX_MUTEXES_KEY];
+            else {
+                if (references > 0 || str !== prefix) {
+                    throw Error("\u7981\u6B62\u8DE8\u6A21\u5757\u76D1\u542C\u6D88\u606F\uFF0Csrc:" + suncore.MsgQModEnum[Mutex.msgQMap[str]] + ", dest:" + suncore.MsgQModEnum[Mutex.msgQMap[prefix]]);
+                }
+            }
+            if (prefix === MMI_COMMAND_PREFIX) {
+                target[MUTEX_MMI_REFERENCES_KEY] = references - 1;
+                if (references === 1) {
+                    delete target[MUTEX_MMI_REFERENCES_KEY];
+                }
             }
             else {
                 target[MUTEX_MUTEXES_KEY] = mutex - 1;
+                if (mutex === 1) {
+                    delete target[MUTEX_MUTEXES_KEY];
+                    delete target[MUTEX_PREFIX_KEY];
+                }
             }
         }
         Mutex.release = release;
