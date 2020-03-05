@@ -11,12 +11,12 @@ module sunnet {
          * 发送数据
          * export
          */
-        NSL_SEND_DATA = suncore.MsgQIdEnum.NSL_MSG_ID_BEGIN,
+        NSL_SEND_DATA = 1,
 
         /**
          * 接收数据
          * export
          */
-        NSL_RECV_DATA
+        NSL_RECV_DATA = 2
     }
 }
