@@ -20,15 +20,19 @@ class Main {
 
 	private $onLoadProto(): void {
 		puremvc.Facade.getInstance().registerCommand(suncore.NotifyKey.START_TIMELINE, suncore.StartTimelineCommand);
-		puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.START_TIMELINE, suncore.ModuleEnum.SYSTEM);
+		puremvc.Facade.getInstance().sendNotification(suncore.NotifyKey.START_TIMELINE, [suncore.ModuleEnum.SYSTEM, false]);
 
 		sunnet.ProtobufManager.getInstance().buildProto("other/fishing.proto");
 		sunnet.ProtobufManager.getInstance().buildProtocal("other/protocal.json");
 
+		sunnet.Config.TCP_RETRY_DELAY = 20 * 1000;
+		sunnet.Config.TCP_MAX_RETRIES = 5;
+		sunnet.Config.HEARTBEAT_TIMEOUT_MILLISECONDS = 1000;
+		sunnet.Config.HEARTBEAT_INTERVAL_MILLISECONDS = 3000;
 		sunnet.Config.HEARTBEAT_REQUEST_COMMAND = 103;
 		sunnet.Config.HEARTBEAT_RESPONSE_COMMAND = 103;
 
-		suncom.Global.debugMode = suncom.DebugMode.NETWORK;
+		suncom.Global.debugMode = suncom.DebugMode.NETWORK// | suncom.DebugMode.NETWORK_HEARTBEAT;
 
 		PSAppUtils.getInstance().pipeline.add("recv", sunnet.NetConnectionDecoder);
 		PSAppUtils.getInstance().pipeline.add("send", sunnet.NetConnectionEncoder);

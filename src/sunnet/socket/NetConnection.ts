@@ -7,7 +7,7 @@
  */
 module sunnet {
     /**
-     * 网络连接象
+     * 网络连接对象
      * export
      */
     export class NetConnection extends puremvc.Notifier implements suncom.IEventSystem {
@@ -61,11 +61,8 @@ module sunnet {
          */
         constructor(name: string) {
             super(suncore.MsgQModEnum.NSL);
-            // 网络连接名字
             this.$name = name;
-            // 消息处理管道
             this.$pipeline = new NetConnectionPipeline(this);
-            // 事件接口
             this.$dispatcher = new suncom.EventSystem();
         }
 
@@ -75,14 +72,8 @@ module sunnet {
          * export
          */
         connect(ip: string, port: number, byDog: boolean): void {
-            // 正常关闭连接
-            if (byDog === false) {
-                this.close(false);
-            }
-            // 被狗关闭的链接视为因网络错误而断开
-            else {
-                this.close(this.$closedByError);
-            }
+            const byError: boolean = byDog === false ? false : this.$closedByError;
+            this.close(byError);
 
             this.$ip = ip;
             this.$port = port;
@@ -113,12 +104,8 @@ module sunnet {
             }
             // 非正常断网时，若网络己处于连接状态，则标记为异常断开
             else if (this.$state === NetConnectionStateEnum.CONNECTED) {
-                // 更新标记
                 this.$closedByError = true;
-                // 清除队列消息
                 this.dispatchEvent(EventKey.CLEAR_MESSAGE_QUEUE);
-                // 异常断网时，需要通知
-                this.facade.sendNotification(NotifyKey.SOCKET_STATE_CHANGE, 1);
             }
 
             if (this.$socket !== null) {
@@ -147,6 +134,10 @@ module sunnet {
                 this.dispatchEvent(EventKey.KILL_WATCH_DOG);
             }
 
+            // 若当前处理连接状态，则派发断网通知
+            if (this.$state === NetConnectionStateEnum.CONNECTED) {
+                this.facade.sendNotification(NotifyKey.SOCKET_STATE_CHANGE, [this.$name, 1]);
+            }
             this.$state = NetConnectionStateEnum.DISCONNECTED;
         }
 
@@ -170,11 +161,15 @@ module sunnet {
         }
 
         /**
-         * 发送二进制数据
+         * 发送数据
+         * @bytes: 只能是Uint8Array，默认为：null
+         * @ip: 目标地址，默认为：null
+         * @port: 目标端口，默认为：0
+         * @care: 心跳是否会关心此协议，默认为true
          * export
          */
-        sendBytes(cmd: number, bytes: Uint8Array = null, ip?: string, port?: number): void {
-            this.$pipeline.send(cmd, bytes, ip, port);
+        sendBytes(cmd: number, bytes: Uint8Array = null, ip: string = null, port: number = 0, care: boolean = true): void {
+            this.$pipeline.send(cmd, bytes, ip, port, care);
         }
 
         /**
@@ -189,7 +184,7 @@ module sunnet {
             // 若是异常断网成功重连，则需要通知网络状态变更
             if (this.$closedByError === true) {
                 this.$closedByError = false;
-                this.facade.sendNotification(NotifyKey.SOCKET_STATE_CHANGE, 0);
+                this.facade.sendNotification(NotifyKey.SOCKET_STATE_CHANGE, [this.$name, 0]);
             }
 
             // 网络重连成功
@@ -220,7 +215,7 @@ module sunnet {
          * 响应数据
          */
         private $onMessage(event: Laya.Event): void {
-            this.$pipeline.recv(null, null, null);
+            this.$pipeline.recv(0, 0, null, void 0);
         }
 
         /**
@@ -263,21 +258,21 @@ module sunnet {
          * 网络连接名称
          */
         get name(): string {
-            return null;
+            return this.$name;
         }
 
         /**
          * 服务器地址
          */
         get ip(): string {
-            return this.$ip;
+            return this.$ip || null;
         }
 
         /**
          * 服务器端口
          */
         get port(): number {
-            return this.$port;
+            return this.$port || 0;
         }
 
         /**
@@ -292,22 +287,22 @@ module sunnet {
          * 数据接收缓冲区
          */
         get input(): Laya.Byte {
-            const socket = this.$socket || null;
+            const socket: Laya.Socket = this.$socket || null;
             if (socket === null) {
                 return null;
             }
-            return this.$socket.input;
+            return this.$socket.input || null;
         }
 
         /**
          * 数据发送缓冲区
          */
         get output(): Laya.Byte {
-            const socket = this.$socket || null;
+            const socket: Laya.Socket = this.$socket || null;
             if (socket === null) {
                 return null;
             }
-            return this.$socket.output;
+            return this.$socket.output || null;
         }
 
         /**

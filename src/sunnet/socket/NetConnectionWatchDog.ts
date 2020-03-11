@@ -6,12 +6,6 @@ module sunnet {
      * export
      */
     export class NetConnectionWatchDog extends NetConnectionInterceptor {
-
-        /**
-         * 重连定时器
-         */
-        private $timerId: number;
-
         /**
          * 重连的服务器地址
          */
@@ -23,12 +17,18 @@ module sunnet {
         private $port: number;
 
         /**
-         * 重连次数
+         * 重试机
          */
-        private $retryCount: number = 0;
+        private $retryer: sunui.IRetryer = null;
 
         constructor(connection: INetConnection) {
             super(connection);
+            this.$retryer = new sunui.Retryer(
+                sunui.RetryMethodEnum.CONFIRM,
+                null,
+                Config.NETWORK_ANOMALY_STRING,
+                sunui.ConfirmOptionValueEnum.YES, "确定"
+            );
             this.$connection.addEventListener(EventKey.KILL_WATCH_DOG, this.$onKillWatchDog, this);
         }
 
@@ -41,11 +41,11 @@ module sunnet {
         }
 
         /**
-         * 当网络连接被建立时，需要移除检测狗
+         * 当网络连接被建立时，需要取消并重置重连重试机
          */
         protected $onConnected(): void {
-            this.$retryCount = 0;
-            this.$onKillWatchDog();
+            this.$retryer.cancel();
+            this.$retryer.reset();
         }
 
         /**
@@ -56,15 +56,9 @@ module sunnet {
                 if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) === suncom.DebugMode.NETWORK_HEARTBEAT) {
                     suncom.Logger.log(`NetConnectionWatchDog=> 网络连接异常，${Config.TCP_RETRY_DELAY}毫秒后重连！`);
                 }
-                if (this.$retryCount >= Config.TCP_MAX_RETRY_TIME) {
-                    this.$retryCount = 0;
-                    this.facade.sendNotification(NotifyKey.SOCKET_STATE_CHANGE, 2);
-                    return;
-                }
                 this.$ip = this.$connection.ip;
                 this.$port = this.$connection.port;
-                this.$timerId = suncore.System.addTimer(suncore.ModuleEnum.SYSTEM, Config.TCP_RETRY_DELAY, this.$onDoingConnect, this);
-                this.facade.sendNotification(NotifyKey.SOCKET_STATE_ANOMALY, this.$retryCount);
+                this.$retryer.run(Config.TCP_RETRY_DELAY, suncom.Handler.create(this, this.$doConnect), Config.TCP_MAX_RETRIES);
             }
         }
 
@@ -72,22 +66,21 @@ module sunnet {
          * 杀死检测狗
          */
         protected $onKillWatchDog(): void {
-            this.$timerId = suncore.System.removeTimer(this.$timerId);
+            this.$retryer.cancel();
         }
 
         /**
-         * 重连
+         * 重连执行函数
          */
-        private $onDoingConnect(): void {
+        private $doConnect(): void {
             // 只有在网络处于未连接状态时才会进行重连
             if (this.$connection.state === NetConnectionStateEnum.DISCONNECTED) {
-                this.$retryCount++;
-                this.facade.sendNotification(NotifyKey.SOCKET_RETRY_CONNECT, this.$retryCount);
+                this.facade.sendNotification(NotifyKey.SOCKET_RETRY_CONNECT);
                 this.$connection.connect(this.$ip, this.$port, true);
             }
             else {
                 if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
-                    suncom.Logger.log("检测狗不能正常工作，因为：", "state:" + suncom.Common.convertEnumToString(this.$connection.state, NetConnectionStateEnum));
+                    suncom.Logger.log(`检测狗不能正常工作，因为 state:${NetConnectionStateEnum[this.$connection.state]}`);
                 }
             }
         }

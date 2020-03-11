@@ -6,8 +6,10 @@ module sunnet {
      * export
      */
     export abstract class NetConnectionInterceptor extends puremvc.Notifier implements INetConnectionInterceptor {
-
-        protected $connection: INetConnection;
+        /**
+         * 网络连接对象
+         */
+        protected $connection: INetConnection = null;
 
         /**
          * export
@@ -44,15 +46,16 @@ module sunnet {
 
 		/**
 		 * 数据发送拦截接口
+         * @care: 心跳是否会关心此协议
 		 */
-        send(cmd: number, bytes?: Uint8Array, ip?: string, port?: number): Array<any> {
+        send(cmd: number, bytes: Uint8Array, ip: string, port: number, care: boolean): Array<any> {
             return [cmd, bytes, ip, port];
         }
 
 		/**
 		 * 数据接收拦截接口
 		 */
-        recv(cmd: number, srvId: number, bytes: Uint8Array, data?: any): Array<any> {
+        recv(cmd: number, srvId: number, bytes: Uint8Array, data: any): Array<any> {
             return [cmd, srvId, bytes, data];
         }
     }

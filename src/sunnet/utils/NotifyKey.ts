@@ -6,16 +6,10 @@ module sunnet {
      */
     export namespace NotifyKey {
         /**
-         * 网络状态变化
+         * 网络状态变化通知
          * export
          */
         export const SOCKET_STATE_CHANGE: string = "sunnet.NotifyKey.SOCKET_STATE_CHANGE";
-
-        /**
-         * 网络异常通知
-         * export
-         */
-        export const SOCKET_STATE_ANOMALY: string = "sunnet.NotifyKey.SOCKET_STATE_ANOMALY";
 
         /**
          * 网络重连通知

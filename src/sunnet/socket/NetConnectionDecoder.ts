@@ -10,7 +10,7 @@ module sunnet {
 		/**
 		 * 数据接收拦截接口
 		 */
-        recv(cmd: number, srvId: number, bytes: Uint8Array, data?: any): Array<any> {
+        recv(cmd: number, srvId: number, bytes: Uint8Array, data: any): Array<any> {
             const input: Laya.Byte = this.$connection.input || null;
             if (input === null) {
                 console.error(`Decoder 网络己断开！！！`);
@@ -20,7 +20,7 @@ module sunnet {
             cmd = input.getUint16();
             srvId = input.getUint16();
 
-            const buffer = input.buffer.slice(input.pos);
+            const buffer: ArrayBuffer = input.buffer.slice(input.pos);
             input.pos += buffer.byteLength;
 
             bytes = new Uint8Array(buffer);

@@ -109,6 +109,9 @@ declare module sunui {
 
         /**
          * 加载界面
+         * 说明：
+         * 1. 层级低于加载界面的在场景中显示
+         * 2. 层级等于或高于加载界面的在舞台中显示
          */
         LOADING,
 
@@ -230,7 +233,7 @@ declare module sunui {
         /**
          * 等待指定时间
          */
-        wait(delay: number): ITween;
+        wait(delay: number, handler?: suncom.IHandler): ITween;
     }
 
     /**
@@ -397,7 +400,7 @@ declare module sunui {
         /**
          * 等待指定时间
          */
-        wait(delay: number): ITween;
+        wait(delay: number, handler?: suncom.IHandler): ITween;
 
         /**
          * @mod: 执行缓动的模块，默认为：CUSTOM
@@ -512,6 +515,11 @@ declare module sunui {
          * 2. 不同于LOAD_SCENE命令，当场景卸载完成时，EXIT_SCENE命令不需要由外部派发
          */
         const UNLOAD_SCENE: string;
+
+        /**
+         * 加载场景之前 { none }
+         */
+        const BEFORE_LOAD_SCENE: string;
 
         /**
          * 注册场景信息 { infos: ISceneInfo[] }

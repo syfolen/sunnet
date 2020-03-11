@@ -15,7 +15,7 @@ module sunnet {
 
         /**
          * 关闭 websocket
-         * @byError: 是否因为网络错误而关闭，默认为false
+         * @byError: 是否因为网络错误而关闭，默认为：false
          * export
          */
         close(byError?: boolean): void;
@@ -32,12 +32,13 @@ module sunnet {
 
         /**
          * 发送数据
-         * @bytes: 只能是Uint8Array
-         * @ip: 目标地址，允许为空 
-         * @port: 目标端口，允许为空
+         * @bytes: 只能是Uint8Array，默认为：null
+         * @ip: 目标地址，默认为：null
+         * @port: 目标端口，默认为：0
+         * @care: 心跳是否会关心此协议，默认为true
          * export
          */
-        sendBytes(cmd: number, bytes?: Uint8Array, ip?: string, port?: number): void;
+        sendBytes(cmd: number, bytes?: Uint8Array, ip?: string, port?: number, care?: boolean): void;
 
         /**
          * 网络连接名称

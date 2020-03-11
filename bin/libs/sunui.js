@@ -20,6 +20,10 @@ var sunui;
         ConfirmOptionValueEnum[ConfirmOptionValueEnum["NO"] = 2] = "NO";
         ConfirmOptionValueEnum[ConfirmOptionValueEnum["CANCEL"] = 3] = "CANCEL";
     })(ConfirmOptionValueEnum = sunui.ConfirmOptionValueEnum || (sunui.ConfirmOptionValueEnum = {}));
+    var LoaderStatusEnum;
+    (function (LoaderStatusEnum) {
+        LoaderStatusEnum[LoaderStatusEnum["undefined"] = 0] = "undefined";
+    })(LoaderStatusEnum = sunui.LoaderStatusEnum || (sunui.LoaderStatusEnum = {}));
     var RetryMethodEnum;
     (function (RetryMethodEnum) {
         RetryMethodEnum[RetryMethodEnum["NONE"] = 16] = "NONE";
@@ -162,11 +166,11 @@ var sunui;
                 console.error(view + "[" + view.name + "]'s infomation is not exist.");
                 return;
             }
-            if (info.closed === true) {
-                return;
-            }
             if (destroy !== void 0) {
                 info.keepNode = !destroy;
+            }
+            if (info.closed === true) {
+                return;
             }
             info.closed = true;
             M.viewLayer.onViewClose(view);
@@ -194,13 +198,13 @@ var sunui;
         __extends(Loader, _super);
         function Loader() {
             var _this = _super.call(this) || this;
-            _this.$hashId = suncom.Common.createHashId();
             _this.$url = null;
             _this.$templet = null;
             _this.$handler = null;
             _this.$loading = false;
+            _this.$destroyed = false;
             _this.$retryer = null;
-            _this.$retryer = new Retryer(RetryMethodEnum.CONFIRM | suncore.ModuleEnum.SYSTEM, suncom.Handler.create(_this, _this.$onRetryConfirmed, [_this.$hashId]), "资源加载失败，点击确定重新尝试！", ConfirmOptionValueEnum.YES, "确定", ConfirmOptionValueEnum.NO, "取消");
+            _this.$retryer = new Retryer(RetryMethodEnum.CONFIRM | suncore.ModuleEnum.SYSTEM, suncom.Handler.create(_this, _this.$onRetryConfirmed), "资源加载失败，点击确定重新尝试！", ConfirmOptionValueEnum.YES, "确定", ConfirmOptionValueEnum.NO, "取消");
             return _this;
         }
         Loader.prototype.load = function (url, handler) {
@@ -212,30 +216,26 @@ var sunui;
             }
         };
         Loader.prototype.$doLoad = function () {
-            if (this.$templet === null) {
-                Laya.loader.load(Resource.getLoadList(this.$url), Laya.Handler.create(this, this.$onLoad));
-            }
-            else {
-                this.$templet.loadAni(this.$url);
-            }
+            Laya.loader.load(Resource.getLoadList(this.$url), Laya.Handler.create(this, this.$onLoad));
         };
         Loader.prototype.$onLoad = function (ok) {
-            if (ok === false) {
-                this.$retryer.run(1000, suncom.Handler.create(this, this.$doLoad), 2);
-            }
-            else if (this.getResExtByUrl(this.$url) === "sk" && this.$templet === null) {
-                this.$templet = new Laya.Templet();
-                this.$templet.on(Laya.Event.ERROR, this, this.$onLoad, [false]);
-                this.$templet.on(Laya.Event.COMPLETE, this, this.$onLoad, [true]);
-                this.$templet.loadAni(this.$url);
-            }
-            else {
-                this.$loading = false;
-                this.$handler.run();
+            if (this.$destroyed === false) {
+                if (ok === false) {
+                    this.$retryer.run(1000, suncom.Handler.create(this, this.$doLoad), 2);
+                }
+                else if (this.getResExtByUrl(this.$url) === "sk" && this.$templet === null) {
+                    this.$templet = new Laya.Templet();
+                    this.$templet.on(Laya.Event.COMPLETE, this, this.$onLoad, [true]);
+                    this.$templet.loadAni(this.$url);
+                }
+                else {
+                    this.$loading = false;
+                    this.$handler.run();
+                }
             }
         };
-        Loader.prototype.$onRetryConfirmed = function (hashId, option) {
-            if (this.$hashId === hashId) {
+        Loader.prototype.$onRetryConfirmed = function (option) {
+            if (this.$destroyed === false) {
                 if (option === ConfirmOptionValueEnum.YES) {
                     this.$doLoad();
                     this.$retryer.reset();
@@ -246,14 +246,17 @@ var sunui;
             }
         };
         Loader.prototype.destroy = function () {
-            this.$hashId = 0;
-            this.$handler = null;
-            this.$loading = false;
-            if (this.$templet !== null) {
-                this.$templet.off(Laya.Event.ERROR, this, this.$onLoad);
-                this.$templet.off(Laya.Event.COMPLETE, this, this.$onLoad);
-                this.$templet.destroy();
-                this.$templet = null;
+            if (this.$destroyed === false) {
+                this.$destroyed = true;
+                this.$handler = null;
+                this.$loading = false;
+                this.$retryer.cancel();
+                if (this.$templet !== null) {
+                    this.$templet.off(Laya.Event.ERROR, this, this.$onLoad);
+                    this.$templet.off(Laya.Event.COMPLETE, this, this.$onLoad);
+                    this.$templet.destroy();
+                    this.$templet = null;
+                }
             }
         };
         Loader.prototype.getResExtByUrl = function (url) {
@@ -401,27 +404,15 @@ var sunui;
             return _this;
         }
         SceneLayer.prototype.$enterScene = function (name, data) {
-            var str = null;
-            if (typeof data === "object") {
-                try {
-                    str = JSON.stringify(data);
-                }
-                catch (error) {
-                    str = data;
-                    suncom.Logger.warn("\u53C2\u6570\u65E0\u6CD5\u8F6C\u5316\u4E3AJSON");
-                }
-            }
-            else {
-                str = data;
-            }
             var info = SceneManager.getConfigByName(name);
             suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_LAZY, suncom.Handler.create(this, this.$beforeLoadScene, [info, data]));
             suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_LAZY, suncom.Handler.create(this, this.$loadScene, [info, data]));
         };
         SceneLayer.prototype.$beforeLoadScene = function (info, data) {
             this.$sceneName = info.name;
+            this.facade.sendNotification(NotifyKey.BEFORE_LOAD_SCENE);
             var task = data === void 0 ? new info.iniCls() : new info.iniCls(data);
-            suncore.System.addTask(suncore.ModuleEnum.SYSTEM, task);
+            suncore.System.addTask(suncore.ModuleEnum.SYSTEM, 0, task);
         };
         SceneLayer.prototype.$loadScene = function (info, data) {
             this.facade.sendNotification(NotifyKey.LOAD_SCENE, [info, data]);
@@ -433,14 +424,16 @@ var sunui;
             this.facade.sendNotification(suncore.NotifyKey.START_TIMELINE, [suncore.ModuleEnum.CUSTOM, false]);
         };
         SceneLayer.prototype.$exitScene = function () {
-            var info = SceneManager.getConfigByName(this.$sceneName);
             this.facade.sendNotification(NotifyKey.EXIT_SCENE, this.$sceneName);
             this.facade.sendNotification(suncore.NotifyKey.PAUSE_TIMELINE, [suncore.ModuleEnum.CUSTOM, true]);
-            info.uniCls && suncore.System.addTask(suncore.ModuleEnum.SYSTEM, new info.uniCls());
-            suncore.System.addTask(suncore.ModuleEnum.SYSTEM, new suncore.SimpleTask(suncom.Handler.create(this, this.$onExitScene)));
-        };
-        SceneLayer.prototype.$onExitScene = function () {
             var info = SceneManager.getConfigByName(this.$sceneName);
+            suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_LAZY, suncom.Handler.create(this, this.$beforeExitScene, [info]));
+        };
+        SceneLayer.prototype.$beforeExitScene = function (info) {
+            info.uniCls && suncore.System.addTask(suncore.ModuleEnum.SYSTEM, 0, new info.uniCls());
+            suncore.System.addTask(suncore.ModuleEnum.SYSTEM, 0, new suncore.SimpleTask(suncom.Handler.create(this, this.$onExitScene, [info])));
+        };
+        SceneLayer.prototype.$onExitScene = function (info) {
             this.facade.sendNotification(NotifyKey.UNLOAD_SCENE, info);
             this.$sceneName = 0;
         };
@@ -466,10 +459,9 @@ var sunui;
         };
         SceneLayer.prototype.replaceScene = function (name, data) {
             var info = SceneHeap.pop();
-            if (this.enterScene(name, data) === false) {
-                return;
+            if (this.enterScene(name, data) === true) {
+                info !== null && SceneHeap.removeHistory(info.name);
             }
-            info !== null && SceneHeap.removeHistory(info.name);
         };
         Object.defineProperty(SceneLayer.prototype, "uiScene", {
             get: function () {
@@ -562,7 +554,7 @@ var sunui;
         };
         ShowPopupCommand.prototype.$onPopupFinish = function (view) {
             var info = M.viewLayer.getInfoByView(view);
-            if (info !== null) {
+            if (info !== null && info.closed === false) {
                 info.displayed = true;
                 M.viewLayer.onViewOpen(view);
                 this.facade.sendNotification(NotifyKey.ON_POPUP_OPENED, view);
@@ -732,11 +724,12 @@ var sunui;
             };
             this.$infos.push(info);
         };
-        Tween.prototype.wait = function (delay) {
+        Tween.prototype.wait = function (delay, handler) {
+            if (handler === void 0) { handler = null; }
             var info = {
                 ease: null,
                 actions: [],
-                handler: null,
+                handler: handler,
                 time: suncore.System.getModuleTimestamp(this.$mod),
                 duration: delay
             };
@@ -877,13 +870,19 @@ var sunui;
             return UIManager.$inst;
         };
         UIManager.prototype.enterScene = function (name, data) {
+            suncore.Mutex.backup(this);
             M.sceneLayer.enterScene(name, data);
+            suncore.Mutex.restore();
         };
         UIManager.prototype.exitScene = function () {
+            suncore.Mutex.backup(this);
             M.sceneLayer.exitScene();
+            suncore.Mutex.restore();
         };
         UIManager.prototype.replaceScene = function (name, data) {
+            suncore.Mutex.backup(this);
             M.sceneLayer.replaceScene(name, data);
+            suncore.Mutex.restore();
         };
         UIManager.prototype.removeView = function (view) {
             M.viewLayer.removeStackByView(view);
@@ -1104,7 +1103,7 @@ var sunui;
         }
         ViewLayerLaya3D.prototype.addChild = function (view) {
             var node = view;
-            if (M.sceneLayer.uiScene === null) {
+            if (M.sceneLayer.uiScene === null || view.zOrder >= sunui.UILevel.LOADING) {
                 Laya.stage.addChild(node);
             }
             else {
@@ -1123,7 +1122,7 @@ var sunui;
             var mask = new Laya.Image("common/mask.png");
             mask.left = mask.right = mask.top = mask.bottom = 0;
             mask.sizeGrid = "1,1,1,1";
-            mask.alpha = trans === true ? 0 : 0.5;
+            mask.alpha = trans === true ? 0 : 1;
             mask.mouseEnabled = true;
             mask.mouseThrough = false;
             mask.on(Laya.Event.CLICK, this, this.$onMaskClick, [view]);
@@ -1144,7 +1143,12 @@ var sunui;
             for (var i = 0; i < components.length; i++) {
                 var component = components[i];
                 if (component.$onCreate) {
-                    component.$onCreate.apply(component, args);
+                    if (args instanceof Array === false) {
+                        component.$onCreate.call(component, args);
+                    }
+                    else {
+                        component.$onCreate.apply(component, args);
+                    }
                 }
             }
         };
@@ -1190,6 +1194,7 @@ var sunui;
     (function (NotifyKey) {
         NotifyKey.LOAD_SCENE = "sunui.NotifyKey.LOAD_SCENE";
         NotifyKey.UNLOAD_SCENE = "sunui.NotifyKey.UNLOAD_SCENE";
+        NotifyKey.BEFORE_LOAD_SCENE = "sunui.NotifyKey.BEFORE_LOAD_SCENE";
         NotifyKey.REGISTER_SCENES = "sunui.NotifyKey.REGISTER_SCENES";
         NotifyKey.ENTER_SCENE = "sunui.NotifyKey.ENTER_SCENE";
         NotifyKey.EXIT_SCENE = "sunui.NotifyKey.EXIT_SCENE";
@@ -1227,17 +1232,18 @@ var sunui;
         function unlock(url) {
             var array = Resource.getLoadList(url);
             for (var i = 0; i < array.length; i++) {
-                var reference = $references[url] || 0;
+                var link = array[i];
+                var reference = $references[link] || 0;
                 if (reference === 0) {
-                    throw Error("\u5C1D\u8BD5\u89E3\u9501\u4E0D\u5B58\u5728\u7684\u8D44\u6E90 url\uFF1A" + url);
+                    throw Error("\u5C1D\u8BD5\u89E3\u9501\u4E0D\u5B58\u5728\u7684\u8D44\u6E90 url\uFF1A" + link);
                 }
                 if (reference === 1) {
-                    delete $references[url];
-                    Laya.loader.clearRes(url);
-                    Laya.loader.cancelLoadByUrl(url);
+                    delete $references[link];
+                    Laya.loader.clearRes(link);
+                    Laya.loader.cancelLoadByUrl(link);
                 }
                 else {
-                    $references[url] = reference - 1;
+                    $references[link] = reference - 1;
                 }
             }
         }
@@ -1324,8 +1330,8 @@ var sunui;
             var ext = url.substr(index + 1);
             if (ext === "sk") {
                 return [
-                    str + ".sk",
-                    str + ".png"
+                    str + ".png",
+                    str + ".sk"
                 ];
             }
             else {

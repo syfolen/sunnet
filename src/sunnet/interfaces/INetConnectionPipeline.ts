@@ -4,7 +4,7 @@ module sunnet {
      * 消息处理管道接口
      * export
      */
-    export interface INetConnectionPipeline {
+    export interface INetConnectionPipeline extends INetConnectionInterceptor {
 
         /**
          * 新增责任处理者
@@ -18,15 +18,5 @@ module sunnet {
          * export
          */
         remove(cls: new (connection: INetConnection) => INetConnectionInterceptor): void;
-
-		/**
-		 * 数据接收拦截接口
-		 */
-        recv(cmd: number, srvId: number, bytes: Uint8Array, data?: any): Array<any>;
-
-		/**
-		 * 数据发送拦截接口
-		 */
-        send(cmd: number, bytes?: Uint8Array, ip?: string, port?: number): Array<any>;
     }
 }

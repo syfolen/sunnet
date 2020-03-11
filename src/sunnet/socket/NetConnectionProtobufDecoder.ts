@@ -10,7 +10,7 @@ module sunnet {
 		/**
 		 * 数据接收拦截
 		 */
-        recv(cmd: number, srvId: number, bytes: Uint8Array, data?: any): Array<any> {
+        recv(cmd: number, srvId: number, bytes: Uint8Array, data: any): Array<any> {
             // 若 data 不为 void 0 ，则说明己处理
             if (data !== void 0) {
                 return [cmd, srvId, bytes, data];

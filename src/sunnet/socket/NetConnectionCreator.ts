@@ -1,6 +1,7 @@
 
 module sunnet {
     /**
+     * 网络连接创建器
      * export
      */
     export class NetConnectionCreator extends NetConnectionInterceptor {
@@ -23,9 +24,9 @@ module sunnet {
          * 网络连接成功回调
          */
         protected $onConnected(): void {
-            while (this.$messages.length) {
+            while (this.$messages.length > 0) {
                 const data: ISocketData = this.$messages.pop();
-                this.$connection.sendBytes(data.cmd, data.bytes, data.ip, data.port);
+                this.$connection.sendBytes(data.cmd, data.bytes, data.ip, data.port, data.care);
             }
         }
 
@@ -40,7 +41,7 @@ module sunnet {
          * 是否需要重连
          */
         private $needCreate(ip: string, port: number): boolean {
-            if (ip === void 0 || port === void 0) {
+            if (ip === null || port === 0) {
                 return false;
             }
             // 若网络未连接，则需要重连
@@ -49,8 +50,8 @@ module sunnet {
             }
             // 若网络己连接
             if (this.$connection.state === NetConnectionStateEnum.CONNECTED) {
-                // 若IP和PORT有效且与请求的数据不一致，则需要重连
-                if (this.$connection.ip !== ip && this.$connection.port !== port) {
+                // 若当前IP和PORT与请求的不一致，则需要重连
+                if (this.$connection.ip !== ip || this.$connection.port !== port) {
                     return true;
                 }
             }
@@ -61,15 +62,15 @@ module sunnet {
 		/**
 		 * 数据发送拦截接口
 		 */
-        send(cmd: number, bytes?: Uint8Array, ip?: string, port?: number): Array<any> {
+        send(cmd: number, bytes: Uint8Array, ip: string, port: number, care: boolean): Array<any> {
             if (this.$needCreate(ip, port) == false) {
                 // 网络尚未成功连接
                 if (this.$connection.state === NetConnectionStateEnum.CONNECTING) {
                     return null;
                 }
-                return [cmd, bytes, ip, port];
+                return [cmd, bytes, ip, port, care];
             }
-            if (ip !== void 0 && port !== void 0) {
+            if (ip !== null && port !== 0) {
                 this.$connection.connect(ip, port, false);
             }
 
@@ -77,7 +78,8 @@ module sunnet {
                 cmd: cmd,
                 bytes: bytes,
                 ip: ip,
-                port: port
+                port: port,
+                care: care
             };
             this.$messages.push(data);
 

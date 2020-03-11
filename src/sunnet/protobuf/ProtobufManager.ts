@@ -37,8 +37,8 @@ module sunnet {
          * export
          */
         buildProto(url: string): void {
-            const root = new Laya.Browser.window.protobuf.Root();
-            const protostr = Laya.loader.getRes(url);
+            const root: any = new Laya.Browser.window.protobuf.Root();
+            const protostr: any = Laya.loader.getRes(url);
             Laya.Browser.window.protobuf.parse(protostr, root, { keepCase: true });
             this.$proto = root;
         }
@@ -48,7 +48,7 @@ module sunnet {
          * export
          */
         buildProtocal(url: string): void {
-            const json = Laya.loader.getRes(url);
+            const json: any = Laya.loader.getRes(url);
             this.$commands = Object.keys(json.data);
             this.$protocals = json.data;
         }
@@ -75,9 +75,9 @@ module sunnet {
          * export
          */
         getProtocalByName(name: string): any {
-            for (let i = 0; i < this.$commands.length; i++) {
-                const command = this.$commands[i];
-                const protocal = this.getProtocalByCommand(command);
+            for (let i: number = 0; i < this.$commands.length; i++) {
+                const command: string = this.$commands[i];
+                const protocal: any = this.getProtocalByCommand(command);
                 if (protocal === null) {
                     continue;
                 }

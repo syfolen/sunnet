@@ -5,12 +5,14 @@ module sunnet {
      * 此类以责任链模式处理即将发送或己接收的网络数据，专门为 core.NetConnection 服务
      */
     export class NetConnectionPipeline implements INetConnectionInterceptor, INetConnectionPipeline {
-
         /**
          * 拦截器列表
          */
         private $items: Array<INetConnectionPipelineItem> = [];
 
+        /**
+         * 网络连接对象
+         */
         protected $connection: INetConnection;
 
         constructor(connection: INetConnection) {
@@ -57,7 +59,7 @@ module sunnet {
 		/**
 		 * 数据接收拦截接口
 		 */
-        recv(cmd: number, srvId: number, bytes: Uint8Array, data?: any): Array<any> {
+        recv(cmd: number, srvId: number, bytes: Uint8Array, data: any): Array<any> {
             let params: Array<any> = [cmd, srvId, bytes, data];
 
             // 数据将保持传递，直至处理完毕，或返回 null
@@ -84,7 +86,7 @@ module sunnet {
 		/**
 		 * 数据发送拦截接口
 		 */
-        send(cmd: number, bytes?: Uint8Array, ip?: string, port?: number): Array<any> {
+        send(cmd: number, bytes: Uint8Array, ip: string, port: number, care: boolean): Array<any> {
             for (let i: number = this.$items.length - 1; i > -1; i--) {
                 // 数据将保持传递，直至处理完毕
                 const item: INetConnectionPipelineItem = this.$items[i];
@@ -92,7 +94,7 @@ module sunnet {
                     continue;
                 }
                 const interceptor: INetConnectionInterceptor = item.interceptor;
-                const res = interceptor.send.call(interceptor, cmd, bytes, ip, port);
+                const res: any = interceptor.send.call(interceptor, cmd, bytes, ip, port, care);
                 if (res === null) {
                     return null;
                 }
