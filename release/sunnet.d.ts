@@ -385,11 +385,6 @@ declare module sunnet {
          * 2. 若为false，则有业务数据持续发送时，就不会发送心跳
          */
         let HEARTBEAT_FIXED_FREQUENCY: boolean;
-
-        /**
-         * 网络异常断开提示
-         */
-        let NETWORK_ANOMALY_STRING: string;
     }
 
     /**

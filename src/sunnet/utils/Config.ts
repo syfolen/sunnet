@@ -60,12 +60,6 @@ module sunnet {
 		 * export
 		 */
 		export let HEARTBEAT_FIXED_FREQUENCY: boolean = false;
-
-		/**
-		 * 网络异常断开提示
-		 * export
-		 */
-		export let NETWORK_ANOMALY_STRING: string = "网络异常断开！";
 	}
 
 }

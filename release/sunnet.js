@@ -630,7 +630,6 @@ var sunnet;
         Config.HEARTBEAT_TIMEOUT_MILLISECONDS = 3000;
         Config.HEARTBEAT_INTERVAL_MILLISECONDS = 5000;
         Config.HEARTBEAT_FIXED_FREQUENCY = false;
-        Config.NETWORK_ANOMALY_STRING = "网络异常断开！";
     })(Config = sunnet.Config || (sunnet.Config = {}));
     var EventKey;
     (function (EventKey) {
