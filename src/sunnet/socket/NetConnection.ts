@@ -90,6 +90,8 @@ module sunnet {
             if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
                 suncom.Logger.log(`Netconnection=> 请求连接 ws://${this.$ip}:${this.$port}`);
             }
+            // 通知网络状态变更
+            this.facade.sendNotification(NotifyKey.SOCKET_STATE_CHANGE, [this.$name, this.$state]);
         }
 
         /**
@@ -134,11 +136,11 @@ module sunnet {
                 this.dispatchEvent(EventKey.KILL_WATCH_DOG);
             }
 
-            // 若当前处理连接状态，则派发断网通知
-            if (this.$state === NetConnectionStateEnum.CONNECTED) {
-                this.facade.sendNotification(NotifyKey.SOCKET_STATE_CHANGE, [this.$name, 1]);
+            // 通知网络状态变更
+            if (this.$state !== NetConnectionStateEnum.DISCONNECTED) {
+                this.$state = NetConnectionStateEnum.DISCONNECTED;
+                this.facade.sendNotification(NotifyKey.SOCKET_STATE_CHANGE, [this.$name, this.$state]);
             }
-            this.$state = NetConnectionStateEnum.DISCONNECTED;
         }
 
         /**
@@ -184,7 +186,7 @@ module sunnet {
             // 若是异常断网成功重连，则需要通知网络状态变更
             if (this.$closedByError === true) {
                 this.$closedByError = false;
-                this.facade.sendNotification(NotifyKey.SOCKET_STATE_CHANGE, [this.$name, 0]);
+                this.facade.sendNotification(NotifyKey.SOCKET_STATE_CHANGE, [this.$name, this.$state]);
             }
 
             // 网络重连成功

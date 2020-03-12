@@ -26,8 +26,9 @@ var sunui;
     })(LoaderStatusEnum = sunui.LoaderStatusEnum || (sunui.LoaderStatusEnum = {}));
     var RetryMethodEnum;
     (function (RetryMethodEnum) {
-        RetryMethodEnum[RetryMethodEnum["NONE"] = 16] = "NONE";
+        RetryMethodEnum[RetryMethodEnum["AUTO"] = 16] = "AUTO";
         RetryMethodEnum[RetryMethodEnum["CONFIRM"] = 32] = "CONFIRM";
+        RetryMethodEnum[RetryMethodEnum["TERMINATE"] = 64] = "TERMINATE";
     })(RetryMethodEnum = sunui.RetryMethodEnum || (sunui.RetryMethodEnum = {}));
     var UILevel;
     (function (UILevel) {
@@ -324,8 +325,11 @@ var sunui;
             if ((modOrMethod & RetryMethodEnum.CONFIRM) === RetryMethodEnum.CONFIRM) {
                 _this.$method = RetryMethodEnum.CONFIRM;
             }
+            else if ((modOrMethod & RetryMethodEnum.TERMINATE) === RetryMethodEnum.TERMINATE) {
+                _this.$method = RetryMethodEnum.TERMINATE;
+            }
             else {
-                _this.$method = RetryMethodEnum.NONE;
+                _this.$method = RetryMethodEnum.AUTO;
             }
             var mode = modOrMethod &= 0xF;
             if (modOrMethod === suncore.ModuleEnum.CUSTOM || modOrMethod === suncore.ModuleEnum.TIMELINE) {
@@ -341,7 +345,7 @@ var sunui;
         }
         Retryer.prototype.run = function (delay, handler, maxRetries) {
             if (maxRetries === void 0) { maxRetries = 2; }
-            if (this.$currentRetries < maxRetries) {
+            if (this.$method === RetryMethodEnum.AUTO || this.$currentRetries < maxRetries) {
                 if (this.$retryTimerId === 0) {
                     this.$retryHandler = handler;
                     this.$retryTimerId = suncore.System.addTimer(suncore.ModuleEnum.SYSTEM, delay, this.$onRetryTimer, this, 1);
@@ -350,14 +354,17 @@ var sunui;
                     console.warn("\u5DF1\u5FFD\u7565\u7684\u91CD\u8BD5\u8BF7\u6C42 method:" + suncom.Common.getMethodName(handler.method, handler.caller) + ", caller:" + suncom.Common.getQualifiedClassName(handler.caller));
                 }
             }
-            else if (this.$method === RetryMethodEnum.NONE) {
-                this.$confirmHandler.runWith(ConfirmOptionValueEnum.YES);
-            }
             else {
                 if (this.$prompting === false) {
                     this.$prompting = true;
-                    var handler_1 = suncom.Handler.create(this, this.$onConfirmRely);
-                    this.facade.sendNotification(NotifyKey.RETRY_CONFIRM, [this.$mod, this.$prompt, this.$options, handler_1]);
+                    if (this.$method === RetryMethodEnum.TERMINATE) {
+                        var handler_1 = suncom.Handler.create(this, this.$onConfirmRely, [ConfirmOptionValueEnum.NO]);
+                        suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_0, handler_1);
+                    }
+                    else {
+                        var handler_2 = suncom.Handler.create(this, this.$onConfirmRely);
+                        this.facade.sendNotification(NotifyKey.RETRY_CONFIRM, [this.$mod, this.$prompt, this.$options, handler_2]);
+                    }
                 }
                 else {
                     console.warn("\u5DF1\u5FFD\u7565\u7684\u91CD\u8BD5\u7684\u8BE2\u95EE\u8BF7\u6C42 prompt:" + this.$prompt);
@@ -367,7 +374,9 @@ var sunui;
         Retryer.prototype.$onConfirmRely = function (option) {
             if (this.$prompting === true) {
                 this.$prompting = false;
-                this.$confirmHandler.runWith(option);
+                if (this.$confirmHandler !== null) {
+                    this.$confirmHandler.runWith(option);
+                }
             }
         };
         Retryer.prototype.$onRetryTimer = function () {
@@ -462,6 +471,9 @@ var sunui;
             if (this.enterScene(name, data) === true) {
                 info !== null && SceneHeap.removeHistory(info.name);
             }
+        };
+        SceneLayer.prototype.deleteHistories = function (deleteCount) {
+            SceneHeap.deleteHistories(deleteCount);
         };
         Object.defineProperty(SceneLayer.prototype, "uiScene", {
             get: function () {
@@ -883,6 +895,9 @@ var sunui;
             suncore.Mutex.backup(this);
             M.sceneLayer.replaceScene(name, data);
             suncore.Mutex.restore();
+        };
+        UIManager.prototype.deleteHistories = function (deleteCount) {
+            M.sceneLayer.deleteHistories(deleteCount);
         };
         UIManager.prototype.removeView = function (view) {
             M.viewLayer.removeStackByView(view);
@@ -1386,6 +1401,13 @@ var sunui;
             return null;
         }
         SceneHeap.popByName = popByName;
+        function deleteHistories(deleteCount) {
+            while ($infos.length > 1 && deleteCount > 0) {
+                $infos.pop();
+                deleteCount--;
+            }
+        }
+        SceneHeap.deleteHistories = deleteHistories;
     })(SceneHeap = sunui.SceneHeap || (sunui.SceneHeap = {}));
     var SceneManager;
     (function (SceneManager) {

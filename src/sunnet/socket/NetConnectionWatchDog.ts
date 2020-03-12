@@ -24,10 +24,8 @@ module sunnet {
         constructor(connection: INetConnection) {
             super(connection);
             this.$retryer = new sunui.Retryer(
-                sunui.RetryMethodEnum.CONFIRM,
-                null,
-                Config.NETWORK_ANOMALY_STRING,
-                sunui.ConfirmOptionValueEnum.YES, "确定"
+                sunui.RetryMethodEnum.TERMINATE,
+                suncom.Handler.create(this, this.$onConnectFailed, [connection.name])
             );
             this.$connection.addEventListener(EventKey.KILL_WATCH_DOG, this.$onKillWatchDog, this);
         }
@@ -75,7 +73,6 @@ module sunnet {
         private $doConnect(): void {
             // 只有在网络处于未连接状态时才会进行重连
             if (this.$connection.state === NetConnectionStateEnum.DISCONNECTED) {
-                this.facade.sendNotification(NotifyKey.SOCKET_RETRY_CONNECT);
                 this.$connection.connect(this.$ip, this.$port, true);
             }
             else {
@@ -83,6 +80,14 @@ module sunnet {
                     suncom.Logger.log(`检测狗不能正常工作，因为 state:${NetConnectionStateEnum[this.$connection.state]}`);
                 }
             }
+        }
+
+        /**
+         * 重连失败回调
+         */
+        private $onConnectFailed(name: string): void {
+            this.$retryer.reset();
+            this.facade.sendNotification(NotifyKey.SOCKET_CONNECT_FAILED, name);
         }
     }
 }

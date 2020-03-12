@@ -23,6 +23,7 @@ module sunnet {
 
         /**
          * 销毁拦截器
+         * export
          */
         destroy(): void {
             this.$connection.removeEventListener(EventKey.SOCKET_CONNECTED, this.$onConnected, this);
@@ -32,6 +33,7 @@ module sunnet {
 
         /**
          * 网络连接成功
+         * export
          */
         protected $onConnected(): void {
 
@@ -39,6 +41,7 @@ module sunnet {
 
         /**
          * 网络连接断开
+         * export
          */
         protected $onDisconnected(byError: boolean): void {
 
@@ -47,6 +50,7 @@ module sunnet {
 		/**
 		 * 数据发送拦截接口
          * @care: 心跳是否会关心此协议
+         * export
 		 */
         send(cmd: number, bytes: Uint8Array, ip: string, port: number, care: boolean): Array<any> {
             return [cmd, bytes, ip, port];
@@ -54,6 +58,7 @@ module sunnet {
 
 		/**
 		 * 数据接收拦截接口
+         * export
 		 */
         recv(cmd: number, srvId: number, bytes: Uint8Array, data: any): Array<any> {
             return [cmd, srvId, bytes, data];

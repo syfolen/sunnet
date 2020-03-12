@@ -35,14 +35,19 @@ declare module sunui {
      */
     enum RetryMethodEnum {
         /**
-         * 直接重试（默认）
+         * 自动重试（默认）
          */
-        NONE = 0x10,
+        AUTO = 0x10,
 
         /**
-         * 确认框，包含是和否选项
+         * 请求确认，包含是和否选项
          */
-        CONFIRM = 0x20
+        CONFIRM = 0x20,
+
+        /**
+         * 终止重试
+         */
+        TERMINATE = 0x40
     }
 
     enum UILevel {
@@ -343,7 +348,7 @@ declare module sunui {
          * @options: [ConfirmOptionValueEnum, string, ...]
          * 说明：
          * 1. method允许值为 RetryMethodEnum 或 suncore.ModuleEnum 或同时输入这两种值
-         * 2. 若未输入 RetryMethodEnum ，则默认值为 RetryMethodEnum.NONE
+         * 2. 若未输入 RetryMethodEnum ，则默认值为 RetryMethodEnum.AUTO
          * 3. 若未输入 suncore.ModuleEnum ，则默认值为 suncore.ModuleEnum.SYSTEM
          */
         constructor(modOrMethod: suncore.ModuleEnum | RetryMethodEnum, confirmHandler?: suncom.IHandler, prompt?: string, ...options: Array<ConfirmOptionValueEnum | string>);
@@ -429,6 +434,12 @@ declare module sunui {
          * 说明：被替换的场景不会进入历史
          */
         replaceScene(name: number, data?: any): void;
+
+        /**
+         * 删除历史
+         * @deleteCount: 需要删除的历史场景个数
+         */
+        deleteHistories(deleteCount: number): void;
 
         /**
          * 获取2D场景对象
