@@ -20,10 +20,6 @@ var sunui;
         ConfirmOptionValueEnum[ConfirmOptionValueEnum["NO"] = 2] = "NO";
         ConfirmOptionValueEnum[ConfirmOptionValueEnum["CANCEL"] = 3] = "CANCEL";
     })(ConfirmOptionValueEnum = sunui.ConfirmOptionValueEnum || (sunui.ConfirmOptionValueEnum = {}));
-    var LoaderStatusEnum;
-    (function (LoaderStatusEnum) {
-        LoaderStatusEnum[LoaderStatusEnum["undefined"] = 0] = "undefined";
-    })(LoaderStatusEnum = sunui.LoaderStatusEnum || (sunui.LoaderStatusEnum = {}));
     var RetryMethodEnum;
     (function (RetryMethodEnum) {
         RetryMethodEnum[RetryMethodEnum["AUTO"] = 16] = "AUTO";
@@ -45,9 +41,10 @@ var sunui;
         UILevel[UILevel["POPUP"] = 10] = "POPUP";
         UILevel[UILevel["WAITINGBOX"] = 11] = "WAITINGBOX";
         UILevel[UILevel["LOADING"] = 12] = "LOADING";
-        UILevel[UILevel["TIPS"] = 13] = "TIPS";
-        UILevel[UILevel["TOP"] = 14] = "TOP";
-        UILevel[UILevel["DEBUG"] = 15] = "DEBUG";
+        UILevel[UILevel["LAMP_TIPS"] = 13] = "LAMP_TIPS";
+        UILevel[UILevel["TIPS"] = 14] = "TIPS";
+        UILevel[UILevel["TOP"] = 15] = "TOP";
+        UILevel[UILevel["DEBUG"] = 16] = "DEBUG";
     })(UILevel = sunui.UILevel || (sunui.UILevel = {}));
     var AbstractPopupCommand = (function (_super) {
         __extends(AbstractPopupCommand, _super);
@@ -491,7 +488,7 @@ var sunui;
         });
         Object.defineProperty(SceneLayer.prototype, "sceneName", {
             get: function () {
-                return this.$sceneName;
+                return this.$ready === false ? 0 : this.$sceneName;
             },
             enumerable: true,
             configurable: true

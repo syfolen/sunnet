@@ -560,19 +560,19 @@ var sunnet;
         return NetConnectionEncoder;
     }(NetConnectionInterceptor));
     sunnet.NetConnectionEncoder = NetConnectionEncoder;
-    var NetConnectionHeartBeat = (function (_super) {
-        __extends(NetConnectionHeartBeat, _super);
-        function NetConnectionHeartBeat() {
+    var NetConnectionHeartbeat = (function (_super) {
+        __extends(NetConnectionHeartbeat, _super);
+        function NetConnectionHeartbeat() {
             return _super !== null && _super.apply(this, arguments) || this;
         }
-        NetConnectionHeartBeat.prototype.$onConnected = function () {
+        NetConnectionHeartbeat.prototype.$onConnected = function () {
             this.$lastRecvTime = this.$lastSendTime = suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM);
             this.facade.registerObserver(suncore.NotifyKey.ENTER_FRAME, this.$onEnterFrame, this);
         };
-        NetConnectionHeartBeat.prototype.$onDisconnected = function () {
+        NetConnectionHeartbeat.prototype.$onDisconnected = function () {
             this.facade.removeObserver(suncore.NotifyKey.ENTER_FRAME, this.$onEnterFrame, this);
         };
-        NetConnectionHeartBeat.prototype.$onEnterFrame = function () {
+        NetConnectionHeartbeat.prototype.$onEnterFrame = function () {
             var timestamp = suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM);
             if (this.$lastRecvTime < this.$lastSendTime) {
                 if (timestamp - this.$lastSendTime > Config.HEARTBEAT_TIMEOUT_MILLISECONDS) {
@@ -588,7 +588,7 @@ var sunnet;
                 this.$connection.sendBytes(Config.HEARTBEAT_REQUEST_COMMAND, bytes);
             }
         };
-        NetConnectionHeartBeat.prototype.send = function (cmd, bytes, ip, port, care) {
+        NetConnectionHeartbeat.prototype.send = function (cmd, bytes, ip, port, care) {
             if (care === true) {
                 if (Config.HEARTBEAT_FIXED_FREQUENCY === false || cmd === Config.HEARTBEAT_REQUEST_COMMAND) {
                     if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
@@ -604,7 +604,7 @@ var sunnet;
             }
             return [cmd, bytes, ip, port, false];
         };
-        NetConnectionHeartBeat.prototype.recv = function (cmd, srvId, bytes, data) {
+        NetConnectionHeartbeat.prototype.recv = function (cmd, srvId, bytes, data) {
             if (Config.HEARTBEAT_FIXED_FREQUENCY === false || cmd === Config.HEARTBEAT_RESPONSE_COMMAND) {
                 if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
                     if (cmd === Config.HEARTBEAT_RESPONSE_COMMAND) {
@@ -618,9 +618,9 @@ var sunnet;
             }
             return [cmd, srvId, bytes, data];
         };
-        return NetConnectionHeartBeat;
+        return NetConnectionHeartbeat;
     }(NetConnectionInterceptor));
-    sunnet.NetConnectionHeartBeat = NetConnectionHeartBeat;
+    sunnet.NetConnectionHeartbeat = NetConnectionHeartbeat;
     var Config;
     (function (Config) {
         Config.TCP_RETRY_DELAY = 20 * 1000;

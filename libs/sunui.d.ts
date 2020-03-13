@@ -121,6 +121,11 @@ declare module sunui {
         LOADING,
 
         /**
+         * 跑马灯提示
+         */
+        LAMP_TIPS,
+
+        /**
          * 轻提示
          */
         TIPS,

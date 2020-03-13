@@ -4,7 +4,7 @@ module sunnet {
      * 心跳检测器
      * export
      */
-    export class NetConnectionHeartBeat extends NetConnectionInterceptor {
+    export class NetConnectionHeartbeat extends NetConnectionInterceptor {
         /**
          * 上次发送数据的时间
          */

@@ -1,1 +1,12 @@
-{"ver":"9d577329fdbbd7f1388606d0447d5c1e","data":{"1":{"Id":1,"Name":"LoginTest","Forward":"c2s"},"2":{"Id":2,"Name":"LoginRet","Forward":"s2c"},"20":{"Id":20,"Name":"SigleAttr_int32","Forward":"s2c"},"21":{"Id":21,"Name":"SigleAttr_int64","Forward":"s2c"},"22":{"Id":22,"Name":"SigleAttr_string","Forward":"s2c"},"23":{"Id":23,"Name":"MultiAttr","Forward":"s2c"},"40":{"Id":40,"Name":"EnterFishery","Forward":"c<>s"},"41":{"Id":41,"Name":"Fisherman","Forward":"s2c"},"42":{"Id":42,"Name":"FishObj","Forward":"s2c"},"43":{"Id":43,"Name":"BulletObj","Forward":"s2c"},"44":{"Id":44,"Name":"FisheryInfo","Forward":"s2c"},"45":{"Id":45,"Name":"TideComing","Forward":"s2c"},"46":{"Id":46,"Name":"CannonFire","Forward":"c<>s"},"47":{"Id":47,"Name":"SkillFire","Forward":"c<>s"},"48":{"Id":48,"Name":"BulletHit","Forward":"c2s"},"49":{"Id":49,"Name":"FishRemove","Forward":"s2c"},"50":{"Id":50,"Name":"CannonRatio","Forward":"c<>s"},"51":{"Id":51,"Name":"DieEffect","Forward":"c<>s"},"52":{"Id":52,"Name":"VortexEffect","Forward":"c<>s"},"53":{"Id":53,"Name":"ChangeCannon","Forward":"c<>s"},"100":{"Id":100,"Name":"Common_Err","Forward":"s2c"},"101":{"Id":101,"Name":"Common_Tip","Forward":"s2c"},"102":{"Id":102,"Name":"Common_ClientErr","Forward":"c2s"},"103":{"Id":103,"Name":"Common_Heartbeat","Forward":"c<>s"},"120":{"Id":120,"Name":"GetJackPot","Forward":"c<>s"},"121":{"Id":121,"Name":"JackPotRoll","Forward":"c<>s"}}}
+{
+	"ver":"9d577329fdbbd7f1388606d0447d5c1e",
+	"data":{
+		"1":{"Id":1,"Name":"LoginTest","Forward":"c2s"},
+		"2":{"Id":2,"Name":"LoginRet","Forward":"s2c"},
+		"20":{"Id":20,"Name":"SigleAttr_int32","Forward":"s2c"},
+		"21":{"Id":21,"Name":"SigleAttr_int64","Forward":"s2c"},
+		"22":{"Id":22,"Name":"SigleAttr_string","Forward":"s2c"},
+		"23":{"Id":23,"Name":"MultiAttr","Forward":"s2c"},
+		"40":{"Id":40,"Name":"EnterFishery","Forward":"c<>s"}
+	}
+}

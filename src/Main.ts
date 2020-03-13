@@ -1,10 +1,26 @@
 
 
-const ip = "192.168.0.168";
-const port = 3653;
+// const ip = "192.168.0.168";
+// const port = 3653;
+const ip = "47.115.23.102";
+const port = 8082;
 
 // const ip = "127.0.0.1";
 // const port = 8999;
+
+class NSLService extends suncore.MsgQService {
+
+	constructor() {
+		super(suncore.MsgQModEnum.NSL);
+	}
+
+	/**
+	 * 处理MsgQ消息
+	 */
+	protected $dealMsgQMsg(msg: suncore.IMsgQMsg): void {
+		console.log(`dst:${suncore.MsgQModEnum[msg.dst]}, id:${msg.id}, ${msg.data}`);
+	}
+}
 
 class Main {
 
@@ -32,14 +48,16 @@ class Main {
 		sunnet.Config.HEARTBEAT_REQUEST_COMMAND = 103;
 		sunnet.Config.HEARTBEAT_RESPONSE_COMMAND = 103;
 
-		suncom.Global.debugMode = suncom.DebugMode.NETWORK// | suncom.DebugMode.NETWORK_HEARTBEAT;
+		suncom.Global.debugMode = suncom.DebugMode.NETWORK | suncom.DebugMode.NETWORK_HEARTBEAT;
 
 		PSAppUtils.getInstance().pipeline.add("recv", sunnet.NetConnectionDecoder);
 		PSAppUtils.getInstance().pipeline.add("send", sunnet.NetConnectionEncoder);
 		PSAppUtils.getInstance().pipeline.add("send", sunnet.NetConnectionCreator);
-		PSAppUtils.getInstance().pipeline.add(sunnet.NetConnectionHeartBeat);
+		PSAppUtils.getInstance().pipeline.add(sunnet.NetConnectionHeartbeat);
 		PSAppUtils.getInstance().pipeline.add(sunnet.NetConnectionWatchDog);
 		PSAppUtils.getInstance().pipeline.add("recv", ProtobufDecoder);
+
+		new NSLService().run();
 
 		login("12345", "12345");
 	}

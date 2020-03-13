@@ -334,7 +334,7 @@ declare module sunnet {
     /**
      * 心跳检测器
      */
-    class NetConnectionHeartBeat extends NetConnectionInterceptor {
+    class NetConnectionHeartbeat extends NetConnectionInterceptor {
     }
 
     namespace Config {
