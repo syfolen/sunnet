@@ -13,7 +13,7 @@ module sunnet {
         recv(cmd: number, srvId: number, bytes: Uint8Array, data: any): Array<any> {
             const input: Laya.Byte = this.$connection.input || null;
             if (input === null) {
-                console.error(`Decoder 网络己断开！！！`);
+                suncom.Logger.error(`Decoder 网络己断开！！！`);
                 return;
             }
 

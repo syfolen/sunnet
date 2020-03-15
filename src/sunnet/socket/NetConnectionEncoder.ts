@@ -12,7 +12,7 @@ module sunnet {
         send(cmd: number, bytes: Uint8Array, ip: string, port: number, care: boolean): Array<any> {
             const output: Laya.Byte = this.$connection.output || null;
             if (output === null) {
-                console.error(`Encoder 网络己断开！！！`);
+                suncom.Logger.error(`Encoder 网络己断开！！！`);
                 return;
             }
 
