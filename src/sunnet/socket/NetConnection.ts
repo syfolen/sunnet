@@ -183,14 +183,14 @@ module sunnet {
                 suncom.Logger.log("Netconnection=> 网络连接成功！");
             }
 
+            // 网络重连成功
+            this.dispatchEvent(EventKey.SOCKET_CONNECTED);
+
             // 若是异常断网成功重连，则需要通知网络状态变更
             if (this.$closedByError === true) {
                 this.$closedByError = false;
-                this.facade.sendNotification(NotifyKey.SOCKET_STATE_CHANGE, [this.$name, this.$state]);
             }
-
-            // 网络重连成功
-            this.dispatchEvent(EventKey.SOCKET_CONNECTED);
+            this.facade.sendNotification(NotifyKey.SOCKET_STATE_CHANGE, [this.$name, this.$state]);
         }
 
         /**
