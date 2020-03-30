@@ -468,8 +468,8 @@ var sunnet;
             _super.prototype.destroy.call(this);
         };
         NetConnectionCreator.prototype.$onConnected = function () {
-            while (this.$messages.length > 0) {
-                var data = this.$messages.pop();
+            while (this.$messages.length > 0 && this.$connection.state === NetConnectionStateEnum.CONNECTED) {
+                var data = this.$messages.shift();
                 this.$connection.sendBytes(data.cmd, data.bytes, data.ip, data.port, data.care);
             }
         };
