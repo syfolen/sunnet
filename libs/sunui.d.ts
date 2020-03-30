@@ -168,6 +168,21 @@ declare module sunui {
     }
 
     /**
+     * 3D资源名字结构
+     */
+    interface IRes3dName {
+        /**
+         * 资源包名
+         */
+        pack: string;
+
+        /**
+         * 资源名
+         */
+        name: string;
+    }
+
+    /**
      * Retryer接口
      */
     interface IRetryer {
@@ -205,14 +220,24 @@ declare module sunui {
         name: number;
 
         /**
+         * 2D场景文件
+         */
+        scene2d: string;
+
+        /**
+         * 3D场景文件
+         */
+        scene3d?: string;
+
+        /**
          * 初始化类
          */
-        iniCls?: new (data?: any) => suncore.ITask;
+        iniCls?: new (info: ISceneInfo, data?: any) => sunui.SceneIniClass;
 
         /**
          * 反初始化类
          */
-        uniCls?: new () => suncore.ITask;
+        uniCls?: new (info: ISceneInfo) => sunui.SceneUniClass;
     }
 
     /**
@@ -322,17 +347,6 @@ declare module sunui {
     }
 
     /**
-     * 场景初始化抽象入口类
-     */
-    abstract class AbstractSceneIniClass extends suncore.AbstractTask {
-
-        /**
-         * 进入场景回调，场景元素建议在此方法中初始化
-         */
-        protected $onEnterScene(): void;
-    }
-
-    /**
      * 注册场景信息
      */
     class RegisterScenesCommand extends puremvc.SimpleCommand {
@@ -380,6 +394,49 @@ declare module sunui {
          * 当前重试次数
          */
         readonly currentRetries: number;
+    }
+
+    /**
+     * 场景初始化入口类
+     */
+    abstract class SceneIniClass extends suncore.AbstractTask {
+        /**
+         * 场景配置信息
+         */
+        protected $info: ISceneInfo;
+
+        /**
+         * 场景跳转参数
+         */
+        protected $data: any;
+
+        constructor(info: ISceneInfo, data?: any);
+
+        /**
+         * 进入场景回调，场景数据建议在此方法中初始化
+         * 说明：
+         * 1. 此方法会后于run执行
+         */
+        protected $onEnterScene(): void;
+    }
+
+    /**
+     * 场景反初始化入口类
+     */
+    abstract class SceneUniClass extends suncore.AbstractTask {
+        /**
+         * 场景配置信息
+         */
+        protected $info: ISceneInfo;
+
+        constructor(info: ISceneInfo);
+
+        /**
+         * 离开场景回调，场景数据建议在此方法中反初始化，场景将在此方法执行完毕后销毁
+         * 说明：
+         * 1. 此方法会先于run执行
+         */
+        protected $onLeaveScene(): void;
     }
 
     /**
@@ -449,17 +506,26 @@ declare module sunui {
         /**
          * 获取2D场景对象
          */
-        readonly uiScene: Laya.Scene;
+        readonly scene2d: Laya.Scene;
 
         /**
          * 获取3D场景对象
          */
-        readonly d3Scene: Laya.Scene3D;
+        readonly scene3d: Laya.Scene3D;
 
         /**
          * 获取场景名字
          */
         readonly sceneName: number;
+    }
+
+    /**
+     * URL加载器（安全）
+     * 说明：
+     * 1. 该加载器的每个实例均仅只允许被执行一次
+     * 2. 此类的设计主要用于确保正在执行加载的资源不会被清理
+     */
+    class UrlSafetyLoader extends puremvc.Notifier {
     }
 
     /**
@@ -517,7 +583,7 @@ declare module sunui {
      */
     namespace NotifyKey {
         /**
-         * 加载场景 { info: ISceneInfo, data: any }
+         * 加载场景 { name: number, data: any }
          * 说明：
          * 1. 此命令由外部注册并实现
          * 2. 当场景加载完成时，外部应当派发ENTER_SCENE以通知sunui继续逻辑
@@ -533,6 +599,15 @@ declare module sunui {
         const UNLOAD_SCENE: string;
 
         /**
+         * 销毁场景资源 { info: ISceneInfo }
+         * 说明：
+         * 1. 外部应监听此事件来销毁场景资源
+         * 2. 同UNLOAD_SCENE
+         * 3. 此通知后于UNLOAD_SCENE派发
+         */
+        const DESTROY_SCENE: string;
+
+        /**
          * 加载场景之前 { none }
          */
         const BEFORE_LOAD_SCENE: string;
@@ -545,7 +620,7 @@ declare module sunui {
         const REGISTER_SCENES: string;
 
         /**
-         * 进入场景命令 { uiScene: Laya.Scene, d3Scene: Laya.Scene3D }
+         * 进入场景命令 { scene2d: Laya.Scene, scene3d: Laya.Scene3D }
          * 说明：
          * 1. 此命令由外部在实现LOAD_SCENE命令时于场景加载完成时派发
          * 2. 此命令必然在iniCls被执行之后被派发
@@ -602,30 +677,39 @@ declare module sunui {
      * 资源管理器（主要用于资源的动态创建和销毁）
      */
     namespace Resource {
+        /**
+         * 3D资源目录
+         */
+        let res3dRoot: string;
 
         /**
          * 锁定资源
          * 说明：
-         * 1. 每次请求锁定资源，则资源的引用次数会加一
+         * 1. 每次请求锁定资源，则资源的引用次数会-1
+         * 2. 若为3d资源，则应当同时锁定资源包的配置文件
          */
         function lock(url: string): void;
 
         /**
          * 解锁资源
          * 说明：
-         * 1. 每次请求解释资源时，资源的引用次数会减一
-         * 2. 当资源引用次数为0时，资源会自动释放，当前的加载亦会取消
+         * 1. 每次请求解锁资源时，资源的引用次数会+1
+         * 2. 若为3d资源，则应当同时解锁资源包的配置文件
+         * 3. 当2d资源的引用次数为0时，资源会自动释放，当前的加载亦会取消
+         * 4. 3d资源只有在资源包的配置文件的引用次数为0时才会释放
          */
         function unlock(url: string): void;
 
         /**
          * 根据url创建对象
-         * @method: 仅支持Skeleton和Texture的创建
+         * @data: 可缺省参数，默认为：void 0
          * 说明：
          * 1. 调用此接口创建对象时，会产生一个计数，当计数为0时，资源会被彻底释放
          * 2. 见destroy方法
+         * 参数data允许为以下几种类型：
+         * 1. aniMode：目前仅支持动画模式，0不支持换装，1、2支持换装，默认值与真正实现加载的Loader有关
          */
-        function create(url: string, method?: (res: any, url: string) => void, caller?: Object): any;
+        function create(url: string, method?: (res: any, url: string) => void, caller?: Object, data?: any): void;
 
         /**
          * 销毁对象
@@ -635,6 +719,20 @@ declare module sunui {
          * 3. 若存在有部分逻辑未使用此接口加载资源，却调用此接口销毁资源，则可能会导致该资源被卸载或不可用，请注意
          */
         function destroy(url: string, method?: (res: any, url: string) => void, caller?: Object): void;
+
+        /**
+         * 创建3d对象
+         * 说明：
+         * 1. 同create方法
+         */
+        function createRes3d(name: string | IRes3dName, method: (node: any, url: string) => void, caller: Object): any;
+
+        /**
+         * 销毁3d对象
+         * 说明：
+         * 1. 同destroy方法
+         */
+        function destroyRes3d(name: string | IRes3dName, method: (node: any, url: string) => void, caller: Object): void;
 
         /**
          * 资源预加载
@@ -649,6 +747,40 @@ declare module sunui {
          * @return: 始终返回0
          */
         function release(id: number): number;
+
+        /**
+         * 立即创建对象
+         * 说明：
+         * 1. 通过此方法创建对象并不会产生引用计数，且只需要在外部销毁即可
+         */
+        function createSync(url: string, data?: any): any;
+
+        /**
+         * 立即创建3d对象
+         * 说明：
+         * 1. 同createSync
+         */
+        function createRes3dSync(name: string | IRes3dName): any;
+
+        /**
+         * 根据Url清理资源
+         */
+        function clearResByUrl(url: string): void;
+
+        /**
+         * 获取3D资源的配置文件地址
+         */
+        function getRes3dJsonUrl(url: string): string;
+
+        /**
+         * 获取3D资源地址
+         * @name: 如xxx.ls
+         * @pack: 如LayaScene_xxxx中的xxxx，允许为空
+         * 说明：
+         * 1. 所有3d资源都必须放在${Resource.res3dRoot}目录下
+         * 2. 完整的3D资源目录必须为 ${Resource.res3dRoot}/LayaScene_${pack}/Conventional/ 否则将不能正确解析
+         */
+        function getRes3dUrlByName(name: string | IRes3dName): string;
     }
 
     /**

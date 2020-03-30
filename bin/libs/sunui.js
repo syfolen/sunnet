@@ -138,21 +138,142 @@ var sunui;
         return AbstractPopupCommand;
     }(puremvc.SimpleCommand));
     sunui.AbstractPopupCommand = AbstractPopupCommand;
-    var AbstractSceneIniClass = (function (_super) {
-        __extends(AbstractSceneIniClass, _super);
-        function AbstractSceneIniClass(data) {
+    var AssetLoader = (function () {
+        function AssetLoader(url, complete) {
+            this.$loading = false;
+            this.$complete = null;
+            this.$destroyed = false;
+            this.$url = null;
+            this.$loaders = [];
+            this.$doneCount = 0;
+            this.$url = url;
+            this.$complete = complete;
+            Resource.lock(this.$url);
+        }
+        AssetLoader.prototype.destroy = function () {
+            if (this.$destroyed === true) {
+                return;
+            }
+            this.$destroyed = true;
+            for (var i = 0; i < this.$loaders.length; i++) {
+                this.$loaders[i].destroy();
+            }
+            Resource.unlock(this.$url);
+        };
+        AssetLoader.prototype.load = function () {
+            if (this.$loading === false && this.$destroyed === false) {
+                this.$loading = true;
+                this.$doLoad();
+            }
+        };
+        AssetLoader.prototype.$loadAssets = function (urls) {
+            this.$doneCount = this.$loaders.length;
+            for (var i = 0; i < urls.length; i++) {
+                this.$loaders.push(new UrlSafetyLoader(urls[i], suncom.Handler.create(this, this.$onLoadAsset)));
+            }
+        };
+        AssetLoader.prototype.$onLoadAsset = function (ok) {
+            if (ok === false) {
+                this.$onAssetsLoaded(false);
+            }
+            else {
+                this.$doneCount++;
+                if (this.$doneCount === this.$loaders.length) {
+                    this.$onAssetsLoaded(true);
+                }
+            }
+        };
+        AssetLoader.prototype.$onComplete = function (ok, data) {
+            if (data === void 0) { data = null; }
+            if (this.$destroyed === false) {
+                this.$complete.runWith([ok, data]);
+            }
+            this.destroy();
+            this.$loading = false;
+        };
+        Object.defineProperty(AssetLoader.prototype, "destroyed", {
+            get: function () {
+                return this.$destroyed;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return AssetLoader;
+    }());
+    sunui.AssetLoader = AssetLoader;
+    var AssetSafetyLoader = (function (_super) {
+        __extends(AssetSafetyLoader, _super);
+        function AssetSafetyLoader(url, complete, data) {
             var _this = _super.call(this) || this;
-            _this.facade.registerObserver(NotifyKey.ENTER_SCENE, _this.$onEnterScene, _this, true);
+            _this.$url = null;
+            _this.$data = void 0;
+            _this.$complete = null;
+            _this.$loader = null;
+            _this.$retryer = new Retryer(RetryMethodEnum.TERMINATE, suncom.Handler.create(_this, _this.$onRetryConfirmed), "资源加载失败，点击确定重新尝试！");
+            _this.$destroyed = false;
+            _this.$url = url;
+            _this.$data = data;
+            _this.$complete = complete;
+            _this.$doLoad();
             return _this;
         }
-        AbstractSceneIniClass.prototype.run = function () {
-            return true;
+        AssetSafetyLoader.prototype.destroy = function () {
+            if (this.$destroyed === true) {
+                return;
+            }
+            this.$destroyed = true;
+            this.$loader.destroy();
+            this.$retryer.cancel();
         };
-        AbstractSceneIniClass.prototype.$onEnterScene = function () {
+        AssetSafetyLoader.prototype.$doLoad = function () {
+            var handler = suncom.Handler.create(this, this.$onLoad);
+            if (Resource.isRes3dUrl(this.$url) === true) {
+                this.$loader = new Res3dLoader(this.$url, handler);
+            }
+            else if (suncom.Common.getFileExtension(this.$url) === "sk") {
+                this.$loader = new SkeletonLoader(this.$url, handler, this.$data);
+            }
+            else {
+                this.$loader = new UrlLoader(this.$url, handler);
+            }
+            this.$loader.load();
         };
-        return AbstractSceneIniClass;
-    }(suncore.AbstractTask));
-    sunui.AbstractSceneIniClass = AbstractSceneIniClass;
+        AssetSafetyLoader.prototype.$onLoad = function (ok, data) {
+            if (ok === true) {
+                this.$complete.runWith([data, this.$url]);
+            }
+            else {
+                this.$retryer.run(1000, suncom.Handler.create(this, this.$doLoad), 2);
+            }
+            this.$loader = null;
+        };
+        AssetSafetyLoader.prototype.$onRetryConfirmed = function (option) {
+            if (option === ConfirmOptionValueEnum.NO) {
+                this.$retryer.reset();
+                suncom.Logger.warn("\u5931\u8D25\uFF1A" + this.$url);
+                this.facade.sendNotification(NotifyKey.ON_ASSET_SAFETY_LOADER_FAILED);
+                this.facade.registerObserver(NotifyKey.ASSET_SAFETY_LOADER_RETRY, this.$onAssetSafetyLoaderRetry, this, true);
+            }
+            else {
+                this.facade.sendNotification(suncore.NotifyKey.SHUTDOWN);
+            }
+        };
+        AssetSafetyLoader.prototype.$onAssetSafetyLoaderRetry = function () {
+            if (this.$destroyed === false) {
+                suncom.Logger.warn("\u91CD\u8BD5\uFF1A" + this.$url);
+                this.$doLoad();
+            }
+        };
+        Object.defineProperty(AssetSafetyLoader.prototype, "complete", {
+            get: function () {
+                return this.$complete;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return AssetSafetyLoader;
+    }(puremvc.Notifier));
+    sunui.AssetSafetyLoader = AssetSafetyLoader;
     var ClosePopupCommand = (function (_super) {
         __extends(ClosePopupCommand, _super);
         function ClosePopupCommand() {
@@ -161,7 +282,7 @@ var sunui;
         ClosePopupCommand.prototype.execute = function (view, duration, destroy) {
             var info = M.viewLayer.getInfoByView(view);
             if (info === null) {
-                console.error(view + "[" + view.name + "]'s infomation is not exist.");
+                suncom.Logger.error(view + "[" + view.name + "]'s infomation is not exist.");
                 return;
             }
             if (destroy !== void 0) {
@@ -192,104 +313,6 @@ var sunui;
         return ClosePopupCommand;
     }(AbstractPopupCommand));
     sunui.ClosePopupCommand = ClosePopupCommand;
-    var Loader = (function (_super) {
-        __extends(Loader, _super);
-        function Loader() {
-            var _this = _super.call(this) || this;
-            _this.$url = null;
-            _this.$templet = null;
-            _this.$handler = null;
-            _this.$loading = false;
-            _this.$destroyed = false;
-            _this.$retryer = null;
-            _this.$retryer = new Retryer(RetryMethodEnum.CONFIRM | suncore.ModuleEnum.SYSTEM, suncom.Handler.create(_this, _this.$onRetryConfirmed), "资源加载失败，点击确定重新尝试！", ConfirmOptionValueEnum.YES, "确定", ConfirmOptionValueEnum.NO, "取消");
-            return _this;
-        }
-        Loader.prototype.load = function (url, handler) {
-            if (this.$loading === false) {
-                this.$loading = true;
-                this.$url = url;
-                this.$handler = handler;
-                this.$doLoad();
-            }
-        };
-        Loader.prototype.$doLoad = function () {
-            Laya.loader.load(Resource.getLoadList(this.$url), Laya.Handler.create(this, this.$onLoad));
-        };
-        Loader.prototype.$onLoad = function (ok) {
-            if (this.$destroyed === false) {
-                if (ok === false) {
-                    this.$retryer.run(1000, suncom.Handler.create(this, this.$doLoad), 2);
-                }
-                else if (this.getResExtByUrl(this.$url) === "sk" && this.$templet === null) {
-                    this.$templet = new Laya.Templet();
-                    this.$templet.on(Laya.Event.COMPLETE, this, this.$onLoad, [true]);
-                    this.$templet.loadAni(this.$url);
-                }
-                else {
-                    this.$loading = false;
-                    this.$handler.run();
-                }
-            }
-        };
-        Loader.prototype.$onRetryConfirmed = function (option) {
-            if (this.$destroyed === false) {
-                if (option === ConfirmOptionValueEnum.YES) {
-                    this.$doLoad();
-                    this.$retryer.reset();
-                }
-                else {
-                    this.facade.sendNotification(suncore.NotifyKey.SHUTDOWN);
-                }
-            }
-        };
-        Loader.prototype.destroy = function () {
-            if (this.$destroyed === false) {
-                this.$destroyed = true;
-                this.$handler = null;
-                this.$loading = false;
-                this.$retryer.cancel();
-                if (this.$templet !== null) {
-                    this.$templet.off(Laya.Event.ERROR, this, this.$onLoad);
-                    this.$templet.off(Laya.Event.COMPLETE, this, this.$onLoad);
-                    this.$templet.destroy();
-                    this.$templet = null;
-                }
-            }
-        };
-        Loader.prototype.getResExtByUrl = function (url) {
-            return url.substr(url.lastIndexOf(".") + 1);
-        };
-        Loader.prototype.create = function () {
-            var res = null;
-            if (this.$templet === null) {
-                res = Laya.loader.getRes(this.$url) || null;
-            }
-            else {
-                res = this.$templet.buildArmature(2) || null;
-            }
-            if (res === null) {
-                throw Error("\u8D44\u6E90\u9884\u52A0\u8F7D\u51FA\u9519 url:" + this.$url);
-            }
-            return res;
-        };
-        Object.defineProperty(Loader.prototype, "loading", {
-            get: function () {
-                return this.$loading;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Loader.prototype, "url", {
-            get: function () {
-                return this.$url;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        return Loader;
-    }(puremvc.Notifier));
-    sunui.Loader = Loader;
     var RegisterScenesCommand = (function (_super) {
         __extends(RegisterScenesCommand, _super);
         function RegisterScenesCommand() {
@@ -304,6 +327,152 @@ var sunui;
         return RegisterScenesCommand;
     }(puremvc.SimpleCommand));
     sunui.RegisterScenesCommand = RegisterScenesCommand;
+    var Res3dLoader = (function (_super) {
+        __extends(Res3dLoader, _super);
+        function Res3dLoader() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        Res3dLoader.prototype.$doLoad = function () {
+            var url = Resource.getRes3dJsonUrl(this.$url);
+            var loaded = Laya.loader.getRes(this.$url) === void 0 ? false : true;
+            if (suncom.Common.getFileExtension(this.$url) === "ls" || loaded === true) {
+                this.$loadAssets([url]);
+            }
+            else {
+                this.$loaders.push(new UrlSafetyLoader(url, suncom.Handler.create(this, this.$onUrlLoaded)));
+            }
+        };
+        Res3dLoader.prototype.$onUrlLoaded = function (ok, url) {
+            if (ok === true) {
+                var res = M.cacheMap[this.$url] || null;
+                if (res === null) {
+                    this.$loadAssets([this.$url]);
+                }
+                else {
+                    this.$onAssetsLoaded(true);
+                }
+            }
+            else {
+                this.$onComplete(false);
+            }
+        };
+        Res3dLoader.prototype.$onAssetsLoaded = function (ok) {
+            if (suncom.Common.getFileExtension(this.$url) === "ls") {
+                this.$onComplete(ok);
+            }
+            else {
+                var res = M.cacheMap[this.$url] || null;
+                if (res === null) {
+                    res = M.cacheMap[this.$url] = Laya.loader.getRes(this.$url);
+                }
+                this.$onComplete(ok, ok === false ? null : Laya.Sprite3D.instantiate(res));
+            }
+        };
+        return Res3dLoader;
+    }(AssetLoader));
+    sunui.Res3dLoader = Res3dLoader;
+    var ResourceService = (function (_super) {
+        __extends(ResourceService, _super);
+        function ResourceService() {
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this.$undoList = [];
+            _this.$loadingList = [];
+            _this.$cacheLoaders = {};
+            _this.$isRetryPrompting = false;
+            return _this;
+        }
+        ResourceService.prototype.$onRun = function () {
+            this.facade.registerObserver(NotifyKey.ON_URL_SAFETY_LOADER_CREATED, this.$onUrlSafetyLoaderCreated, this);
+            this.facade.registerObserver(NotifyKey.ON_URL_SAFETY_LOADER_COMPLETE, this.$onUrlSafetyLoaderComplete, this);
+            this.facade.registerObserver(NotifyKey.CACHE_ASSET_SAFETY_LOADER, this.$onCacheAssetSafetyLoader, this);
+            this.facade.registerObserver(NotifyKey.REMOVE_ASSET_SAFETY_LOADER, this.$onRemoveAssetSafetyLoader, this);
+            this.facade.registerObserver(NotifyKey.ON_ASSET_SAFETY_LOADER_FAILED, this.$onAssetSafetyLoaderFailed, this);
+        };
+        ResourceService.prototype.$onStop = function () {
+            this.facade.removeObserver(NotifyKey.ON_URL_SAFETY_LOADER_CREATED, this.$onUrlSafetyLoaderCreated, this);
+            this.facade.removeObserver(NotifyKey.ON_URL_SAFETY_LOADER_COMPLETE, this.$onUrlSafetyLoaderComplete, this);
+            this.facade.removeObserver(NotifyKey.CACHE_ASSET_SAFETY_LOADER, this.$onCacheAssetSafetyLoader, this);
+            this.facade.removeObserver(NotifyKey.REMOVE_ASSET_SAFETY_LOADER, this.$onRemoveAssetSafetyLoader, this);
+            this.facade.removeObserver(NotifyKey.ON_ASSET_SAFETY_LOADER_FAILED, this.$onAssetSafetyLoaderFailed, this);
+        };
+        ResourceService.prototype.$onUrlSafetyLoaderCreated = function (loader) {
+            this.$undoList.push(loader);
+            this.$next();
+        };
+        ResourceService.prototype.$onUrlSafetyLoaderComplete = function (loader) {
+            var index = this.$loadingList.indexOf(loader);
+            if (index > -1) {
+                this.$loadingList.splice(index, 1);
+                this.$next();
+            }
+        };
+        ResourceService.prototype.$next = function () {
+            while (this.$undoList.length > 0 && this.$loadingList.length < ResourceService.MAX_LOAD_COUNT) {
+                var loader = this.$undoList.shift();
+                if (loader.destroyed === false) {
+                    loader.load();
+                    this.$loadingList.push(loader);
+                }
+            }
+        };
+        ResourceService.prototype.$onCacheAssetSafetyLoader = function (url, loader) {
+            var loaders = this.$cacheLoaders[url] || null;
+            if (loaders === null) {
+                loaders = this.$cacheLoaders[url] = [];
+            }
+            loaders.push(loader);
+            Resource.lock(url);
+        };
+        ResourceService.prototype.$onRemoveAssetSafetyLoader = function (url, loader, method, caller) {
+            var loaders = this.$cacheLoaders[url] || null;
+            if (loaders === null) {
+                return;
+            }
+            var index = -1;
+            if (loader === null) {
+                for (var i = 0; i < loaders.length; i++) {
+                    var item = loaders[i];
+                    if (item.complete.method === method && item.complete.caller === caller) {
+                        index = i;
+                        break;
+                    }
+                }
+            }
+            else {
+                index = loaders.indexOf(loader);
+            }
+            if (index > -1) {
+                loaders.splice(index, 1);
+                if (loaders.length === 0) {
+                    delete this.$cacheLoaders[url];
+                }
+                Resource.unlock(url);
+            }
+        };
+        ResourceService.prototype.$onAssetSafetyLoaderFailed = function () {
+            if (this.$isRetryPrompting === false) {
+                this.$isRetryPrompting = true;
+                this.facade.sendNotification(NotifyKey.RETRY_CONFIRM, [
+                    suncore.ModuleEnum.SYSTEM,
+                    "资源加载失败，点击确定重新尝试！",
+                    [ConfirmOptionValueEnum.YES, "确定", ConfirmOptionValueEnum.NO, "取消"],
+                    suncom.Handler.create(this, this.$onRetryConfirmed)
+                ]);
+            }
+        };
+        ResourceService.prototype.$onRetryConfirmed = function (option) {
+            if (option === ConfirmOptionValueEnum.YES) {
+                this.facade.sendNotification(NotifyKey.ASSET_SAFETY_LOADER_RETRY);
+            }
+            else {
+                this.facade.sendNotification(suncore.NotifyKey.SHUTDOWN);
+            }
+            this.$isRetryPrompting = false;
+        };
+        ResourceService.MAX_LOAD_COUNT = 5;
+        return ResourceService;
+    }(suncore.BaseService));
+    sunui.ResourceService = ResourceService;
     var Retryer = (function (_super) {
         __extends(Retryer, _super);
         function Retryer(modOrMethod, confirmHandler, prompt) {
@@ -345,30 +514,30 @@ var sunui;
             if (this.$method === RetryMethodEnum.AUTO || this.$currentRetries < maxRetries) {
                 if (this.$retryTimerId === 0) {
                     this.$retryHandler = handler;
-                    this.$retryTimerId = suncore.System.addTimer(suncore.ModuleEnum.SYSTEM, delay, this.$onRetryTimer, this, 1);
+                    this.$retryTimerId = suncore.System.addTimer(suncore.ModuleEnum.SYSTEM, delay, this.$onRetryTimer, this);
                 }
                 else {
-                    console.warn("\u5DF1\u5FFD\u7565\u7684\u91CD\u8BD5\u8BF7\u6C42 method:" + suncom.Common.getMethodName(handler.method, handler.caller) + ", caller:" + suncom.Common.getQualifiedClassName(handler.caller));
+                    suncom.Logger.warn("\u5DF1\u5FFD\u7565\u7684\u91CD\u8BD5\u8BF7\u6C42 method:" + suncom.Common.getMethodName(handler.method, handler.caller) + ", caller:" + suncom.Common.getQualifiedClassName(handler.caller));
                 }
             }
             else {
                 if (this.$prompting === false) {
                     this.$prompting = true;
                     if (this.$method === RetryMethodEnum.TERMINATE) {
-                        var handler_1 = suncom.Handler.create(this, this.$onConfirmRely, [ConfirmOptionValueEnum.NO]);
+                        var handler_1 = suncom.Handler.create(this, this.$onConfirmReplied, [ConfirmOptionValueEnum.NO]);
                         suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_0, handler_1);
                     }
                     else {
-                        var handler_2 = suncom.Handler.create(this, this.$onConfirmRely);
+                        var handler_2 = suncom.Handler.create(this, this.$onConfirmReplied);
                         this.facade.sendNotification(NotifyKey.RETRY_CONFIRM, [this.$mod, this.$prompt, this.$options, handler_2]);
                     }
                 }
                 else {
-                    console.warn("\u5DF1\u5FFD\u7565\u7684\u91CD\u8BD5\u7684\u8BE2\u95EE\u8BF7\u6C42 prompt:" + this.$prompt);
+                    suncom.Logger.warn("\u5DF1\u5FFD\u7565\u7684\u91CD\u8BD5\u7684\u8BE2\u95EE\u8BF7\u6C42 prompt:" + this.$prompt);
                 }
             }
         };
-        Retryer.prototype.$onConfirmRely = function (option) {
+        Retryer.prototype.$onConfirmReplied = function (option) {
             if (this.$prompting === true) {
                 this.$prompting = false;
                 if (this.$confirmHandler !== null) {
@@ -398,14 +567,29 @@ var sunui;
         return Retryer;
     }(puremvc.Notifier));
     sunui.Retryer = Retryer;
+    var SceneIniClass = (function (_super) {
+        __extends(SceneIniClass, _super);
+        function SceneIniClass(info, data) {
+            var _this = _super.call(this) || this;
+            _this.$info = null;
+            _this.$info = info;
+            _this.$data = data;
+            _this.facade.registerObserver(NotifyKey.ENTER_SCENE, _this.$onEnterScene, _this, true);
+            return _this;
+        }
+        SceneIniClass.prototype.$onEnterScene = function () {
+        };
+        return SceneIniClass;
+    }(suncore.AbstractTask));
+    sunui.SceneIniClass = SceneIniClass;
     var SceneLayer = (function (_super) {
         __extends(SceneLayer, _super);
         function SceneLayer() {
             var _this = _super.call(this) || this;
             _this.$ready = true;
             _this.$sceneName = 0;
-            _this.$uiScene = null;
-            _this.$d3Scene = null;
+            _this.$scene2d = null;
+            _this.$scene3d = null;
             _this.facade.registerObserver(NotifyKey.ENTER_SCENE, _this.$onEnterScene, _this, false, 5);
             return _this;
         }
@@ -417,30 +601,33 @@ var sunui;
         SceneLayer.prototype.$beforeLoadScene = function (info, data) {
             this.$sceneName = info.name;
             this.facade.sendNotification(NotifyKey.BEFORE_LOAD_SCENE);
-            var task = data === void 0 ? new info.iniCls() : new info.iniCls(data);
-            suncore.System.addTask(suncore.ModuleEnum.SYSTEM, 0, task);
+            info.iniCls && suncore.System.addTask(suncore.ModuleEnum.SYSTEM, 0, new info.iniCls(info, data));
         };
         SceneLayer.prototype.$loadScene = function (info, data) {
+            this.facade.sendNotification(suncore.NotifyKey.START_TIMELINE, [suncore.ModuleEnum.CUSTOM, true]);
+            info.scene3d = info.scene3d || null;
             this.facade.sendNotification(NotifyKey.LOAD_SCENE, [info, data]);
         };
-        SceneLayer.prototype.$onEnterScene = function (uiScene, d3Scene) {
+        SceneLayer.prototype.$onEnterScene = function (scene2d, scene3d) {
             this.$ready = true;
-            this.$uiScene = uiScene;
-            this.$d3Scene = d3Scene;
+            this.$scene2d = scene2d || null;
+            this.$scene3d = scene3d || null;
             this.facade.sendNotification(suncore.NotifyKey.START_TIMELINE, [suncore.ModuleEnum.CUSTOM, false]);
         };
         SceneLayer.prototype.$exitScene = function () {
             this.facade.sendNotification(NotifyKey.EXIT_SCENE, this.$sceneName);
             this.facade.sendNotification(suncore.NotifyKey.PAUSE_TIMELINE, [suncore.ModuleEnum.CUSTOM, true]);
             var info = SceneManager.getConfigByName(this.$sceneName);
-            suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_LAZY, suncom.Handler.create(this, this.$beforeExitScene, [info]));
+            suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_LAZY, suncom.Handler.create(this, this.$onLeaveScene, [info]));
         };
-        SceneLayer.prototype.$beforeExitScene = function (info) {
-            info.uniCls && suncore.System.addTask(suncore.ModuleEnum.SYSTEM, 0, new info.uniCls());
-            suncore.System.addTask(suncore.ModuleEnum.SYSTEM, 0, new suncore.SimpleTask(suncom.Handler.create(this, this.$onExitScene, [info])));
+        SceneLayer.prototype.$onLeaveScene = function (info) {
+            info.uniCls && suncore.System.addTask(suncore.ModuleEnum.SYSTEM, 0, new info.uniCls(info));
+            this.facade.sendNotification(NotifyKey.LEAVE_SCENE);
+            this.facade.sendNotification(NotifyKey.UNLOAD_SCENE, [info, this.$scene2d, this.$scene3d]);
+            this.facade.sendNotification(NotifyKey.DESTROY_SCENE, [info]);
+            suncore.System.addTask(suncore.ModuleEnum.SYSTEM, 0, new suncore.SimpleTask(suncom.Handler.create(this, this.$onExitScene)));
         };
-        SceneLayer.prototype.$onExitScene = function (info) {
-            this.facade.sendNotification(NotifyKey.UNLOAD_SCENE, info);
+        SceneLayer.prototype.$onExitScene = function () {
             this.$sceneName = 0;
         };
         SceneLayer.prototype.enterScene = function (name, data) {
@@ -472,16 +659,16 @@ var sunui;
         SceneLayer.prototype.deleteHistories = function (deleteCount) {
             SceneHeap.deleteHistories(deleteCount);
         };
-        Object.defineProperty(SceneLayer.prototype, "uiScene", {
+        Object.defineProperty(SceneLayer.prototype, "scene2d", {
             get: function () {
-                return this.$uiScene;
+                return this.$scene2d;
             },
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(SceneLayer.prototype, "d3Scene", {
+        Object.defineProperty(SceneLayer.prototype, "scene3d", {
             get: function () {
-                return this.$d3Scene;
+                return this.$scene3d;
             },
             enumerable: true,
             configurable: true
@@ -496,6 +683,20 @@ var sunui;
         return SceneLayer;
     }(puremvc.Notifier));
     sunui.SceneLayer = SceneLayer;
+    var SceneUniClass = (function (_super) {
+        __extends(SceneUniClass, _super);
+        function SceneUniClass(info) {
+            var _this = _super.call(this) || this;
+            _this.$info = null;
+            _this.$info = info;
+            _this.facade.registerObserver(NotifyKey.LEAVE_SCENE, _this.$onLeaveScene, _this, true);
+            return _this;
+        }
+        SceneUniClass.prototype.$onLeaveScene = function () {
+        };
+        return SceneUniClass;
+    }(suncore.AbstractTask));
+    sunui.SceneUniClass = SceneUniClass;
     var ShowPopupCommand = (function (_super) {
         __extends(ShowPopupCommand, _super);
         function ShowPopupCommand() {
@@ -503,7 +704,7 @@ var sunui;
         }
         ShowPopupCommand.prototype.execute = function (view, duration, props) {
             if (M.viewLayer.getInfoByView(view) !== null) {
-                console.error(view + "[" + view.name + "] is already popup.");
+                suncom.Logger.error(view + "[" + view.name + "] is already popup.");
                 return;
             }
             if (props.mod === void 0) {
@@ -523,7 +724,6 @@ var sunui;
             var level = props.level || view.zOrder || UILevel.POPUP;
             var keepNode = props.keepNode;
             delete props.args;
-            delete props.trans;
             delete props.level;
             delete props.keepNode;
             this.$makeProps(props);
@@ -572,72 +772,67 @@ var sunui;
         return ShowPopupCommand;
     }(AbstractPopupCommand));
     sunui.ShowPopupCommand = ShowPopupCommand;
-    var Templet = (function () {
-        function Templet() {
-            this.$loader = new Loader();
-            this.$referenceCount = 0;
-            this.$handlers = [];
+    var SkeletonLoader = (function (_super) {
+        __extends(SkeletonLoader, _super);
+        function SkeletonLoader(url, handler, aniMode) {
+            if (aniMode === void 0) { aniMode = 0; }
+            var _this = _super.call(this, url, handler) || this;
+            _this.$aniMode = 0;
+            _this.$aniMode = aniMode;
+            return _this;
         }
-        Templet.prototype.create = function (url, method, caller) {
-            this.$referenceCount++;
-            if (method !== null) {
-                this.$handlers.push(suncom.Handler.create(caller, method));
-            }
-            this.$loader.loading === false && this.$loader.load(url, suncom.Handler.create(this, this.$doCreate));
+        SkeletonLoader.prototype.$doLoad = function () {
+            this.$loadAssets([this.$url, suncom.Common.replacePathExtension(this.$url, "png")]);
         };
-        Templet.prototype.$doCreate = function () {
-            var handlers = this.$handlers.slice(0);
-            this.$handlers = [];
-            while (handlers.length > 0) {
-                var handler = handlers.shift();
-                handler.runWith([this.$loader.create(), this.$loader.url]);
-            }
-        };
-        Templet.prototype.destroy = function (url, method, caller) {
-            for (var i = 0; i < this.$handlers.length; i++) {
-                var handler = this.$handlers[i];
-                if (handler.method === method && handler.caller === caller) {
-                    this.$handlers.splice(i, 1);
-                    break;
+        SkeletonLoader.prototype.$onAssetsLoaded = function (ok) {
+            if (ok === true) {
+                var templet = M.cacheMap[this.$url] || null;
+                if (templet === null) {
+                    templet = M.cacheMap[this.$url] = new Laya.Templet();
+                    templet.on(Laya.Event.COMPLETE, this, this.$onTempletCreated);
+                    templet.loadAni(this.$url);
                 }
+                else if (templet.isParserComplete === false) {
+                    templet.on(Laya.Event.COMPLETE, this, this.$onTempletCreated);
+                }
+                else {
+                    var handler = suncom.Handler.create(this, this.$onTempletCreated);
+                    suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_0, handler);
+                }
+                Resource.lock(this.$url);
             }
-            this.$referenceCount--;
-            if (this.$referenceCount > 0) {
-                return;
-            }
-            else if (this.$referenceCount < 0) {
-                throw Error("\u8D44\u6E90\u8BA1\u6570\u4E0D\u5E94\u5F53\u5C0F\u4E8E0 url:" + url + ", references:" + this.$referenceCount);
-            }
-            if (this.$referenceCount === 0) {
-                this.$loader.destroy();
+            else {
+                this.$onComplete(false);
             }
         };
-        Object.defineProperty(Templet.prototype, "referenceCount", {
-            get: function () {
-                return this.$referenceCount;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        return Templet;
-    }());
-    sunui.Templet = Templet;
-    var TempletGroup = (function () {
-        function TempletGroup(id, urls, handler) {
+        SkeletonLoader.prototype.$onTempletCreated = function () {
+            if (this.destroyed === false) {
+                var templet = M.cacheMap[this.$url];
+                this.$onComplete(true, templet.buildArmature(this.$aniMode));
+            }
+            Resource.unlock(this.$url);
+        };
+        return SkeletonLoader;
+    }(AssetLoader));
+    sunui.SkeletonLoader = SkeletonLoader;
+    var Templet = (function () {
+        function Templet(id, urls, handler) {
             this.$id = 0;
             this.$urls = null;
             this.$handler = null;
             this.$doneList = [];
             this.$id = id;
-            this.$urls = urls;
+            this.$urls = this.$removeDuplicateResources(urls);
             this.$handler = handler;
+            this.$removeUnnecessaryResources(this.$urls, "sk", "png", "龙骨预加载无需指定PNG资源");
+            this.$removeUnnecessaryResources(this.$urls, "atlas", "png", "图集预加载无需指定PNG资源");
             for (var i = 0; i < this.$urls.length; i++) {
                 var url = this.$urls[i];
                 Resource.create(url, this.$onResourceCreated, this);
             }
         }
-        TempletGroup.prototype.$onResourceCreated = function (res, url) {
-            if (res instanceof Laya.Skeleton) {
+        Templet.prototype.$onResourceCreated = function (res, url) {
+            if (res instanceof Laya.Skeleton || res instanceof Laya.Scene3D || res instanceof Laya.Sprite3D) {
                 res.destroy();
             }
             this.$doneList.push(url);
@@ -645,15 +840,54 @@ var sunui;
                 this.$handler.runWith([this.$id]);
             }
         };
-        TempletGroup.prototype.release = function () {
+        Templet.prototype.release = function () {
             for (var i = 0; i < this.$urls.length; i++) {
                 var url = this.$urls[i];
                 Resource.destroy(url, this.$onResourceCreated, this);
             }
         };
-        return TempletGroup;
+        Templet.prototype.$removeDuplicateResources = function (urls) {
+            if (suncom.Global.debugMode & suncom.DebugMode.ENGINE) {
+                var array = [];
+                for (var i = 0; i < urls.length; i++) {
+                    var url = urls[i];
+                    if (array.indexOf(url) === -1) {
+                        array.push(url);
+                    }
+                    else {
+                        suncom.Logger.error("\u91CD\u590D\u7684\u9884\u52A0\u8F7D\u8D44\u6E90\u6587\u4EF6 " + url);
+                    }
+                }
+                return array;
+            }
+            return urls;
+        };
+        Templet.prototype.$removeUnnecessaryResources = function (urls, match, remove, msg) {
+            if (suncom.Global.debugMode & suncom.DebugMode.ENGINE) {
+                var array = [];
+                for (var i = 0; i < urls.length; i++) {
+                    var url = urls[i];
+                    if (suncom.Common.getFileExtension(url) === match) {
+                        array.push(url);
+                    }
+                }
+                for (var i = 0; i < array.length; i++) {
+                    var url = array[i];
+                    var png = url.substring(0, url.length - match.length) + remove;
+                    do {
+                        var index = urls.indexOf(png);
+                        if (index === -1) {
+                            break;
+                        }
+                        urls.splice(index, 1);
+                        suncom.Logger.warn(msg + " " + url);
+                    } while (true);
+                }
+            }
+        };
+        return Templet;
     }());
-    sunui.TempletGroup = TempletGroup;
+    sunui.Templet = Templet;
     var Tween = (function (_super) {
         __extends(Tween, _super);
         function Tween(item, mod) {
@@ -666,7 +900,7 @@ var sunui;
                 _this.facade.sendNotification(NotifyKey.ADD_TWEEN_OBJECT, _this);
             }
             else {
-                console.error("\u5C1D\u8BD5\u6DFB\u52A0\u7F13\u52A8\uFF0C\u4F46\u65F6\u95F4\u8F74\u5DF1\u505C\u6B62\uFF0Cmod:" + suncore.ModuleEnum[mod]);
+                suncom.Logger.error("\u5C1D\u8BD5\u6DFB\u52A0\u7F13\u52A8\uFF0C\u4F46\u65F6\u95F4\u8F74\u5DF1\u505C\u6B62\uFF0Cmod:" + suncore.ModuleEnum[mod]);
             }
             return _this;
         }
@@ -723,6 +957,9 @@ var sunui;
                 }
                 actions.push(action);
                 this.$props[key] = to[key];
+                if (this.$infos.length === 0) {
+                    this.$item[action.prop] = action.from;
+                }
             }
             var info = {
                 ease: ease,
@@ -867,7 +1104,8 @@ var sunui;
             var _this = _super.call(this) || this;
             M.viewLayer = new ViewLayerLaya3D();
             M.sceneLayer = new SceneLayer();
-            new TweenService().run();
+            suncom.DBService.put(-1, new TweenService()).run();
+            suncom.DBService.put(-1, new ResourceService()).run();
             _this.facade.registerCommand(NotifyKey.SHOW_POPUP, ShowPopupCommand);
             _this.facade.registerCommand(NotifyKey.CLOSE_POPUP, ClosePopupCommand);
             return _this;
@@ -899,16 +1137,16 @@ var sunui;
         UIManager.prototype.removeView = function (view) {
             M.viewLayer.removeStackByView(view);
         };
-        Object.defineProperty(UIManager.prototype, "uiScene", {
+        Object.defineProperty(UIManager.prototype, "scene2d", {
             get: function () {
-                return M.sceneLayer.uiScene;
+                return M.sceneLayer.scene2d;
             },
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(UIManager.prototype, "d3Scene", {
+        Object.defineProperty(UIManager.prototype, "scene3d", {
             get: function () {
-                return M.sceneLayer.d3Scene;
+                return M.sceneLayer.scene3d;
             },
             enumerable: true,
             configurable: true
@@ -924,6 +1162,67 @@ var sunui;
         return UIManager;
     }(puremvc.Notifier));
     sunui.UIManager = UIManager;
+    var UrlLoader = (function (_super) {
+        __extends(UrlLoader, _super);
+        function UrlLoader() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        UrlLoader.prototype.$doLoad = function () {
+            this.$loadAssets([this.$url]);
+        };
+        UrlLoader.prototype.$onAssetsLoaded = function (ok) {
+            this.$onComplete(ok);
+        };
+        return UrlLoader;
+    }(AssetLoader));
+    sunui.UrlLoader = UrlLoader;
+    var UrlSafetyLoader = (function (_super) {
+        __extends(UrlSafetyLoader, _super);
+        function UrlSafetyLoader(url, complete) {
+            var _this = _super.call(this) || this;
+            _this.$url = null;
+            _this.$complete = null;
+            _this.$loading = false;
+            _this.$destroyed = false;
+            _this.$url = url;
+            _this.$complete = complete;
+            _this.facade.sendNotification(NotifyKey.ON_URL_SAFETY_LOADER_CREATED, _this);
+            return _this;
+        }
+        UrlSafetyLoader.prototype.destroy = function () {
+            this.$destroyed = true;
+        };
+        UrlSafetyLoader.prototype.load = function () {
+            if (this.$loading === false && this.$destroyed === false) {
+                this.$loading = true;
+                UrlLocker.lock(this.$url);
+                if (Resource.isRes3dUrl(this.$url) === false || Resource.getRes3dJsonUrl(this.$url) === this.$url) {
+                    Laya.loader.load(this.$url, Laya.Handler.create(this, this.$onComplete));
+                }
+                else {
+                    Laya.loader.create(this.$url, Laya.Handler.create(this, this.$onComplete));
+                }
+            }
+        };
+        UrlSafetyLoader.prototype.$onComplete = function (data) {
+            if (this.$destroyed === false) {
+                this.$destroyed = true;
+                this.$complete.runWith([data === null ? false : true, this.$url]);
+            }
+            this.facade.sendNotification(NotifyKey.ON_URL_SAFETY_LOADER_COMPLETE, this);
+            UrlLocker.unlock(this.$url);
+            this.$loading = false;
+        };
+        Object.defineProperty(UrlSafetyLoader.prototype, "destroyed", {
+            get: function () {
+                return this.$destroyed;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return UrlSafetyLoader;
+    }(puremvc.Notifier));
+    sunui.UrlSafetyLoader = UrlSafetyLoader;
     var ViewContact = (function (_super) {
         __extends(ViewContact, _super);
         function ViewContact(caller, popup) {
@@ -1064,8 +1363,11 @@ var sunui;
         }
         ViewLayer.prototype.$onUnloadScene = function () {
             var array = this.$stack.concat();
-            while (array.length > 0) {
-                this.removeStackInfo(array.pop());
+            for (var i = array.length - 1; i > -1; i--) {
+                var info = array[i];
+                if (info.props.mod !== suncore.ModuleEnum.SYSTEM) {
+                    this.removeStackInfo(info);
+                }
             }
         };
         ViewLayer.prototype.removeStackInfo = function (info) {
@@ -1115,11 +1417,11 @@ var sunui;
         }
         ViewLayerLaya3D.prototype.addChild = function (view) {
             var node = view;
-            if (M.sceneLayer.uiScene === null || view.zOrder >= sunui.UILevel.LOADING) {
+            if (M.sceneLayer.scene2d === null || view.zOrder >= sunui.UILevel.LOADING) {
                 Laya.stage.addChild(node);
             }
             else {
-                M.sceneLayer.uiScene.addChild(node);
+                M.sceneLayer.scene2d.addChild(node);
             }
         };
         ViewLayerLaya3D.prototype.removeChild = function (view) {
@@ -1200,16 +1502,20 @@ var sunui;
     sunui.ViewLayerLaya3D = ViewLayerLaya3D;
     var M;
     (function (M) {
+        M.cacheMap = {};
         M.templets = {};
+        M.references = {};
     })(M = sunui.M || (sunui.M = {}));
     var NotifyKey;
     (function (NotifyKey) {
         NotifyKey.LOAD_SCENE = "sunui.NotifyKey.LOAD_SCENE";
         NotifyKey.UNLOAD_SCENE = "sunui.NotifyKey.UNLOAD_SCENE";
+        NotifyKey.DESTROY_SCENE = "sunui.NotifyKey.DESTROY_SCENE";
         NotifyKey.BEFORE_LOAD_SCENE = "sunui.NotifyKey.BEFORE_LOAD_SCENE";
         NotifyKey.REGISTER_SCENES = "sunui.NotifyKey.REGISTER_SCENES";
         NotifyKey.ENTER_SCENE = "sunui.NotifyKey.ENTER_SCENE";
         NotifyKey.EXIT_SCENE = "sunui.NotifyKey.EXIT_SCENE";
+        NotifyKey.LEAVE_SCENE = "sunui.NotifyKey.LEAVE_SCENE";
         NotifyKey.ADD_TWEEN_OBJECT = "sunui.NotifyKey.ADD_TWEEN_OBJECT";
         NotifyKey.SHOW_POPUP = "sunui.NotifyKey.SHOW_POPUP";
         NotifyKey.CLOSE_POPUP = "sunui.NotifyKey.CLOSE_POPUP";
@@ -1221,93 +1527,82 @@ var sunui;
         NotifyKey.ON_POPUP_REMOVED = "sunui.NotifyKey.ON_POPUP_REMOVED";
         NotifyKey.ON_CALLER_DESTROYED = "sunui.NotifyKey.ON_CALLER_DESTROYED";
         NotifyKey.RETRY_CONFIRM = "sunui.NotifyKey.RETRY_CONFIRM";
+        NotifyKey.CACHE_ASSET_SAFETY_LOADER = "sunui.NotifyKey.CACHE_ASSET_SAFETY_LOADER";
+        NotifyKey.REMOVE_ASSET_SAFETY_LOADER = "sunui.NotifyKey.REMOVE_ASSET_SAFETY_LOADER";
+        NotifyKey.ON_ASSET_SAFETY_LOADER_FAILED = "sunui.NotifyKey.ON_ASSET_SAFETY_LOADER_FAILED";
+        NotifyKey.ASSET_SAFETY_LOADER_RETRY = "sunui.NotifyKey.ASSET_SAFETY_LOADER_RETRY";
+        NotifyKey.ON_URL_SAFETY_LOADER_CREATED = "sunui.NotifyKey.ON_URL_SAFETY_LOADER_CREATED";
+        NotifyKey.ON_URL_SAFETY_LOADER_COMPLETE = "sunui.NotifyKey.ON_URL_SAFETY_LOADER_COMPLETE";
     })(NotifyKey = sunui.NotifyKey || (sunui.NotifyKey = {}));
     var Resource;
     (function (Resource) {
         var $seedId = 0;
-        var $groups = {};
-        var $templets = {};
-        var $references = {};
-        function createGroupId() {
+        Resource.res3dRoot = null;
+        function createTempletId() {
             $seedId++;
             return $seedId;
         }
         function lock(url) {
-            var array = Resource.getLoadList(url);
-            for (var i = 0; i < array.length; i++) {
-                var link = array[i];
-                var reference = $references[link] || 0;
-                $references[link] = reference + 1;
+            if (suncom.Global.debugMode & suncom.DebugMode.ENGINE) {
+                if (Resource.isRes3dUrl(url) === true && Resource.getRes3dJsonUrl(url) === url) {
+                    return;
+                }
+            }
+            var ext = suncom.Common.getFileExtension(url);
+            var str = url.substr(0, url.length - ext.length);
+            var urls = [url];
+            if (ext === "sk" || ext === "atlas") {
+                urls.push(str + "png");
+            }
+            else if (Resource.isRes3dUrl(url) === true) {
+                urls.push(str + "json");
+            }
+            for (var i = 0; i < urls.length; i++) {
+                UrlLocker.lock(urls[i]);
             }
         }
         Resource.lock = lock;
         function unlock(url) {
-            var array = Resource.getLoadList(url);
-            for (var i = 0; i < array.length; i++) {
-                var link = array[i];
-                var reference = $references[link] || 0;
-                if (reference === 0) {
-                    throw Error("\u5C1D\u8BD5\u89E3\u9501\u4E0D\u5B58\u5728\u7684\u8D44\u6E90 url\uFF1A" + link);
+            if (suncom.Global.debugMode & suncom.DebugMode.ENGINE) {
+                if (Resource.isRes3dUrl(url) === true && Resource.getRes3dJsonUrl(url) === url) {
+                    return;
                 }
-                if (reference === 1) {
-                    delete $references[link];
-                    Laya.loader.clearRes(link);
-                    Laya.loader.cancelLoadByUrl(link);
-                }
-                else {
-                    $references[link] = reference - 1;
-                }
+            }
+            var ext = suncom.Common.getFileExtension(url);
+            var str = url.substr(0, url.length - ext.length);
+            var urls = [url];
+            if (ext === "sk" || ext === "atlas") {
+                urls.push(str + "png");
+            }
+            else if (Resource.isRes3dUrl(url) === true) {
+                urls.push(str + "json");
+            }
+            for (var i = 0; i < urls.length; i++) {
+                UrlLocker.unlock(urls[i]);
             }
         }
         Resource.unlock = unlock;
-        function getReferenceByUrl(url) {
-            return $references[url] || 0;
-        }
-        Resource.getReferenceByUrl = getReferenceByUrl;
-        function create(url, method, caller) {
+        function create(url, method, caller, data) {
             if (method === void 0) { method = null; }
             if (caller === void 0) { caller = null; }
-            var templet = $templets[url] || null;
-            if (templet === null) {
-                templet = $templets[url] = new Templet();
-            }
-            Resource.lock(url);
-            templet.create(url, method, caller);
-            if ((suncom.Global.debugMode & suncom.DebugMode.DEBUG) === suncom.DebugMode.DEBUG) {
-                console.log("================== resouce debug ==================");
-                var keys = Object.keys($templets);
-                for (var _i = 0, keys_1 = keys; _i < keys_1.length; _i++) {
-                    var key = keys_1[_i];
-                    var templet_1 = $templets[key];
-                    console.log("url:" + key + ", references:" + templet_1.referenceCount);
-                }
-                console.log("================== resouce debug ==================");
-            }
+            var loader = new AssetSafetyLoader(url, suncom.Handler.create(caller, method), data);
+            puremvc.Facade.getInstance().sendNotification(NotifyKey.CACHE_ASSET_SAFETY_LOADER, [url, loader]);
         }
         Resource.create = create;
         function destroy(url, method, caller) {
             if (method === void 0) { method = null; }
             if (caller === void 0) { caller = null; }
-            var templet = $templets[url] || null;
-            if (templet !== null) {
-                templet.destroy(url, method, caller);
-                Resource.unlock(url);
-                if (templet.referenceCount === 0) {
-                    delete $templets[url];
-                }
-            }
-            if ((suncom.Global.debugMode & suncom.DebugMode.DEBUG) === suncom.DebugMode.DEBUG) {
-                console.log("================== resouce debug ==================");
-                var keys = Object.keys($templets);
-                for (var _i = 0, keys_2 = keys; _i < keys_2.length; _i++) {
-                    var key = keys_2[_i];
-                    var templet_2 = $templets[key];
-                    console.log("url:" + key + ", references:" + templet_2.referenceCount);
-                }
-                console.log("================== resouce debug ==================");
-            }
+            puremvc.Facade.getInstance().sendNotification(NotifyKey.REMOVE_ASSET_SAFETY_LOADER, [url, null, method, caller]);
         }
         Resource.destroy = destroy;
+        function createRes3d(name, method, caller) {
+            Resource.create(Resource.getRes3dUrlByName(name), method, caller);
+        }
+        Resource.createRes3d = createRes3d;
+        function destroyRes3d(name, method, caller) {
+            Resource.destroy(Resource.getRes3dUrlByName(name), method, caller);
+        }
+        Resource.destroyRes3d = destroyRes3d;
         function prepare(urls, method, caller) {
             var handler = null;
             if (method === null) {
@@ -1316,41 +1611,88 @@ var sunui;
             else {
                 handler = suncom.Handler.create(caller, method);
             }
-            var id = createGroupId();
-            $groups[id] = new TempletGroup(id, urls, handler);
+            var id = createTempletId();
+            M.templets[id] = new Templet(id, urls, handler);
             return id;
         }
         Resource.prepare = prepare;
         function release(id) {
             if (id > 0) {
-                var handler = suncom.Handler.create(null, releaseTempletGroup, [id]);
+                var handler = suncom.Handler.create(null, $releaseTemplet, [id]);
                 suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_0, handler);
             }
             return 0;
         }
         Resource.release = release;
-        function releaseTempletGroup(id) {
-            var group = $groups[id] || null;
-            if (group !== null) {
-                delete $groups[id];
-                group.release();
+        function $releaseTemplet(id) {
+            var templet = M.templets[id] || null;
+            if (templet === null) {
+                return;
             }
+            delete M.templets[id];
+            templet.release();
         }
-        function getLoadList(url) {
-            var index = url.lastIndexOf(".");
-            var str = url.substr(0, index);
-            var ext = url.substr(index + 1);
-            if (ext === "sk") {
-                return [
-                    str + ".png",
-                    str + ".sk"
-                ];
+        function createSync(url, data) {
+            var res = M.cacheMap[url] || null;
+            if (suncom.Common.getFileExtension(url) === "sk") {
+                return res.buildArmature(data);
+            }
+            else if (Resource.isRes3dUrl(url) === true) {
+                if (res === null) {
+                    res = M.cacheMap[url] = Laya.loader.getRes(url);
+                }
+                return Laya.Sprite3D.instantiate(res);
             }
             else {
-                return [url];
+                return Laya.loader.getRes(url);
             }
         }
-        Resource.getLoadList = getLoadList;
+        Resource.createSync = createSync;
+        function createRes3dSync(name) {
+            return Resource.createSync(Resource.getRes3dUrlByName(name));
+        }
+        Resource.createRes3dSync = createRes3dSync;
+        function clearResByUrl(url) {
+            UrlLocker.clearResByUrl(url);
+        }
+        Resource.clearResByUrl = clearResByUrl;
+        function getRes3dPackRoot(pack) {
+            if (Resource.res3dRoot === null) {
+                throw Error("\u8BF7\u5148\u6307\u5B9A3D\u8D44\u6E90\u76EE\u5F55\uFF1Asunui.Resource.res3dRoot=");
+            }
+            return Resource.res3dRoot + "/LayaScene_" + pack + "/Conventional/";
+        }
+        Resource.getRes3dPackRoot = getRes3dPackRoot;
+        function $getRes3dPackName(url) {
+            var prefix = Resource.res3dRoot + "/LayaScene_";
+            var suffix = "/Conventional/";
+            if (url.indexOf(prefix) !== 0) {
+                throw Error("\u89E3\u67903D\u8D44\u6E90\u5305\u540D\u5931\u8D25 url:" + url);
+            }
+            url = url.substr(prefix.length);
+            var index = url.indexOf(suffix);
+            if (index === -1) {
+                throw Error("\u89E3\u67903D\u8D44\u6E90\u5305\u540D\u5931\u8D25 url:" + url);
+            }
+            return url.substr(0, index);
+        }
+        function isRes3dUrl(url) {
+            return url.indexOf(Resource.res3dRoot) === 0;
+        }
+        Resource.isRes3dUrl = isRes3dUrl;
+        function getRes3dJsonUrl(url) {
+            return suncom.Common.replacePathExtension(url, "json");
+        }
+        Resource.getRes3dJsonUrl = getRes3dJsonUrl;
+        function getRes3dUrlByName(name) {
+            if (typeof name === "object") {
+                return Resource.getRes3dPackRoot(name.pack) + name.name;
+            }
+            else {
+                return Resource.getRes3dPackRoot(suncom.Common.getFileName(name)) + name;
+            }
+        }
+        Resource.getRes3dUrlByName = getRes3dUrlByName;
     })(Resource = sunui.Resource || (sunui.Resource = {}));
     var SceneHeap;
     (function (SceneHeap) {
@@ -1429,6 +1771,66 @@ var sunui;
         }
         SceneManager.getConfigByName = getConfigByName;
     })(SceneManager = sunui.SceneManager || (sunui.SceneManager = {}));
+    var UrlLocker;
+    (function (UrlLocker) {
+        function lock(url) {
+            var reference = M.references[url] || 0;
+            M.references[url] = reference + 1;
+        }
+        UrlLocker.lock = lock;
+        function unlock(url) {
+            var reference = M.references[url] || 0;
+            if (reference === 0) {
+                throw Error("\u5C1D\u8BD5\u89E3\u9501\u4E0D\u5B58\u5728\u7684\u8D44\u6E90 url\uFF1A" + url);
+            }
+            else if (reference === 1) {
+                delete M.references[url];
+                $clearRes(url);
+            }
+            else {
+                M.references[url] = reference - 1;
+            }
+        }
+        UrlLocker.unlock = unlock;
+        function clearResByUrl(url) {
+            var item = M.cacheMap[url] || null;
+            if (item !== null) {
+                item.dispose && item.dispose();
+                item.destroy && item.destroy();
+                delete M.cacheMap[url];
+            }
+            var res = Laya.loader.getRes(url) || null;
+            if (res === null) {
+                Laya.loader.cancelLoadByUrl(url);
+            }
+            else {
+                res.dispose && res.dispose();
+                res.destroy && res.destroy();
+                Laya.loader.clearRes(url);
+            }
+        }
+        UrlLocker.clearResByUrl = clearResByUrl;
+        function $clearRes(url) {
+            if (Resource.isRes3dUrl(url) === true && Resource.getRes3dJsonUrl(url) === url) {
+                var urls = $getAssetUrlsByRes3dJson(Laya.loader.getRes(url));
+                for (var i = 0; i < urls.length; i++) {
+                    UrlLocker.clearResByUrl(urls[i]);
+                }
+            }
+            UrlLocker.clearResByUrl(url);
+        }
+        function $getAssetUrlsByRes3dJson(json) {
+            var urls = [];
+            var root = Resource.getRes3dPackRoot(json.pack);
+            for (var i = 0; i < json.files.length; i++) {
+                urls.push(root + json.files[i]);
+            }
+            for (var i = 0; i < json.resources.length; i++) {
+                urls.push(root + json.resources[i]);
+            }
+            return urls;
+        }
+    })(UrlLocker = sunui.UrlLocker || (sunui.UrlLocker = {}));
     function find(path, parent) {
         var array = path.split("/");
         while (parent != null && array.length > 0) {
