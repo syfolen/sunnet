@@ -24,8 +24,8 @@ module sunnet {
          * 网络连接成功回调
          */
         protected $onConnected(): void {
-            while (this.$messages.length > 0) {
-                const data: ISocketData = this.$messages.pop();
+            while (this.$messages.length > 0 && this.$connection.state === NetConnectionStateEnum.CONNECTED) {
+                const data: ISocketData = this.$messages.shift();
                 this.$connection.sendBytes(data.cmd, data.bytes, data.ip, data.port, data.care);
             }
         }
