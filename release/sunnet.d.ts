@@ -150,7 +150,7 @@ declare module sunnet {
     /**
      * 网络连接对象
      */
-    class NetConnection extends puremvc.Notifier implements suncom.IEventSystem {
+    class NetConnection extends puremvc.Notifier implements INetConnection, suncom.IEventSystem {
 
         constructor(name: string);
 

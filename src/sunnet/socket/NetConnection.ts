@@ -10,7 +10,7 @@ module sunnet {
      * 网络连接对象
      * export
      */
-    export class NetConnection extends puremvc.Notifier implements suncom.IEventSystem {
+    export class NetConnection extends puremvc.Notifier implements INetConnection, suncom.IEventSystem {
         /**
          * 包头长度
          */
@@ -55,6 +55,11 @@ module sunnet {
          * 实现事件系统接口
          */
         private $dispatcher: suncom.IEventSystem = null;
+
+        /**
+         * 是否缓存正在发送的数据
+         */
+        private $cacheData: boolean = false;
 
         /**
          * export
@@ -182,6 +187,8 @@ module sunnet {
             if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
                 suncom.Logger.log("Netconnection=> 网络连接成功！");
             }
+            // 不再缓存正在发送的数据
+            this.$cacheData = false;
 
             // 网络重连成功
             this.dispatchEvent(EventKey.SOCKET_CONNECTED);
@@ -313,6 +320,16 @@ module sunnet {
          */
         get pipeline(): INetConnectionPipeline {
             return this.$pipeline;
+        }
+
+        /**
+         * 是否缓存正在发送的数据
+         */
+        get cacheData(): boolean {
+            return this.$cacheData;
+        }
+        set cacheData(value: boolean) {
+            this.$cacheData = value;
         }
     }
 }

@@ -5,6 +5,10 @@ module sunnet {
      * export
      */
     export interface INetConnection extends suncom.IEventSystem {
+        /**
+         * 是否缓存正在发送的数据
+         */
+        cacheData: boolean;
 
         /**
          * 请求连接

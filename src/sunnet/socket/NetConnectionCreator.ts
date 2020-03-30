@@ -63,26 +63,23 @@ module sunnet {
 		 * 数据发送拦截接口
 		 */
         send(cmd: number, bytes: Uint8Array, ip: string, port: number, care: boolean): Array<any> {
-            if (this.$needCreate(ip, port) == false) {
-                // 网络尚未成功连接
-                if (this.$connection.state === NetConnectionStateEnum.CONNECTING) {
-                    return null;
-                }
+            if (this.$needCreate(ip, port) == true) {
+                this.$connection.connect(ip, port, false);
+                this.$connection.cacheData = true;
+            }
+            if (this.$connection.state === NetConnectionStateEnum.CONNECTED) {
                 return [cmd, bytes, ip, port, care];
             }
-            if (ip !== null && port !== 0) {
-                this.$connection.connect(ip, port, false);
+            else if (this.$connection.cacheData === true) {
+                const data: ISocketData = {
+                    cmd: cmd,
+                    bytes: bytes,
+                    ip: ip,
+                    port: port,
+                    care: care
+                };
+                this.$messages.push(data);
             }
-
-            const data: ISocketData = {
-                cmd: cmd,
-                bytes: bytes,
-                ip: ip,
-                port: port,
-                care: care
-            };
-            this.$messages.push(data);
-
             return null;
         }
     }

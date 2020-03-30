@@ -39,6 +39,7 @@ var sunnet;
             _this.$state = NetConnectionStateEnum.DISCONNECTED;
             _this.$pipeline = null;
             _this.$dispatcher = null;
+            _this.$cacheData = false;
             _this.$name = name;
             _this.$pipeline = new NetConnectionPipeline(_this);
             _this.$dispatcher = new suncom.EventSystem();
@@ -116,11 +117,12 @@ var sunnet;
             if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
                 suncom.Logger.log("Netconnection=> 网络连接成功！");
             }
+            this.$cacheData = false;
+            this.dispatchEvent(EventKey.SOCKET_CONNECTED);
             if (this.$closedByError === true) {
                 this.$closedByError = false;
-                this.facade.sendNotification(NotifyKey.SOCKET_STATE_CHANGE, [this.$name, this.$state]);
             }
-            this.dispatchEvent(EventKey.SOCKET_CONNECTED);
+            this.facade.sendNotification(NotifyKey.SOCKET_STATE_CHANGE, [this.$name, this.$state]);
         };
         NetConnection.prototype.$onClose = function () {
             if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
@@ -202,6 +204,16 @@ var sunnet;
         Object.defineProperty(NetConnection.prototype, "pipeline", {
             get: function () {
                 return this.$pipeline;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(NetConnection.prototype, "cacheData", {
+            get: function () {
+                return this.$cacheData;
+            },
+            set: function (value) {
+                this.$cacheData = value;
             },
             enumerable: true,
             configurable: true
@@ -432,7 +444,7 @@ var sunnet;
         };
         ProtobufManager.prototype.encode = function (name, data) {
             if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
-                console.log("\u6253\u5305\u6570\u636E\u6210\u529F ==> " + JSON.stringify(data));
+                suncom.Logger.log("\u6253\u5305\u6570\u636E\u6210\u529F ==> " + JSON.stringify(data));
             }
             return this.getProtoClass(name).encode(data).finish();
         };
@@ -479,23 +491,23 @@ var sunnet;
             return false;
         };
         NetConnectionCreator.prototype.send = function (cmd, bytes, ip, port, care) {
-            if (this.$needCreate(ip, port) == false) {
-                if (this.$connection.state === NetConnectionStateEnum.CONNECTING) {
-                    return null;
-                }
+            if (this.$needCreate(ip, port) == true) {
+                this.$connection.connect(ip, port, false);
+                this.$connection.cacheData = true;
+            }
+            if (this.$connection.state === NetConnectionStateEnum.CONNECTED) {
                 return [cmd, bytes, ip, port, care];
             }
-            if (ip !== null && port !== 0) {
-                this.$connection.connect(ip, port, false);
+            else if (this.$connection.cacheData === true) {
+                var data = {
+                    cmd: cmd,
+                    bytes: bytes,
+                    ip: ip,
+                    port: port,
+                    care: care
+                };
+                this.$messages.push(data);
             }
-            var data = {
-                cmd: cmd,
-                bytes: bytes,
-                ip: ip,
-                port: port,
-                care: care
-            };
-            this.$messages.push(data);
             return null;
         };
         return NetConnectionCreator;
@@ -509,7 +521,7 @@ var sunnet;
         NetConnectionDecoder.prototype.recv = function (cmd, srvId, bytes, data) {
             var input = this.$connection.input || null;
             if (input === null) {
-                console.error("Decoder \u7F51\u7EDC\u5DF1\u65AD\u5F00\uFF01\uFF01\uFF01");
+                suncom.Logger.error("Decoder \u7F51\u7EDC\u5DF1\u65AD\u5F00\uFF01\uFF01\uFF01");
                 return;
             }
             cmd = input.getUint16();
@@ -540,7 +552,7 @@ var sunnet;
         NetConnectionEncoder.prototype.send = function (cmd, bytes, ip, port, care) {
             var output = this.$connection.output || null;
             if (output === null) {
-                console.error("Encoder \u7F51\u7EDC\u5DF1\u65AD\u5F00\uFF01\uFF01\uFF01");
+                suncom.Logger.error("Encoder \u7F51\u7EDC\u5DF1\u65AD\u5F00\uFF01\uFF01\uFF01");
                 return;
             }
             output.writeUint16(cmd);
