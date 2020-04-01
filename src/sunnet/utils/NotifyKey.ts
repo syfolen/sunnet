@@ -16,5 +16,15 @@ module sunnet {
          * export
          */
         export const SOCKET_CONNECT_FAILED: string = "sunnet.NotifyKey.SOCKET_CONNECT_FAILED";
+
+        /**
+         * 时序片断释放消息
+         */
+        export const SEQUENTIAL_SLICE_RELEASED: string = "sunnet.NotifyKey.SEQUENTIAL_SLICE_RELEASED";
+
+        /**
+         * GUI时序消息通知
+         */
+        export const GUI_SEQUENTIAL_NOTIFICATION: string = "sunnet.NotifyKey.GUI_SEQUENTIAL_NOTIFICATION";
     }
 }

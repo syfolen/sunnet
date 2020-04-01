@@ -14,16 +14,16 @@ module sunnet {
          * 通知网络消息
          * export
          */
-        export function notify(name: string, data: any): void {
-            $notifier.dispatchEvent(name, data);
+        export function notify(name: string, data: any, cancelable?: boolean): void {
+            $notifier.dispatchEvent(name, data, cancelable);
         }
 
         /**
          * 注册网络消息监听
          * export
          */
-        export function register(name: string, method: Function, caller: Object): void {
-            $notifier.addEventListener(name, method, caller);
+        export function register(name: string, method: Function, caller: Object, priority?: number): void {
+            $notifier.addEventListener(name, method, caller, false, priority);
         }
 
         /**

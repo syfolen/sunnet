@@ -6,6 +6,7 @@ module sunnet {
     export interface ISocketData {
         /**
          * 协议号
+         * export
          */
         cmd: number;
 
