@@ -26,12 +26,12 @@ module sunnet {
             bytes = new Uint8Array(buffer);
 
             if (cmd === Config.HEARTBEAT_RESPONSE_COMMAND) {
-                if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) === suncom.DebugMode.NETWORK_HEARTBEAT) {
+                if (suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) {
                     suncom.Logger.log("响应心跳");
                 }
             }
-            else {
-                if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
+            else if (Config.VIRTUAL_NETWORK_LEVEL === VirtualNetworkLevelEnum.NONE) {
+                if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
                     suncom.Logger.log("NetConnection=> 响应消息 cmd:" + cmd + ", srvId:" + srvId + ", length:" + bytes.byteLength);
                 }
             }

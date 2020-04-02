@@ -51,7 +51,7 @@ module sunnet {
          */
         protected $onDisconnected(byError: boolean): void {
             if (byError === true) {
-                if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) === suncom.DebugMode.NETWORK_HEARTBEAT) {
+                if (suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) {
                     suncom.Logger.log(`NetConnectionWatchDog=> 网络连接异常，${Config.TCP_RETRY_DELAY}毫秒后重连！`);
                 }
                 this.$ip = this.$connection.ip;
@@ -76,7 +76,7 @@ module sunnet {
                 this.$connection.connect(this.$ip, this.$port, true);
             }
             else {
-                if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
+                if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
                     suncom.Logger.log(`检测狗不能正常工作，因为 state:${NetConnectionStateEnum[this.$connection.state]}`);
                 }
             }

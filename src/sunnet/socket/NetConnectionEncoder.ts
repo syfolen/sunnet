@@ -25,11 +25,11 @@ module sunnet {
             this.$connection.flush();
 
             if (cmd === Config.HEARTBEAT_REQUEST_COMMAND) {
-                if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) === suncom.DebugMode.NETWORK_HEARTBEAT) {
+                if (suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) {
                     suncom.Logger.log(`发送数据 cmd:${cmd.toString()}, bytes:${bytes === null ? 0 : bytes.byteLength}`);
                 }
             }
-            else if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
+            else if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
                 suncom.Logger.log(`发送数据 cmd:${cmd.toString()}, bytes:${bytes === null ? 0 : bytes.byteLength}`);
             }
 

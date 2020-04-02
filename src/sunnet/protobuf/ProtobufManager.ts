@@ -108,7 +108,7 @@ module sunnet {
          * export
          */
         encode(name: string, data: any): Uint8Array {
-            if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
+            if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
                 suncom.Logger.log(`打包数据成功 ==> ${JSON.stringify(data)}`);
             }
             return this.getProtoClass(name).encode(data).finish();

@@ -60,6 +60,12 @@ module sunnet {
 		 * export
 		 */
 		export let HEARTBEAT_FIXED_FREQUENCY: boolean = false;
+
+		/**
+		 * 虚拟网络水平
+		 * export
+		 */
+		export let VIRTUAL_NETWORK_LEVEL: VirtualNetworkLevelEnum = VirtualNetworkLevelEnum.NONE;
 	}
 
 }

@@ -92,9 +92,11 @@ module sunnet {
             this.$socket.on(Laya.Event.MESSAGE, this, this.$onMessage);
             this.$socket.connectByUrl("ws://" + ip + ":" + port);
 
-            if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
+            if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
                 suncom.Logger.log(`Netconnection=> 请求连接 ws://${this.$ip}:${this.$port}`);
             }
+            // 模拟断开网络
+            this.addEventListener(EventKey.CLOSE_CONNECT_BY_VIRTUAL, this.$onError, this);
             // 通知网络状态变更
             this.facade.sendNotification(NotifyKey.SOCKET_STATE_CHANGE, [this.$name, this.$state]);
         }
@@ -116,7 +118,7 @@ module sunnet {
             }
 
             if (this.$socket !== null) {
-                if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
+                if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
                     suncom.Logger.log(`Netconnection=> 关闭连接 ws://${this.$ip}:${this.$port}`);
                 }
 
@@ -155,7 +157,7 @@ module sunnet {
             if (this.$state === NetConnectionStateEnum.CONNECTED) {
                 this.$socket.send(bytes);
             }
-            if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
+            if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
                 suncom.Logger.error("NetConnection=> sendBytes 发送数据失败！！！");
             }
         }
@@ -184,7 +186,7 @@ module sunnet {
          */
         private $onOpen(): void {
             this.$state = NetConnectionStateEnum.CONNECTED;
-            if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
+            if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
                 suncom.Logger.log("Netconnection=> 网络连接成功！");
             }
             // 不再缓存正在发送的数据
@@ -204,7 +206,7 @@ module sunnet {
          * 连接断开
          */
         private $onClose(): void {
-            if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
+            if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
                 suncom.Logger.log("Netconnection=> 连接异常关闭！");
             }
             this.close(true);
@@ -214,7 +216,7 @@ module sunnet {
          * 连接异常
          */
         private $onError(): void {
-            if ((suncom.Global.debugMode & suncom.DebugMode.NETWORK) === suncom.DebugMode.NETWORK) {
+            if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
                 suncom.Logger.log("Netconnection=> 连接异常断开！");
             }
             this.close(true);
