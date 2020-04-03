@@ -112,11 +112,10 @@ module sunnet {
          * @bytes: 只能是Uint8Array，默认为：null
          * @ip: 目标地址，默认为：null
          * @port: 目标端口，默认为：0
-         * @care: 心跳是否会关心此协议，默认为true
          * export
          */
-        sendBytes(cmd: number, bytes: Uint8Array = null, ip: string = null, port: number = 0, care: boolean = true): void {
-            this.$pipeline.send(cmd, bytes, ip, port, care);
+        sendBytes(cmd: number, bytes: Uint8Array = null, ip: string = null, port: number = 0): void {
+            this.$pipeline.send(cmd, bytes, ip, port);
         }
 
         /**
@@ -134,16 +133,16 @@ module sunnet {
             if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
                 suncom.Logger.log("Netconnection=> 网络连接成功！");
             }
-            // 不再缓存正在发送的数据流
-            this.dispatchEvent(EventKey.CACHE_SEND_BYTES, false);
-
             // 网络重连成功
             this.dispatchEvent(EventKey.SOCKET_CONNECTED);
 
-            // 若是异常断网成功重连，则需要通知网络状态变更
-            if (this.$closedByError === true) {
-                this.$closedByError = false;
-            }
+            // 不再缓存正在发送的数据流
+            this.dispatchEvent(EventKey.CACHE_SEND_BYTES, false);
+            // 发送所有当前己缓存的数据流
+            this.dispatchEvent(EventKey.FLUSH_CACHED_BYTES);
+
+            // 重置异常关闭的标记
+            this.$closedByError = false;
             this.facade.sendNotification(NotifyKey.SOCKET_STATE_CHANGE, [this.$name, this.$state]);
         }
 

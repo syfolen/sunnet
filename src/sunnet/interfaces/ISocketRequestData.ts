@@ -24,10 +24,5 @@ module sunnet {
          * 服务器端口
          */
         port: number;
-
-        /**
-         * 心跳是否关心此数据
-         */
-        care: boolean;
     }
 }

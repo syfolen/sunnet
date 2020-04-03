@@ -35,6 +35,11 @@ module sunnet {
         export const CACHE_SEND_BYTES: string = "sunnet.EventKey.CACHE_SEND_BYTES";
 
         /**
+         * 发送所有己缓存的数据流
+         */
+        export const FLUSH_CACHED_BYTES: string = "sunnet.EventKey.FLUSH_CACHED_BYTES";
+
+        /**
          * 清空当前所有未请求的数据
          */
         export const CLEAR_REQUEST_DATA: string = "sunnet.EventKey.CLEAR_REQUEST_DATA";

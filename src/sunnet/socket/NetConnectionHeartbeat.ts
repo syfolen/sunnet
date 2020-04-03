@@ -47,7 +47,7 @@ module sunnet {
             }
             // 心跳己回复，则在指定的延时时间后发送心跳
             else if (timestamp - this.$lastSendTime > Config.HEARTBEAT_INTERVAL_MILLISECONDS) {
-                if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
+                if (suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) {
                     suncom.Logger.log("heartbeat=> current timestamp:" + suncom.Common.formatDate("hh:mm:ss MS", new Date().valueOf()));
                 }
                 // 发送心跳
@@ -59,21 +59,21 @@ module sunnet {
 		/**
 		 * 数据发送拦截接口
 		 */
-        send(cmd: number, bytes: Uint8Array, ip: string, port: number, care: boolean): Array<any> {
-            if (care === true) {
-                if (Config.HEARTBEAT_FIXED_FREQUENCY === false || cmd === Config.HEARTBEAT_REQUEST_COMMAND) {
-                    if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
-                        if (cmd === Config.HEARTBEAT_REQUEST_COMMAND) {
+        send(cmd: number, bytes: Uint8Array, ip: string, port: number): Array<any> {
+            if (Config.HEARTBEAT_FIXED_FREQUENCY === false || cmd === Config.HEARTBEAT_REQUEST_COMMAND) {
+                if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
+                    if (cmd === Config.HEARTBEAT_REQUEST_COMMAND) {
+                        if (suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) {
                             suncom.Logger.log("send heartbeat=> current timestamp:" + suncom.Common.formatDate("hh:mm:ss MS", new Date().valueOf()));
                         }
-                        else {
-                            suncom.Logger.log("send bytes=> current timestamp:" + suncom.Common.formatDate("hh:mm:ss MS", new Date().valueOf()));
-                        }
                     }
-                    this.$lastSendTime = suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM);
+                    else {
+                        suncom.Logger.log("send bytes=> current timestamp:" + suncom.Common.formatDate("hh:mm:ss MS", new Date().valueOf()));
+                    }
                 }
+                this.$lastSendTime = suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM);
             }
-            return [cmd, bytes, ip, port, false];
+            return [cmd, bytes, ip, port];
         }
 
 		/**
@@ -83,7 +83,9 @@ module sunnet {
             if (Config.HEARTBEAT_FIXED_FREQUENCY === false || cmd === Config.HEARTBEAT_RESPONSE_COMMAND) {
                 if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
                     if (cmd === Config.HEARTBEAT_RESPONSE_COMMAND) {
-                        suncom.Logger.log("recv heartbeat=> current timestamp:" + suncom.Common.formatDate("hh:mm:ss MS", new Date().valueOf()));
+                        if (suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) {
+                            suncom.Logger.log("recv heartbeat=> current timestamp:" + suncom.Common.formatDate("hh:mm:ss MS", new Date().valueOf()));
+                        }
                     }
                     else {
                         suncom.Logger.log("recv bytes=> current timestamp:" + suncom.Common.formatDate("hh:mm:ss MS", new Date().valueOf()));

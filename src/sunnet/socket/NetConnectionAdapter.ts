@@ -31,6 +31,21 @@ module sunnet {
         protected $socket: Laya.Socket = null;
 
         /**
+         * Ping值
+         */
+        protected $ping: number = 0;
+
+        /**
+         * 服务器时间 
+         */
+        protected $srvTime: number = 0;
+
+        /**
+         * 客户端时间
+         */
+        protected $clientTime: number = 0;
+
+        /**
          * 网络消息管道
          */
         protected $pipeline: INetConnectionPipeline = null;
@@ -47,6 +62,7 @@ module sunnet {
             super(suncore.MsgQModEnum.NSL);
             this.$name = name;
             this.$pipeline = new NetConnectionPipeline(this);
+            M.connetionMap[name] = this;
         }
 
         /**
@@ -73,10 +89,9 @@ module sunnet {
          * @bytes: 只能是Uint8Array，默认为：null
          * @ip: 目标地址，默认为：null
          * @port: 目标端口，默认为：0
-         * @care: 心跳是否会关心此协议，默认为true
          * export
          */
-        abstract sendBytes(cmd: number, bytes?: Uint8Array, ip?: string, port?: number, care?: boolean): void;
+        abstract sendBytes(cmd: number, bytes?: Uint8Array, ip?: string, port?: number): void;
 
         /**
          * 发送数据
@@ -170,6 +185,36 @@ module sunnet {
             else {
                 return this.$socket.output || null;
             }
+        }
+
+        /**
+         * Ping值
+         */
+        get ping(): number {
+            return this.$ping;
+        }
+        set ping(value: number) {
+            this.$ping = value;
+        }
+
+        /**
+         * 服务器时间 
+         */
+        get srvTime(): number {
+            return this.$srvTime;
+        }
+        set srvTime(value: number) {
+            this.$srvTime = value;
+        }
+
+        /**
+         * 客户端时间
+         */
+        get clientTime(): number {
+            return this.$clientTime;
+        }
+        set clientTime(value: number) {
+            this.$clientTime = value;
         }
 
         /**

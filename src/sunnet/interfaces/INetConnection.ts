@@ -5,6 +5,26 @@ module sunnet {
      * export
      */
     export interface INetConnection extends suncom.IEventSystem {
+        /**
+         * Ping值
+         * 说明：
+         * 1. 这个值在NetConnectionPing中自动更新
+         */
+        ping: number;
+
+        /**
+         * 服务器时间
+         * 说明：
+         * 1. 这个值要求在NetConnectionPing的继承类中更新
+         */
+        srvTime: number;
+
+        /**
+         * 客户端时间
+         * 说明：
+         * 1. 这个值要求在NetConnectionPing的继承类中更新
+         */
+        clientTime: number;
 
         /**
          * 请求连接
@@ -30,10 +50,9 @@ module sunnet {
          * @bytes: 只能是Uint8Array，默认为：null
          * @ip: 目标地址，默认为：null
          * @port: 目标端口，默认为：0
-         * @care: 心跳是否会关心此协议，默认为true
          * export
          */
-        sendBytes(cmd: number, bytes?: Uint8Array, ip?: string, port?: number, care?: boolean): void;
+        sendBytes(cmd: number, bytes?: Uint8Array, ip?: string, port?: number): void;
 
         /**
          * 发送数据

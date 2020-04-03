@@ -9,11 +9,11 @@ module sunnet {
 		/**
 		 * 拦截数据
 		 */
-        send(cmd: number, bytes: Uint8Array, ip: string, port: number, care: boolean): Array<any> {
+        send(cmd: number, bytes: Uint8Array, ip: string, port: number): Array<any> {
             const output: Laya.Byte = this.$connection.output || null;
             if (output === null) {
                 suncom.Logger.error(`Encoder 网络己断开！！！`);
-                return;
+                return null;
             }
 
             // 写入包头

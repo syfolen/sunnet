@@ -6,6 +6,11 @@ module sunnet {
      */
     export abstract class SequentialLogicSlice extends SequentialSlice {
         /**
+         * 时序ID
+         */
+        private $SEQ_ID: number = 0;
+
+        /**
          * 先决时序
          * 说明：
          * 1. 在逻辑片断被构建时，若时序系统中存在先决时序，则此时序片段会被延时到所有先决时序全部执行完毕后再执行
@@ -50,7 +55,8 @@ module sunnet {
          * export
          */
         constructor(id: number, commands: ISequentialCommandDfn[]) {
-            super(id);
+            super();
+            this.$SEQ_ID = id;
             this.$commands = commands;
             for (let i: number = 0; i < this.$commands.length; i++) {
                 const dfn: ISequentialCommandDfn = this.$commands[i];
@@ -85,6 +91,7 @@ module sunnet {
          * export
          */
         release(): void {
+            super.release();
             for (let i: number = 0; i < this.$commands.length; i++) {
                 const dfn: ISequentialCommandDfn = this.$commands[i];
                 if (dfn.type === SequentialCommandTypeEnum.MSG) {
@@ -94,6 +101,7 @@ module sunnet {
                     this.facade.removeObserver(NotifyKey.GUI_SEQUENTIAL_NOTIFICATION, this.$onGUINotification, this);
                 }
             }
+            this.facade.sendNotification(NotifyKey.SEQUENTIAL_SLICE_RELEASED, this.$hashId);
             this.facade.removeObserver(NotifyKey.SEQUENTIAL_SLICE_RELEASED, this.$onSliceReleased, this);
         }
 
@@ -203,5 +211,12 @@ module sunnet {
          * export
          */
         protected abstract $asseretGUINotification(name: string, ...args: any[]): boolean;
+
+        /**
+         * 时序ID
+         */
+        get SEQ_ID(): number {
+            return this.$SEQ_ID;
+        }
     }
 }

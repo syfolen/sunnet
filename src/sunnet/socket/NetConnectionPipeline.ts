@@ -31,6 +31,9 @@ module sunnet {
 
         /**
          * 新增责任处理者
+         * 说明：
+         * 1. 当网络发送数据时，后添加的拦截器先执行
+         * 2. 当网络接收数据时，先添加的拦截器先执行
          */
         add(arg0: string | (new (connection: INetConnection) => INetConnectionInterceptor), arg1?: new (connection: INetConnection) => INetConnectionInterceptor): void {
             const item: INetConnectionPipelineItem = new NetConnectionPipelineItem();
@@ -86,7 +89,7 @@ module sunnet {
 		/**
 		 * 数据发送拦截接口
 		 */
-        send(cmd: number, bytes: Uint8Array, ip: string, port: number, care: boolean): Array<any> {
+        send(cmd: number, bytes: Uint8Array, ip: string, port: number): Array<any> {
             for (let i: number = this.$items.length - 1; i > -1; i--) {
                 // 数据将保持传递，直至处理完毕
                 const item: INetConnectionPipelineItem = this.$items[i];
@@ -94,7 +97,7 @@ module sunnet {
                     continue;
                 }
                 const interceptor: INetConnectionInterceptor = item.interceptor;
-                const res: any = interceptor.send.call(interceptor, cmd, bytes, ip, port, care);
+                const res: any = interceptor.send.call(interceptor, cmd, bytes, ip, port);
                 if (res === null) {
                     return null;
                 }

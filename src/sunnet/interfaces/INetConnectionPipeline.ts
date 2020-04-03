@@ -8,6 +8,9 @@ module sunnet {
 
         /**
          * 新增责任处理者
+         * 说明：
+         * 1. 当网络发送数据时，后添加的拦截器先执行
+         * 2. 当网络接收数据时，先添加的拦截器先执行
          * export
          */
         add(arg0: string | (new (connection: INetConnection) => INetConnectionInterceptor), arg1?: new (connection: INetConnection) => INetConnectionInterceptor): void;

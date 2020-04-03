@@ -18,23 +18,15 @@ module sunnet {
         constructor(connection: INetConnection) {
             super(connection);
             this.$connection.addEventListener(EventKey.CACHE_SEND_BYTES, this.$onCacheSendBytes, this);
+            this.$connection.addEventListener(EventKey.FLUSH_CACHED_BYTES, this.$onFlushCachedBytes, this);
             this.$connection.addEventListener(EventKey.CLEAR_REQUEST_DATA, this.$onClearRequestData, this);
         }
 
         destroy(): void {
             this.$connection.removeEventListener(EventKey.CACHE_SEND_BYTES, this.$onCacheSendBytes, this);
+            this.$connection.removeEventListener(EventKey.FLUSH_CACHED_BYTES, this.$onFlushCachedBytes, this);
             this.$connection.removeEventListener(EventKey.CLEAR_REQUEST_DATA, this.$onClearRequestData, this);
             super.destroy();
-        }
-
-        /**
-         * 网络连接成功回调
-         */
-        protected $onConnected(): void {
-            while (this.$datas.length > 0 && this.$connection.state === NetConnectionStateEnum.CONNECTED) {
-                const data: ISocketRequestData = this.$datas.shift();
-                this.$connection.sendBytes(data.cmd, data.bytes, data.ip, data.port, data.care);
-            }
         }
 
         /**
@@ -42,6 +34,16 @@ module sunnet {
          */
         private $onCacheSendBytes(yes: boolean): void {
             this.$cacheSendBytes = yes;
+        }
+
+        /**
+         * 发送所有己缓存的数据流
+         */
+        private $onFlushCachedBytes(): void {
+            while (this.$datas.length > 0 && this.$connection.state === NetConnectionStateEnum.CONNECTED) {
+                const data: ISocketRequestData = this.$datas.shift();
+                this.$connection.sendBytes(data.cmd, data.bytes, data.ip, data.port);
+            }
         }
 
         /**
@@ -76,21 +78,20 @@ module sunnet {
 		/**
 		 * 数据发送拦截接口
 		 */
-        send(cmd: number, bytes: Uint8Array, ip: string, port: number, care: boolean): Array<any> {
+        send(cmd: number, bytes: Uint8Array, ip: string, port: number): Array<any> {
             if (this.$needCreate(ip, port) == true) {
                 this.$connection.connect(ip, port, false);
                 this.$cacheSendBytes = true;
             }
             if (this.$connection.state === NetConnectionStateEnum.CONNECTED) {
-                return [cmd, bytes, ip, port, care];
+                return [cmd, bytes, ip, port];
             }
             else if (this.$cacheSendBytes === true) {
                 const data: ISocketRequestData = {
                     cmd: cmd,
                     bytes: bytes,
                     ip: ip,
-                    port: port,
-                    care: care
+                    port: port
                 };
                 this.$datas.push(data);
             }

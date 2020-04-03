@@ -49,10 +49,9 @@ module sunnet {
 
 		/**
 		 * 数据发送拦截接口
-         * @care: 心跳是否会关心此协议
          * export
 		 */
-        send(cmd: number, bytes: Uint8Array, ip: string, port: number, care: boolean): Array<any> {
+        send(cmd: number, bytes: Uint8Array, ip: string, port: number): Array<any> {
             return [cmd, bytes, ip, port];
         }
 
