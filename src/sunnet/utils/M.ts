@@ -5,9 +5,9 @@ module sunnet {
      */
     export namespace M {
         /**
-         * 时序服务对象
+         * 包头长度
          */
-        export let service: SequentialService = null;
+        export const HEAD_LENGTH: number = 28;
 
         /**
          * 逻辑时序列表

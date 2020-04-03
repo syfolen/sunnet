@@ -1,9 +1,9 @@
 
 module sunnet {
     /**
-     * 套接字数据在消息管道中传递时的数据结构
+     * WebSocket数据请求对象
      */
-    export interface ISocketData {
+    export interface ISocketRequestData {
         /**
          * 协议号
          * export

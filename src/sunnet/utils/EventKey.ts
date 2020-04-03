@@ -30,14 +30,19 @@ module sunnet {
         export const KILL_WATCH_DOG: string = "sunnet.EventKey.KILL_WATCH_DOG";
 
         /**
-         * 缓存网络数据 { msg: ISocketMessage }
+         * 是否缓存发送的数据流 { yes: boolean }
          */
-        export const CACHE_MESSAGE_DATA: string = "sunnet.EventKey.CACHE_MESSAGE_DATA";
+        export const CACHE_SEND_BYTES: string = "sunnet.EventKey.CACHE_SEND_BYTES";
 
         /**
-         * 清空未发送的网络消息队列
+         * 清空当前所有未请求的数据
          */
-        export const CLEAR_MESSAGE_QUEUE: string = "sunnet.EventKey.CLEAR_MESSAGE_QUEUE";
+        export const CLEAR_REQUEST_DATA: string = "sunnet.EventKey.CLEAR_REQUEST_DATA";
+
+        /**
+         * 网络消息解析成功 { msg: ISocketMessage }
+         */
+        export const SOCKET_MESSAGE_DECODED: string = "sunnet.EventKey.SOCKET_MESSAGE_DECODED";
 
         /**
          * 模拟断开网络

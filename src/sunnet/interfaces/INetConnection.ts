@@ -5,10 +5,6 @@ module sunnet {
      * export
      */
     export interface INetConnection extends suncom.IEventSystem {
-        /**
-         * 是否缓存正在发送的数据
-         */
-        cacheData: boolean;
 
         /**
          * 请求连接
@@ -31,11 +27,6 @@ module sunnet {
 
         /**
          * 发送数据
-         */
-        flush(): void;
-
-        /**
-         * 发送数据
          * @bytes: 只能是Uint8Array，默认为：null
          * @ip: 目标地址，默认为：null
          * @port: 目标端口，默认为：0
@@ -43,6 +34,11 @@ module sunnet {
          * export
          */
         sendBytes(cmd: number, bytes?: Uint8Array, ip?: string, port?: number, care?: boolean): void;
+
+        /**
+         * 发送数据
+         */
+        flush(): void;
 
         /**
          * 网络连接名称

@@ -6,9 +6,9 @@ module sunnet {
 	 */
 	export class NetConnectionVirtualNetwork extends NetConnectionInterceptor {
 		/**
-		 * 网络数据缓存队列
+		 * 己解析的网络数据缓存队列
 		 */
-		private $messages: ICacheMessage[] = [];
+		private $datas: IDecodedData[] = [];
 
 		/**
 		 * 当前时间（秒）
@@ -39,17 +39,17 @@ module sunnet {
 			this.$lastConnectedTimestamp = suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM);
 			this.$currentConnectionReliableTime = this.$getReliableTimeOfConnection() * 1000;
 			this.facade.registerObserver(suncore.NotifyKey.ENTER_FRAME, this.$onEnterFrame, this);
-			this.$connection.addEventListener(EventKey.CACHE_MESSAGE_DATA, this.$onCacheMessageData, this);
+			this.$connection.addEventListener(EventKey.SOCKET_MESSAGE_DECODED, this.$onSocketMessageDecoded, this);
 		}
 
         /**
          * 网络连接断开
          */
 		protected $onDisconnected(byError: boolean): void {
-			this.$messages.length = 0;
+			this.$datas.length = 0;
 			this.$currentSeconds = 0;
 			this.facade.removeObserver(suncore.NotifyKey.ENTER_FRAME, this.$onEnterFrame, this);
-			this.$connection.removeEventListener(EventKey.CACHE_MESSAGE_DATA, this.$onCacheMessageData, this);
+			this.$connection.removeEventListener(EventKey.SOCKET_MESSAGE_DECODED, this.$onSocketMessageDecoded, this);
 		}
 
 		/**
@@ -72,25 +72,29 @@ module sunnet {
 				this.$isNetworkWaving = suncom.Common.random(0, 100) < this.$getProbabilyOfNetworkWave();
 			}
 
-			// 未延时或己完成延时的数据包将会被派发
-			if (this.$messages.length > 0 && time > this.$messages[0].time + this.$messages[0].delay) {
-				if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
-					suncom.Logger.log("消息解析成功 ==> " + JSON.stringify(this.$messages[0].data.data));
+			// 存在缓存数据
+			if (this.$datas.length > 0) {
+				const data: IDecodedData = this.$datas[0];
+				// 己延时处理
+				if (time > data.time + data.delay) {
+					if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
+						suncom.Logger.log(`消息解析成功 ==> cmd:${data.msg.id}, data:${JSON.stringify(data.msg.data)}`);
+					}
+					suncore.MsgQ.send(suncore.MsgQModEnum.NSL, MsgQIdEnum.NSL_RECV_DATA, this.$datas.shift().msg);
 				}
-				suncore.MsgQ.send(suncore.MsgQModEnum.NSL, MsgQIdEnum.NSL_RECV_DATA, this.$messages.shift().data);
 			}
 		}
 
 		/**
-		 * 缓存己接收的网络数据
+		 * 缓存解析成功的网络消息
 		 */
-		private $onCacheMessageData(data: ISocketMessage): void {
-			const msg: ICacheMessage = {
+		private $onSocketMessageDecoded(msg: ISocketMessage): void {
+			const data: IDecodedData = {
+				msg: msg,
 				time: suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM),
-				delay: this.$calculateMessageDelayTime(),
-				data: data
+				delay: this.$calculateMessageDelayTime()
 			}
-			this.$messages.push(msg);
+			this.$datas.push(data);
 		}
 
 		/**

@@ -38,7 +38,7 @@ module sunnet {
                 suncore.MsgQ.send(suncore.MsgQModEnum.NSL, MsgQIdEnum.NSL_RECV_DATA, msg);
             }
             else {
-                this.$connection.dispatchEvent(EventKey.CACHE_MESSAGE_DATA, msg);
+                this.$connection.dispatchEvent(EventKey.SOCKET_MESSAGE_DECODED, msg);
             }
             // 消息解析成功
             return [cmd, srvId, bytes, newData];
