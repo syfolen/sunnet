@@ -51,7 +51,6 @@ module sunnet {
 				if (tracker.rep === cmd) {
 					this.$trackers.shift();
 					this.$ping = new Date().valueOf() - tracker.time;
-					// this.$connection.ping = new Date().valueOf() - tracker.time;
 					this.$dealRecvData(cmd, data);
 				}
 			}
