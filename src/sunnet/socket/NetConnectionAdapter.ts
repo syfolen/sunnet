@@ -36,6 +36,11 @@ module sunnet {
         protected $ping: number = 0;
 
         /**
+         * 网络推算延迟
+         */
+        protected $latency: number = 0;
+
+        /**
          * 服务器时间 
          */
         protected $srvTime: number = 0;
@@ -195,6 +200,16 @@ module sunnet {
         }
         set ping(value: number) {
             this.$ping = value;
+        }
+
+        /**
+         * 网络推算延时
+         */
+        get latency(): number {
+            return this.$latency;
+        }
+        set latency(value: number) {
+            this.$latency = value;
         }
 
         /**

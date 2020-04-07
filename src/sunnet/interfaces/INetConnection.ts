@@ -13,6 +13,11 @@ module sunnet {
         ping: number;
 
         /**
+         * 时间推算延迟
+         */
+        latency: number;
+
+        /**
          * 服务器时间
          * 说明：
          * 1. 这个值要求在NetConnectionPing的继承类中更新
