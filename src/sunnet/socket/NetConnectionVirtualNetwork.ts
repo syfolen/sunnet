@@ -111,11 +111,8 @@ module sunnet {
 		 * export
 		 */
 		protected $getReliableTimeOfConnection(): number {
-			if (Config.VIRTUAL_NETWORK_LEVEL === VirtualNetworkLevelEnum.BAD) {
+			if (Config.VIRTUAL_NETWORK_LEVEL === VirtualNetworkLevelEnum.UNSTABLE) {
 				return suncom.Common.random(180, 300);
-			}
-			else if (Config.VIRTUAL_NETWORK_LEVEL === VirtualNetworkLevelEnum.UNSTABLE) {
-				return suncom.Common.random(60, 120);
 			}
 			else {
 				return 1440 * 30;
@@ -130,7 +127,7 @@ module sunnet {
 		 */
 		protected $getProbabilyOfNetworkWave(): number {
 			if (Config.VIRTUAL_NETWORK_LEVEL === VirtualNetworkLevelEnum.BAD) {
-				return 5;
+				return 10;
 			}
 			else if (Config.VIRTUAL_NETWORK_LEVEL === VirtualNetworkLevelEnum.UNSTABLE) {
 				return 25;
@@ -148,19 +145,19 @@ module sunnet {
 		 */
 		protected $calculateMessageDelayTime(): number {
 			if (Config.VIRTUAL_NETWORK_LEVEL === VirtualNetworkLevelEnum.GOOD) {
-				return suncom.Common.random(20, 51);
+				return suncom.Common.random(60, 150);
 			}
 			else if (Config.VIRTUAL_NETWORK_LEVEL === VirtualNetworkLevelEnum.BAD) {
 				if (this.$isNetworkWaving === false) {
-					return suncom.Common.random(80, 501);
+					return suncom.Common.random(200, 800);
 				}
 				else {
-					return suncom.Common.random(1000, 3000);
+					return suncom.Common.random(1000, 2000);
 				}
 			}
 			else if (Config.VIRTUAL_NETWORK_LEVEL === VirtualNetworkLevelEnum.UNSTABLE) {
 				if (this.$isNetworkWaving === false) {
-					return suncom.Common.random(300, 1500);
+					return suncom.Common.random(1000, 2500);
 				}
 				else {
 					return suncom.Common.random(3000, 8000);

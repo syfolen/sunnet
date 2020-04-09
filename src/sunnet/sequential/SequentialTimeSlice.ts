@@ -2,8 +2,19 @@
 module sunnet {
     /**
      * 时间片段
+     * export
      */
     export abstract class SequentialTimeSlice extends SequentialSlice {
+
+        /**
+         * 获取当前服务器时间戳
+         * export
+         */
+        static getCurrentServerTimestamp(name: string = "default"): number {
+            const connection: INetConnection = sunnet.M.connetionMap[name] || null;
+            return connection.srvTime + suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM) - connection.clientTime;
+        }
+
         /**
          * 网络连接对象
          */
@@ -12,7 +23,7 @@ module sunnet {
         /**
          * 创建在服务器上创建的时间
          */
-        private $srvCreateTime: number = this.$connection.srvTime;
+        private $srvCreateTime: number = 0;
 
         /**
          * 片段时长
@@ -68,6 +79,7 @@ module sunnet {
             super();
             this.$timeLen = timeLen;
             this.$connection = M.connetionMap[name] || null;
+            this.$srvCreateTime = this.$connection.srvTime;
         }
 
         /**
@@ -87,8 +99,11 @@ module sunnet {
             // 若追帧时间为0，则表示无需追帧
             if (chaseTime === 0) {
                 // 立即计算过去时间
-                this.$pastTime = this.$getCurrentServerTimestamp() - this.$srvCreateTime;
+                this.$pastTime = SequentialTimeSlice.getCurrentServerTimestamp() - this.$srvCreateTime;
+                // 生命时间视为与过去时间相等
+                this.$lifeTime = this.$pastTime;
             }
+            this.$onEnterFrame();
         }
 
         /**
@@ -157,6 +172,10 @@ module sunnet {
 
             // 自定义帧事件
             this.$frameLoop();
+            // 时间结束
+            if (this.$lifeTime >= this.$timeLen) {
+                this.$onTimeup();
+            }
         }
 
         /**
@@ -166,10 +185,17 @@ module sunnet {
         protected abstract $frameLoop(): void;
 
         /**
-         * 获取当前服务器时间戳
+         * 时间结束回调（回调前会先执行$frameLoop方法）
+         * export
          */
-        private $getCurrentServerTimestamp(): number {
-            return this.$connection.srvTime + suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM) - this.$connection.clientTime;
+        protected abstract $onTimeup(): void;
+
+        /**
+         * 对象的生命时长
+         * export
+         */
+        get timeLen(): number {
+            return this.$timeLen;
         }
 
         /**
@@ -177,7 +203,8 @@ module sunnet {
          * export
          */
         get pastTime(): number {
-            return this.$pastTime;
+            // 对外使用生命时间作为过去时间
+            return this.$lifeTime;
         }
     }
 }
