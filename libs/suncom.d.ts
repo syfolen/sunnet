@@ -61,6 +61,46 @@ declare module suncom {
     }
 
     /**
+     * 事件优先级
+     */
+    export enum EventPriorityEnum {
+        /**
+         * 最低
+         */
+        LAZY = 0,
+
+        /**
+         * 低（默认）
+         */
+        LOW,
+
+        /**
+         * 中
+         */
+        MID,
+
+        /**
+         * 高
+         */
+        HIGH,
+
+        /**
+         * 框架级别
+         */
+        FWL,
+
+        /**
+         * 引擎级别
+         */
+        EGL,
+
+        /**
+         * 系统级别
+         */
+        OSL
+    }
+
+    /**
      * 日志类型枚举
      */
     enum LogTypeEnum {

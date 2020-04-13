@@ -17,8 +17,8 @@ module sunnet {
         constructor(connection: INetConnection) {
             super(suncore.MsgQModEnum.NSL);
             this.$connection = connection;
-            this.$connection.addEventListener(EventKey.SOCKET_CONNECTED, this.$onConnected, this);
-            this.$connection.addEventListener(EventKey.SOCKET_DISCONNECTED, this.$onDisconnected, this);
+            this.$connection.addEventListener(EventKey.SOCKET_CONNECTED, this.$onConnected, this, false, suncom.EventPriorityEnum.FWL);
+            this.$connection.addEventListener(EventKey.SOCKET_DISCONNECTED, this.$onDisconnected, this, false, suncom.EventPriorityEnum.FWL);
         }
 
         /**

@@ -12,7 +12,7 @@ module sunnet {
 
         constructor() {
             super();
-            this.facade.registerObserver(suncore.NotifyKey.ENTER_FRAME, this.$onEnterFrame, this);
+            this.facade.registerObserver(suncore.NotifyKey.ENTER_FRAME, this.$onEnterFrame, this, false, suncom.EventPriorityEnum.FWL);
         }
 
         /**
