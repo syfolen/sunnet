@@ -162,6 +162,11 @@ declare module suncore {
         MMI = 1,
 
         /**
+         * 逻辑层
+         */
+        L4C,
+
+        /**
          * 通用界面
          */
         CUI,
@@ -170,11 +175,6 @@ declare module suncore {
          * 游戏界面
          */
         GUI,
-
-        /**
-         * 逻辑层
-         */
-        L4C,
 
         /**
          * 网络层

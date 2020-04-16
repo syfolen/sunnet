@@ -91,7 +91,7 @@ module sunnet {
 			}
 			if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
 				const srvTime: number = this.$connection.srvTime + suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM) - this.$connection.clientTime;
-				suncom.Logger.log(`服务器时间：${suncom.Common.formatDate("yy-MM-dd hh:mm:ss MS", srvTime)}，Ping：${this.$connection.ping}，时间推算延延：${this.$connection.latency}`);
+				suncom.Logger.log(suncom.DebugMode.ANY, `服务器时间：${suncom.Common.formatDate("yy-MM-dd hh:mm:ss MS", srvTime)}，Ping：${this.$connection.ping}，时间推算延延：${this.$connection.latency}`);
 			}
 		}
 	}

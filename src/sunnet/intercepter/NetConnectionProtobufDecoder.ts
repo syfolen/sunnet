@@ -22,7 +22,7 @@ module sunnet {
             }
             if (Config.VIRTUAL_NETWORK_LEVEL === VirtualNetworkLevelEnum.NONE) {
                 if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
-                    suncom.Logger.log("消息解析成功 ==> " + JSON.stringify(newData));
+                    suncom.Logger.log(suncom.DebugMode.ANY, "消息解析成功 ==> " + JSON.stringify(newData));
                 }
             }
             if (newData === bytes) {

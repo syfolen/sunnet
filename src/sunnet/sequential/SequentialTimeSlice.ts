@@ -113,7 +113,7 @@ module sunnet {
         protected $onEnterFrame(): void {
             // 当前时间流逝倍率不允许小于0
             if (this.$multiple < 0) {
-                suncom.Logger.error(`当前时间流逝倍率不允许小于0`);
+                suncom.Logger.error(suncom.DebugMode.ANY, `当前时间流逝倍率不允许小于0`);
                 return;
             }
             // 当前时间流逝倍率若为0，则直接返回

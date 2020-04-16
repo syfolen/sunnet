@@ -13,7 +13,7 @@ module sunnet {
         recv(cmd: number, srvId: number, bytes: Uint8Array, data: any): Array<any> {
             const input: Laya.Byte = this.$connection.input || null;
             if (input === null) {
-                suncom.Logger.error(`Decoder 网络己断开！！！`);
+                suncom.Logger.error(suncom.DebugMode.ANY, `Decoder 网络己断开！！！`);
                 return;
             }
 
@@ -27,12 +27,12 @@ module sunnet {
 
             if (cmd === Config.HEARTBEAT_RESPONSE_COMMAND) {
                 if (suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) {
-                    suncom.Logger.log("响应心跳");
+                    suncom.Logger.log(suncom.DebugMode.ANY, "响应心跳");
                 }
             }
             else if (Config.VIRTUAL_NETWORK_LEVEL === VirtualNetworkLevelEnum.NONE) {
                 if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
-                    suncom.Logger.log("NetConnection=> 响应消息 cmd:" + cmd + ", srvId:" + srvId + ", length:" + bytes.byteLength);
+                    suncom.Logger.log(suncom.DebugMode.ANY, "NetConnection=> 响应消息 cmd:" + cmd + ", srvId:" + srvId + ", length:" + bytes.byteLength);
                 }
             }
 

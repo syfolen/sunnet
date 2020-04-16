@@ -111,11 +111,11 @@ module sunnet {
             if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
                 if (name === "msg.Common_Heartbeat") {
                     if (suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) {
-                        suncom.Logger.log(`打包心跳成功 ==> ${JSON.stringify(data)}`);
+                        suncom.Logger.log(suncom.DebugMode.ANY, `打包心跳成功 ==> ${JSON.stringify(data)}`);
                     }
                 }
-                else {
-                    suncom.Logger.log(`打包数据成功 ==> ${JSON.stringify(data)}`);
+                else if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
+                    suncom.Logger.log(suncom.DebugMode.ANY, `打包数据成功 ==> ${JSON.stringify(data)}`);
                 }
             }
             return this.getProtoClass(name).encode(data).finish();

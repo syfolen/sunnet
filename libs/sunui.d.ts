@@ -31,6 +31,51 @@ declare module sunui {
     }
 
     /**
+     * 弹出标记枚举
+     */
+    enum PopupFlagEnum {
+        /**
+         * 禁用缓动
+         */
+        SIMPLY = 0x1,
+
+        /**
+         * 背景通透
+         */
+        TRANSPARENT = 0x2,
+
+        /**
+         * 允许鼠标穿透
+         */
+        MOUSE_THROUGH = 0x4
+    }
+
+    /**
+     * 下载速度限制
+     */
+    enum ResourceDownloadSpeedEnum {
+        /**
+         * 无限制
+         */
+        NONE = 0,
+
+        /**
+         * 快（1M）
+         */
+        HIGH = 1024 * 1024 / 8,
+
+        /**
+         * 中等（256K）
+         */
+        MID = 256 * 1024 / 8,
+
+        /**
+         * 慢（64K）
+         */
+        LOW = 64 * 1024 / 8
+    }
+
+    /**
      * 重试类型枚举
      */
     enum RetryMethodEnum {
@@ -291,6 +336,11 @@ declare module sunui {
          * 缓动方法
          */
         ease?: Function;
+
+        /**
+         * 是否阻断点击事件
+         */
+        block?: boolean;
 
         /**
          * 背景是否通透
@@ -683,6 +733,11 @@ declare module sunui {
         let res3dRoot: string;
 
         /**
+         * 设置资源的加载速度
+         */
+        function setDownloadSpeed(speed: ResourceDownloadSpeedEnum): void;
+
+        /**
          * 锁定资源
          * 说明：
          * 1. 每次请求锁定资源，则资源的引用次数会-1
@@ -781,6 +836,11 @@ declare module sunui {
          * 2. 完整的3D资源目录必须为 ${Resource.res3dRoot}/LayaScene_${pack}/Conventional/ 否则将不能正确解析
          */
         function getRes3dUrlByName(name: string | IRes3dName): string;
+
+        /**
+         * 确认资源加载列表
+         */
+        function checkLoadList(urls: string[]): string[];
     }
 
     /**

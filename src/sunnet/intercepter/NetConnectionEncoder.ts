@@ -12,7 +12,7 @@ module sunnet {
         send(cmd: number, bytes: Uint8Array, ip: string, port: number): Array<any> {
             const output: Laya.Byte = this.$connection.output || null;
             if (output === null) {
-                suncom.Logger.error(`Encoder 网络己断开！！！`);
+                suncom.Logger.error(suncom.DebugMode.ANY, `Encoder 网络己断开！！！`);
                 return null;
             }
 
@@ -26,11 +26,11 @@ module sunnet {
 
             if (cmd === Config.HEARTBEAT_REQUEST_COMMAND) {
                 if (suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) {
-                    suncom.Logger.log(`发送数据 cmd:${cmd.toString()}, bytes:${bytes === null ? 0 : bytes.byteLength}`);
+                    suncom.Logger.log(suncom.DebugMode.ANY, `发送心跳 cmd:${cmd.toString()}, bytes:${bytes === null ? 0 : bytes.byteLength}`);
                 }
             }
             else if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
-                suncom.Logger.log(`发送数据 cmd:${cmd.toString()}, bytes:${bytes === null ? 0 : bytes.byteLength}`);
+                suncom.Logger.log(suncom.DebugMode.ANY, `发送消息 cmd:${cmd.toString()}, bytes:${bytes === null ? 0 : bytes.byteLength}`);
             }
 
             return null;

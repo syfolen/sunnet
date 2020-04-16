@@ -48,7 +48,7 @@ module sunnet {
             // 心跳己回复，则在指定的延时时间后发送心跳
             else if (timestamp - this.$lastSendTime > Config.HEARTBEAT_INTERVAL_MILLISECONDS) {
                 if (suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) {
-                    suncom.Logger.log("heartbeat=> current timestamp:" + suncom.Common.formatDate("hh:mm:ss MS", new Date().valueOf()));
+                    suncom.Logger.log(suncom.DebugMode.ANY, "heartbeat=> current timestamp:" + suncom.Common.formatDate("hh:mm:ss MS", new Date().valueOf()));
                 }
                 // 发送心跳
                 const bytes: any = ProtobufManager.getInstance().encode("msg.Common_Heartbeat", { Cnt: 1 });
@@ -64,11 +64,11 @@ module sunnet {
                 if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
                     if (cmd === Config.HEARTBEAT_REQUEST_COMMAND) {
                         if (suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) {
-                            suncom.Logger.log("send heartbeat=> current timestamp:" + suncom.Common.formatDate("hh:mm:ss MS", new Date().valueOf()));
+                            suncom.Logger.log(suncom.DebugMode.ANY, "send heartbeat=> current timestamp:" + suncom.Common.formatDate("hh:mm:ss MS", new Date().valueOf()));
                         }
                     }
-                    else {
-                        suncom.Logger.log("send bytes=> current timestamp:" + suncom.Common.formatDate("hh:mm:ss MS", new Date().valueOf()));
+                    else if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
+                        suncom.Logger.log(suncom.DebugMode.ANY, "send bytes=> current timestamp:" + suncom.Common.formatDate("hh:mm:ss MS", new Date().valueOf()));
                     }
                 }
                 this.$lastSendTime = suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM);
@@ -84,11 +84,11 @@ module sunnet {
                 if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
                     if (cmd === Config.HEARTBEAT_RESPONSE_COMMAND) {
                         if (suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) {
-                            suncom.Logger.log("recv heartbeat=> current timestamp:" + suncom.Common.formatDate("hh:mm:ss MS", new Date().valueOf()));
+                            suncom.Logger.log(suncom.DebugMode.ANY, "recv heartbeat=> current timestamp:" + suncom.Common.formatDate("hh:mm:ss MS", new Date().valueOf()));
                         }
                     }
-                    else {
-                        suncom.Logger.log("recv bytes=> current timestamp:" + suncom.Common.formatDate("hh:mm:ss MS", new Date().valueOf()));
+                    else if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
+                        suncom.Logger.log(suncom.DebugMode.ANY, "recv bytes=> current timestamp:" + suncom.Common.formatDate("hh:mm:ss MS", new Date().valueOf()));
                     }
                 }
                 this.$lastRecvTime = suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM);
