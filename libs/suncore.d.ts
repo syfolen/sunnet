@@ -372,73 +372,6 @@ declare module suncore {
     }
 
     /**
-     * 命令枚举
-     */
-    abstract class NotifyKey {
-        /**
-         * 启动命令
-         */
-        static readonly STARTUP: string;
-
-        /**
-         * 停止命令
-         */
-        static readonly SHUTDOWN: string;
-
-        /**
-         * 启用时间轴 { mod: ModuleEnum, pause: boolean }
-         * @mod: 时间轴模块
-         * @pause: 若为true，时间轴开始后将处于暂停模式
-         * 说明：
-         * 1. 参数pause并不会对SYSTEM模块的时间轴生效
-         */
-        static readonly START_TIMELINE: string;
-
-        /**
-         * 暂停时间轴 { mod: ModuleEnum, stop: boolean }
-         * @mod: 时间轴模块
-         * @stop: 若为true，时间轴将被停止而非暂停
-         * 说明：
-         * 1. 时间轴停止后，对应的模块无法被添加任务
-         * 2. 时间轴上所有的任务都会在时间轴被停止时清空
-         */
-        static readonly PAUSE_TIMELINE: string;
-
-        /**
-         * 物理帧事件（后于物理预处理事件执行）
-         * 说明：
-         * 1. 此事件在物理计算之后派发，故物理世界中的数据应当在此事件中被读取
-         * 2. 物理计算优先于定时器事件
-         * 比如：
-         * 1. 你应当在此事件中获取对象的物理数据来计算，以确保你的所使用的都是物理计算完成之后的数据
-         */
-        static readonly PHYSICS_FRAME: string;
-
-        /**
-         * 物理预处理事件（先于物理帧事件执行）
-         * 说明：
-         * 1. 此事件在物理计算之前派发，故外部的数据应当在此事件中传入物理引擎
-         * 比如：
-         * 1. 你可以在此事件中直接更改物理对象的位置，引擎会使用你传入的位置来参与碰撞
-         */
-        static readonly PHYSICS_PREPARE: string;
-
-        /**
-         * 帧事件（进入事件）
-         * 说明：
-         * 1. 该事件优先于Message消息机制执行
-         */
-        static readonly ENTER_FRAME: string;
-
-        /**
-         * 帧事件（晚于事件）
-         * 说明：
-         * 1. 该事件次后于Message消息机制执行
-         */
-        static readonly LATER_FRAME: string;
-    }
-
-    /**
      * 暂停时间轴
      */
     class PauseTimelineCommand extends puremvc.SimpleCommand {
@@ -491,73 +424,70 @@ declare module suncore {
     }
 
     /**
-     * 互斥体，用于实现模块之间的消息互斥
+     * 命令枚举
      */
-    namespace Mutex {
+    namespace NotifyKey {
         /**
-         * 是否校验消息前缀，默认为false
+         * 启动命令
          */
-        let checkPrefix: boolean;
+        const STARTUP: string;
 
         /**
-         * MsgQ模块集
+         * 停止命令
          */
-        const msgQMap: { [prefix: string]: MsgQModEnum };
+        const SHUTDOWN: string;
 
         /**
-         * MsgQ模块前缀集
+         * 启用时间轴 { mod: ModuleEnum, pause: boolean }
+         * @mod: 时间轴模块
+         * @pause: 若为true，时间轴开始后将处于暂停模式
+         * 说明：
+         * 1. 参数pause并不会对SYSTEM模块的时间轴生效
          */
-        const msgQCmd: { [msgQMod: number]: string };
+        const START_TIMELINE: string;
 
         /**
-         * 表现层MsgQ模块集
+         * 暂停时间轴 { mod: ModuleEnum, stop: boolean }
+         * @mod: 时间轴模块
+         * @stop: 若为true，时间轴将被停止而非暂停
+         * 说明：
+         * 1. 时间轴停止后，对应的模块无法被添加任务
+         * 2. 时间轴上所有的任务都会在时间轴被停止时清空
          */
-        const mmiMsgQMap: { [msgQMod: number]: boolean };
+        const PAUSE_TIMELINE: string;
 
         /**
-         * 判断是否允许执行MMI的行为
+         * 物理帧事件（后于物理预处理事件执行）
+         * 说明：
+         * 1. 此事件在物理计算之后派发，故物理世界中的数据应当在此事件中被读取
+         * 2. 物理计算优先于定时器事件
+         * 比如：
+         * 1. 你应当在此事件中获取对象的物理数据来计算，以确保你的所使用的都是物理计算完成之后的数据
          */
-        function enableMMIAction(): boolean;
+        const PHYSICS_FRAME: string;
 
         /**
-         * 激活互斥体
+         * 物理预处理事件（先于物理帧事件执行）
+         * 说明：
+         * 1. 此事件在物理计算之前派发，故外部的数据应当在此事件中传入物理引擎
+         * 比如：
+         * 1. 你可以在此事件中直接更改物理对象的位置，引擎会使用你传入的位置来参与碰撞
          */
-        function active(msgQMod: MsgQModEnum): void;
+        const PHYSICS_PREPARE: string;
 
         /**
-         * 关闭互斥体
+         * 帧事件（进入事件）
+         * 说明：
+         * 1. 该事件优先于Message消息机制执行
          */
-        function deactive(): void;
+        const ENTER_FRAME: string;
 
         /**
-         * 锁定互斥体
+         * 帧事件（晚于事件）
+         * 说明：
+         * 1. 该事件次后于Message消息机制执行
          */
-        function lock(name: string): void;
-
-        /**
-         * 释放互斥体
-         */
-        function unlock(name: string): void;
-
-        /**
-         * 为对象初始化一个互斥量
-         */
-        function create(name: string, target: Object): void;
-
-        /**
-         * 释放互斥量
-         */
-        function release(name: string, target: Object): void;
-
-        /**
-         * 备份快照，并锁定target指定的模块
-         */
-        function backup(target: Object): void;
-
-        /**
-         * 恢复快照中的数据（自动从上次备份的快照中获取）
-         */
-        function restore(): void;
+        const LATER_FRAME: string;
     }
 
     /**

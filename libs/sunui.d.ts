@@ -35,6 +35,11 @@ declare module sunui {
      */
     enum PopupFlagEnum {
         /**
+         * 无
+         */
+        NONE = 0x0,
+
+        /**
          * 禁用缓动
          */
         SIMPLY = 0x1,
@@ -47,7 +52,15 @@ declare module sunui {
         /**
          * 允许鼠标穿透
          */
-        MOUSE_THROUGH = 0x4
+        MOUSE_THROUGH = 0x4,
+
+        /**
+         * 同步淡入淡出时间
+         * 说明：
+         * 1. 正常情况下背景蒙灰时间为200毫秒
+         * 2. 若启用此标记，则蒙灰时间与弹出设定时间一致
+         */
+        SYNC_FADE_TIME = 0x8
     }
 
     /**
@@ -282,7 +295,7 @@ declare module sunui {
         /**
          * 反初始化类
          */
-        uniCls?: new (info: ISceneInfo) => sunui.SceneUniClass;
+        uniCls?: new (info: ISceneInfo, data?: any) => sunui.SceneUniClass;
     }
 
     /**
@@ -321,7 +334,9 @@ declare module sunui {
      */
     interface IViewProps {
         /**
-         * 弹框的时间模块
+         * 弹框的时间模块，默认为：suncore.ModuleEnum.CUSTOM
+         * 说明：
+         * 1. 若当前mod为CUSTOM，但该模块处于停止状态，则此值自动变更为SYSTEM
          */
         mod?: suncore.ModuleEnum;
 
@@ -338,14 +353,17 @@ declare module sunui {
         ease?: Function;
 
         /**
-         * 是否阻断点击事件
-         */
-        block?: boolean;
-
-        /**
-         * 背景是否通透
+         * 背景是否通透，默认为：false
+         * 说明：
+         * 1. 此属性己弃用，将在未来的某个版本移除，请知悉
+         * 2. 优先级次于PopupFlagEnum.TRANSPARENT标记
          */
         trans?: boolean;
+
+        /**
+         * 标记集合（多个标记允许并存）
+         */
+        flags?: PopupFlagEnum;
 
         /**
          * 显示层级
@@ -397,6 +415,27 @@ declare module sunui {
     }
 
     /**
+     * 场景入口抽象类
+     */
+    abstract class AbstractSceneTask extends suncore.AbstractTask {
+        /**
+         * 场景配置信息
+         */
+        protected $info: ISceneInfo;
+
+        /**
+         * 场景跳转参数
+         */
+        protected $data: any;
+
+        /**
+         * @info: 当前场景信息
+         * @data: 当前场景构建时的传入数据
+         */
+        constructor(info: ISceneInfo, data?: any);
+    }
+
+    /**
      * 注册场景信息
      */
     class RegisterScenesCommand extends puremvc.SimpleCommand {
@@ -404,7 +443,7 @@ declare module sunui {
         /**
          * @infos: 场景信息配置列表
          */
-        execute(infos: Array<ISceneInfo>): void;
+        execute(infos: ISceneInfo[]): void;
     }
 
     /**
@@ -449,16 +488,7 @@ declare module sunui {
     /**
      * 场景初始化入口类
      */
-    abstract class SceneIniClass extends suncore.AbstractTask {
-        /**
-         * 场景配置信息
-         */
-        protected $info: ISceneInfo;
-
-        /**
-         * 场景跳转参数
-         */
-        protected $data: any;
+    abstract class SceneIniClass extends AbstractSceneTask {
 
         constructor(info: ISceneInfo, data?: any);
 
@@ -473,13 +503,9 @@ declare module sunui {
     /**
      * 场景反初始化入口类
      */
-    abstract class SceneUniClass extends suncore.AbstractTask {
-        /**
-         * 场景配置信息
-         */
-        protected $info: ISceneInfo;
+    abstract class SceneUniClass extends AbstractSceneTask {
 
-        constructor(info: ISceneInfo);
+        constructor(info: ISceneInfo, data?: any);
 
         /**
          * 离开场景回调，场景数据建议在此方法中反初始化，场景将在此方法执行完毕后销毁
@@ -584,10 +610,12 @@ declare module sunui {
     class ViewContact extends puremvc.Notifier {
 
         /**
-         * @caller: 脚本回调对象，允许为非弹框对象
-         * @popup: 被监视的视图对象，必须为弹框对象
+         * @caller: 回调对象（脚本）
+         * @popup: 被监视的显示对象（必须为通过ViewFacade.popup弹出的显示对象）
+         * 说明：
+         * 1. 若caller为非弹出对象，则销毁前应当主动派发NotifyKey.ON_CALLER_DESTROYED事件，否则ViewContact不会自动回收
          */
-        constructor(caller: any, popup: any);
+        constructor(caller: any, popup: IView);
 
         /**
          * 注册弹框被关闭时需要执行的回调（详见ON_POPUP_CLOSED）
@@ -595,7 +623,7 @@ declare module sunui {
         onPopupClosed(method: Function, caller: any, args?: any[]): ViewContact;
 
         /**
-         * 注册弹框被销毁时需要执行的回调（详见ON_POPUP_REMOVED）
+         * 注册弹框被移除时需要执行的回调（详见ON_POPUP_REMOVED）
          */
         onPopupRemoved(method: Function, caller: any, args?: any[]): ViewContact;
     }
@@ -619,7 +647,7 @@ declare module sunui {
         /**
          * 执行弹出逻辑
          */
-        popup(props?: IViewProps): ViewFacade;
+        popup(props: IViewProps): ViewFacade;
 
         /**
          * 执行关闭逻辑
@@ -633,34 +661,9 @@ declare module sunui {
      */
     namespace NotifyKey {
         /**
-         * 加载场景 { name: number, data: any }
-         * 说明：
-         * 1. 此命令由外部注册并实现
-         * 2. 当场景加载完成时，外部应当派发ENTER_SCENE以通知sunui继续逻辑
+         * 重试确认请求 { mod: suncore.ModuleEnum, prompt: string, options: IRetryOption[], handler: suncom.IHandler }
          */
-        const LOAD_SCENE: string;
-
-        /**
-         * 卸载场景 { info: ISceneInfo }
-         * 说明：
-         * 1. 此命令由外部注册并实现
-         * 2. 不同于LOAD_SCENE命令，当场景卸载完成时，EXIT_SCENE命令不需要由外部派发
-         */
-        const UNLOAD_SCENE: string;
-
-        /**
-         * 销毁场景资源 { info: ISceneInfo }
-         * 说明：
-         * 1. 外部应监听此事件来销毁场景资源
-         * 2. 同UNLOAD_SCENE
-         * 3. 此通知后于UNLOAD_SCENE派发
-         */
-        const DESTROY_SCENE: string;
-
-        /**
-         * 加载场景之前 { none }
-         */
-        const BEFORE_LOAD_SCENE: string;
+        const RETRY_CONFIRM: string;
 
         /**
          * 注册场景信息 { infos: ISceneInfo[] }
@@ -670,36 +673,45 @@ declare module sunui {
         const REGISTER_SCENES: string;
 
         /**
+         * 加载场景之前 { none }
+         * 说明：
+         * 1. 此事件主要用于展示LoadingView
+         */
+        const BEFORE_LOAD_SCENE: string;
+
+        /**
+         * 加载场景 { info: ISceneInfo }
+         * 说明：
+         * 1. 此命令由外部注册并实现
+         * 2. 当场景加载完成时，外部应当派发ENTER_SCENE命令以通知sunui继续逻辑
+         */
+        const LOAD_SCENE: string;
+
+        /**
+         * 卸载场景 { scene2d: Laya.Scene, scene3d: Laya.Scene3D }
+         * 说明：
+         * 1. 此命令由外部注册并实现
+         * 2. 不同于LOAD_SCENE命令，当场景卸载完成时，EXIT_SCENE命令不需要由外部派发
+         */
+        const UNLOAD_SCENE: string;
+
+        /**
          * 进入场景命令 { scene2d: Laya.Scene, scene3d: Laya.Scene3D }
          * 说明：
-         * 1. 此命令由外部在实现LOAD_SCENE命令时于场景加载完成时派发
-         * 2. 此命令必然在iniCls被执行之后被派发
+         * 1. sunui优先响应此命令
+         * 2. 此命令由外部在实现LOAD_SCENE命令时于场景加载完成时派发
+         * 3. 此命令必然在iniCls.run()被执行之后被派发
          */
         const ENTER_SCENE: string;
 
         /**
          * 退出场景命令 { sceneName: SceneNameEnum }
          * 说明：
-         * 1. 此命令由sunui在执行退出场景逻辑时派发
-         * 2. 此命令必然在uniCls被执行之前被派发
-         * 3. 场景退出与销毁并不相同，场景销毁的逻辑会执行在uniCls被执行之后
-         * 4. SceneNameEnum 为由外部定义的枚举值
+         * 1. 此命令被派发时，意味着退出场景的逻辑即将被执行
+         * 2. 场景时间轴将此命令被派发后自动停止，sunui开始进入退出与销毁场景的流程
+         * 3. SceneNameEnum 为由外部定义的枚举值
          */
         const EXIT_SCENE: string;
-
-        /**
-         * 弹框己关闭 { view: Laya.Sprite }
-         * 说明：
-         * 1. 此事件会在IPopupView的$onClose方法执行完毕之后被派发
-         */
-        const ON_POPUP_CLOSED: string;
-
-        /**
-         * 弹框移除之前 { view: Laya.Sprite }
-         * 说明：
-         * 1. 此事件会在IPopupView的$onRemove方法执行之前被派发
-         */
-        const BEFORE_POPUP_REMOVE: string;
 
         /**
          * 弹框己移除 { view: Laya.Sprite }
@@ -716,11 +728,6 @@ declare module sunui {
          * 2. 若某个非视图对象曾使用ViewContact与某个弹框建立过联系，则对象销毁时应当派发此事件
          */
         const ON_CALLER_DESTROYED: string;
-
-        /**
-         * 重试确认请求 { mod: suncore.ModuleEnum, prompt: string, options: IRetryOption[], handler: suncom.IHandler }
-         */
-        const RETRY_CONFIRM: string;
     }
 
     /**
@@ -829,7 +836,7 @@ declare module sunui {
 
         /**
          * 获取3D资源地址
-         * @name: 如xxx.ls
+         * @name: 如xxx或xxx.ls，若未指定扩展名，则认为是.lh
          * @pack: 如LayaScene_xxxx中的xxxx，允许为空
          * 说明：
          * 1. 所有3d资源都必须放在${Resource.res3dRoot}目录下
@@ -838,7 +845,7 @@ declare module sunui {
         function getRes3dUrlByName(name: string | IRes3dName): string;
 
         /**
-         * 确认资源加载列表
+         * 确认加载列表中的url正确性
          */
         function checkLoadList(urls: string[]): string[];
     }
