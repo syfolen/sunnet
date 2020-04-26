@@ -4,105 +4,65 @@ module sunnet {
      * 时间片段
      * export
      */
-    export abstract class SequentialTimeSlice extends SequentialSlice {
-
-        /**
-         * 获取当前服务器时间戳
-         * export
-         */
-        static getCurrentServerTimestamp(name: string = "default"): number {
-            const connection: INetConnection = sunnet.M.connetionMap[name] || null;
-            return connection.srvTime + suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM) - connection.clientTime;
-        }
-
+    export abstract class SequentialTimeSlice extends SequentialSlice implements ISequentialTimeSlice {
         /**
          * 网络连接对象
          */
         private $connection: INetConnection = null;
 
         /**
-         * 创建在服务器上创建的时间
+         * 对象在服务端的创建时间
          */
         private $srvCreateTime: number = 0;
 
         /**
-         * 片段时长
-         */
-        private $timeLen: number = 0;
-
-        /**
-         * 过去的时间（服务端时长）
-         * 说明：
-         * 1. 当过去的时间与片段时长一致，此时间片断的生命周期结束
-         * 2. 此时间最终必然与片段时长相等，不因加速、减速、冰冻或眩晕等状态的施加而缩短或延长
-         */
-        private $pastTime: number = 0;
-
-        /**
-         * 生命时长（客户端时长）
+         * 生命时长
          */
         private $lifeTime: number = 0;
 
         /**
-         * 追帧时间（最小时间）
+         * 过去时长
+         * 说明：
+         * 1. 当此时长等于生命时长时，时间片断失效
+         * 2. 此时间最终必然与生命时长相等，此时长的增长受$timeMultiple的影响
          */
-        private $chaseTime: number = 0;
+        private $pastTime: number = 0;
 
         /**
-         * 当前时间流逝倍数
+         * 时间流逝倍数
          */
-        private $multiple: number = 1;
+        private $timeMultiple: number = 1;
 
         /**
          * 追帧倍率
-         * 说明：
-         * 1. 当时差大于追帧时间时，时间应当以指定倍数来流逝
-         * 2. 当时差小于或等于追帧时间时，时间流逝倍数将会在追帧时间内递减至0倍
          */
         private $chaseMultiple: number = 1;
 
         /**
-         * 追帧生命时间（客户端时间）
-         * 说明：
-         * 1. 当此时间等于追帧时间时，追帧结束
-         */
-        private $chaseLifeTime: number = 0;
-
-        /**
          * @timeLen: 时间片断长度
-         * @name: 网络连接对象名，默认为"default"
+         * @conName: 默认为"default"
          * 说明：
          * 1. 客户端对象是不需要追帧的
          * export
          */
-        constructor(timeLen: number, name: string = "default") {
+        constructor(lifeTime: number, conName: string = "default") {
             super();
-            this.$timeLen = timeLen;
-            this.$connection = M.connetionMap[name] || null;
-            this.$srvCreateTime = this.$connection.srvTime;
+            this.$lifeTime = lifeTime;
+            this.$connection = M.connetionMap[conName] || null;
+            this.$srvCreateTime = this.$connection.getCurrentServerTimestamp();
         }
 
         /**
          * 更新对象的创建时间
          * @createTime: 创建时间（服务端时间），默认为当前服务端时间
-         * @chaseTime: 追帧时间（秒），若为0，则不作追帧处理，默认为：2
+         * @pastTime: 默认过去时长
          * @chaseMultiple: 追帧时的时间倍率，默认为：1
-         * 说明：
-         * 1. 若chaseTime为0，则chaseMultiple的值是无效的
          * export
          */
-        updateCreateTime(createTime: number = 0, chaseTime: number = 2, chaseMultiple: number = 1): void {
-            this.$chaseTime = chaseTime;
+        updateCreateTime(createTime: number = 0, pastTime: number = 0, chaseMultiple: number = 1): void {
+            this.$pastTime = pastTime;
+            this.$chaseMultiple = chaseMultiple;
             this.$srvCreateTime = createTime > 0 ? createTime : this.$srvCreateTime;
-            // 若追帧时间为0，则时间的流逝倍数是无效的
-            this.$chaseMultiple = chaseTime === 0 ? 0 : chaseMultiple;
-            // 若追帧时间为0，则表示无需追帧
-            if (chaseTime === 0) {
-                // 立即计算过去时间
-                this.$pastTime = SequentialTimeSlice.getCurrentServerTimestamp() - this.$srvCreateTime;
-                // 生命时间视为与过去时间相等
-                this.$lifeTime = this.$pastTime;
-            }
             this.$onEnterFrame();
         }
 
@@ -112,70 +72,48 @@ module sunnet {
          */
         protected $onEnterFrame(): void {
             // 当前时间流逝倍率不允许小于0
-            if (this.$multiple < 0) {
+            if (this.$timeMultiple < 0) {
                 suncom.Logger.error(suncom.DebugMode.ANY, `当前时间流逝倍率不允许小于0`);
                 return;
             }
             // 当前时间流逝倍率若为0，则直接返回
-            else if (this.$multiple === 0) {
+            else if (this.$timeMultiple === 0) {
                 return;
             }
             // 流逝的时间应当受当前时间倍率影响
-            let delta: number = suncore.System.getDelta() * this.$multiple;
-
-            // 对生命时间和过去时间进行累加
-            this.$lifeTime += delta;
+            let delta: number = suncore.System.getDelta() * this.$timeMultiple;
+            // 对过去时间进行累加
             this.$pastTime += delta;
 
-            // 若追帧倍率大于0，则需要追帧处理
-            if (this.$chaseMultiple > 0) {
-                // 真实追帧时间=追帧倍率，如：以2秒0.5倍的速率追帧时，实际上2秒内总计只需要走0.5秒即可
-                const realChaseTime: number = this.$chaseMultiple;
-
-                // 计算当前时差
-                let timeDiff: number = this.$pastTime - this.$lifeTime;
-                // 时差大于追帧时间的部分，时间应当以指定倍数来流逝
-                if (timeDiff > realChaseTime) {
-                    let diff: number = timeDiff - realChaseTime;
-                    if (diff < delta) {
-                        delta -= diff;
-                    }
-                    else {
-                        diff = delta;
-                        delta = 0;
-                    }
-                    this.$lifeTime += diff;
+            // 时序与服务端的时间差
+            let timeDiff: number = this.$connection.getCurrentServerTimestamp() - (this.$srvCreateTime + this.$pastTime);
+            if (timeDiff > 0) {
+                delta *= this.$chaseMultiple;
+                if (delta > timeDiff) {
+                    delta = timeDiff;
                 }
-                // 时差小于或等于追帧时间的部分，时间流逝倍数应当在追帧时间内递减至0倍
-                if (delta > 0) {
-                    const less: number = this.$chaseTime - this.$chaseLifeTime;
-                    const chassLifeTime: number = this.$chaseLifeTime;
-                    if (delta < less) {
-                        this.$chaseLifeTime += delta;
-                    }
-                    else {
-                        delta = less;
-                        this.$chaseLifeTime = this.$chaseTime;
-                    }
-                    // 历史追帧所用时间
-                    const a: number = Laya.Ease.cubicOut(chassLifeTime, 0, this.$chaseMultiple, this.$chaseTime);
-                    // 当前追帧所用时间
-                    const b: number = Laya.Ease.cubicOut(this.$chaseLifeTime, 0, this.$chaseMultiple, this.$chaseTime);
-                    // 累加追帧所增加的时间
-                    this.$lifeTime += b - a;
-                }
-                // 判断是否己完成追帧
-                if (this.$chaseLifeTime === this.$chaseTime) {
-                    this.$chaseMultiple = 0;
-                }
+                // 追帧
+                this.$pastTime += delta;
+            }
+            // $pastTime不允许超过lifeTime
+            if (this.$pastTime > this.$lifeTime) {
+                this.$pastTime = this.$lifeTime;
             }
 
             // 自定义帧事件
             this.$frameLoop();
             // 时间结束
-            if (this.$lifeTime >= this.$timeLen) {
+            if (this.$pastTime >= this.$lifeTime) {
                 this.$onTimeup();
             }
+        }
+
+        /**
+         * 获取当前服务端时间戳
+         * export
+         */
+        getCurrentServerTimestamp(): number {
+            return this.$connection.getCurrentServerTimestamp();
         }
 
         /**
@@ -195,7 +133,7 @@ module sunnet {
          * export
          */
         get timeLen(): number {
-            return this.$timeLen;
+            return this.$lifeTime;
         }
 
         /**
@@ -204,7 +142,21 @@ module sunnet {
          */
         get pastTime(): number {
             // 对外使用生命时间作为过去时间
-            return this.$lifeTime;
+            return this.$pastTime;
+        }
+
+        /**
+         * 时间流逝的倍率
+         * export
+         */
+        get timeMultiple(): number {
+            return this.$timeMultiple;
+        }
+        /**
+         * depends
+         */
+        set timeMultiple(value: number) {
+            this.$timeMultiple = value;
         }
     }
 }

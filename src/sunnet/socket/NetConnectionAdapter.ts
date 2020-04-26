@@ -104,6 +104,13 @@ module sunnet {
         abstract flush(): void;
 
         /**
+         * 获取当前服务器时间戳
+         */
+        getCurrentServerTimestamp(): number {
+            return this.$srvTime + suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM) - this.$clientTime;
+        }
+
+        /**
          * 取消当前正在派发的事件
          * export
          */

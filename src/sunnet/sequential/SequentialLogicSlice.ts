@@ -4,7 +4,7 @@ module sunnet {
      * 逻辑片断
      * export
      */
-    export abstract class SequentialLogicSlice extends SequentialSlice {
+    export abstract class SequentialLogicSlice extends SequentialSlice implements ISequentialLogicSlice {
         /**
          * 时序ID
          */

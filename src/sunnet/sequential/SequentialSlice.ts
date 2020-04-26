@@ -4,15 +4,17 @@ module sunnet {
      * 时序片断
      * export
      */
-    export abstract class SequentialSlice extends puremvc.Notifier {
+    export abstract class SequentialSlice extends puremvc.Notifier implements ISequentialSlice {
         /**
          * 哈希值
          */
         protected $hashId: number = suncom.Common.createHashId();
 
+        protected $destroyed: boolean = false;
+
         constructor() {
             super();
-            this.facade.registerObserver(suncore.NotifyKey.ENTER_FRAME, this.$onEnterFrame, this, false, suncom.EventPriorityEnum.FWL);
+            this.facade.registerObserver(suncore.NotifyKey.ENTER_FRAME, this.$onEnterFrameCB, this, false, suncom.EventPriorityEnum.FWL);
         }
 
         /**
@@ -20,7 +22,20 @@ module sunnet {
          * export
          */
         release(): void {
-            this.facade.removeObserver(suncore.NotifyKey.ENTER_FRAME, this.$onEnterFrame, this);
+            if (this.$destroyed === true) {
+                return;
+            }
+            this.$destroyed = true;
+            this.facade.removeObserver(suncore.NotifyKey.ENTER_FRAME, this.$onEnterFrameCB, this);
+        }
+
+        /**
+         * export
+         */
+        private $onEnterFrameCB(): void {
+            if (this.$destroyed === false) {
+                this.$onEnterFrame();
+            }
         }
 
         /**

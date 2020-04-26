@@ -65,6 +65,11 @@ module sunnet {
         flush(): void;
 
         /**
+         * 获取当前服务器时间戳
+         */
+        getCurrentServerTimestamp(): number;
+
+        /**
          * 网络连接名称
          */
         readonly name: string;
