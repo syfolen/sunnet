@@ -29,6 +29,11 @@ module sunnet {
         private $pastTime: number = 0;
 
         /**
+         * 浪费掉的时间（如冰冻时间）
+         */
+        private $killedTime: number = 0;
+
+        /**
          * 时间流逝倍数
          */
         private $timeMultiple: number = 1;
@@ -76,17 +81,23 @@ module sunnet {
                 suncom.Logger.error(suncom.DebugMode.ANY, `当前时间流逝倍率不允许小于0`);
                 return;
             }
-            // 当前时间流逝倍率若为0，则直接返回
-            else if (this.$timeMultiple === 0) {
-                return;
-            }
+
             // 流逝的时间应当受当前时间倍率影响
             let delta: number = suncore.System.getDelta() * this.$timeMultiple;
+            // 如果流逝的时间小于当前系统时间间隔，则不足的时间视为浪费掉的时间
+            if (delta < suncore.System.getDelta()) {
+                this.$killedTime += suncore.System.getDelta() - delta;
+            }
+
+            // 当前时间流逝倍率若为0，则直接返回
+            if (this.$timeMultiple === 0) {
+                return;
+            }
             // 对过去时间进行累加
             this.$pastTime += delta;
 
             // 时序与服务端的时间差
-            let timeDiff: number = this.$connection.getCurrentServerTimestamp() - (this.$srvCreateTime + this.$pastTime);
+            let timeDiff: number = this.$connection.getCurrentServerTimestamp() - (this.$srvCreateTime + this.$pastTime + this.$killedTime);
             if (timeDiff > 0) {
                 delta *= this.$chaseMultiple;
                 if (delta > timeDiff) {
