@@ -183,6 +183,21 @@ declare module suncore {
     }
 
     /**
+     * 测试用例注册可选项枚举
+     */
+    enum TestCaseRegOptionEnum {
+        /**
+         * 插入（优先执行）
+         */
+        INSERT,
+
+        /**
+         * 追加（默认）
+         */
+        APPEND
+    }
+
+    /**
      * MsgQ消息体接口
      */
     interface IMsgQMsg {
@@ -409,6 +424,84 @@ declare module suncore {
     }
 
     /**
+     * 测试任务
+     * 说明：
+     * 1. 测试任务消息有独立的阻塞机制，且不设分组
+     */
+    abstract class TestTask extends AbstractTask {
+        /**
+         * 测试用例编号
+         */
+        protected $testId: number;
+
+        constructor(testId: number);
+
+        /**
+         * 执行函数
+         * @return: 为true时表示任务立刻完成，若返回false，则需要在其它函数中将done置为true，否则任务永远无法结束
+         * 说明：
+         * 1. 若无特别情况，一般不需要再对此方法进行重新
+         */
+        run(): boolean;
+
+        /**
+         * 新增测试用例
+         * @regOption: 默认为：APPEND
+         */
+        protected $addTest(tcId: number, taskCls: new (tcId: number) => TestTask, regOption?: TestCaseRegOptionEnum): void;
+
+        /**
+         * 在所有脚本执行以后
+         */
+        protected $afterAll(): void;
+
+        /**
+         * 在每个脚本执行以后
+         */
+        protected $afterEach(testIdArray: number[], handler: suncom.IHandler): void;
+
+        /**
+         * 在所有脚本执行以前
+         */
+        protected $beforeAll(): void;
+
+        /**
+         * 在每个脚本执行以前
+         */
+        protected $beforeEach(testIdArray: number[], handler: suncom.IHandler): void;
+
+        /**
+         * 为测试添加描述
+         */
+        protected $describe(str: string): void;
+
+        /**
+         * 为每个脚本添加描述
+         */
+        protected $describeEach(testIdArray: number[], str: string[]): void;
+
+        /**
+         * 执行指定脚本
+         */
+        protected $test(testId: number): void;
+
+        /**
+         * 执行每个脚本
+         */
+        protected $testEach(testIdArray: number[]): void;
+
+        /**
+         * 跳过指定测试（只跳过一次）
+         */
+        protected $skip(testId: number): void;
+
+        /**
+         * 跳过指定测试（每个都只跳过一次）
+         */
+        protected $skipEach(testIdArray: number[]): void;
+    }
+
+    /**
      * MsgQ机制
      * 设计说明：
      * 1. 设计MsgQ的主要目的是为了对不同的模块进行彻底的解耦
@@ -517,9 +610,12 @@ declare module suncore {
 
         /**
          * 添加任务
-         * @groupId: 不同编组并行执行
+         * @groupId: 不同编组并行执行，若为-1，则自动给预一个groupId
+         * @return: 返回任务的groupId，若为-1，则说明任务添加失败
+         * 说明：
+         * 1. 自定义的groupId的值不允许超过1000
          */
-        function addTask(mod: ModuleEnum, groupId: number, task: ITask): void;
+        function addTask(mod: ModuleEnum, groupId: number, task: ITask): number;
 
         /**
          * 取消任务
@@ -535,6 +631,13 @@ declare module suncore {
          * 添加消息
          */
         function addMessage(mod: ModuleEnum, priority: MessagePriorityEnum, handler: suncom.IHandler): void;
+
+        /**
+         * 添加测试任务
+         * 说明：
+         * 1. 测试任务只允许被添加在 SYSTEM 模块
+         */
+        function addTest(tTask: TestTask): void;
 
         /**
          * 添加自定义定时器

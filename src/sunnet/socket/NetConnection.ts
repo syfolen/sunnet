@@ -35,7 +35,13 @@ module sunnet {
             this.$socket.on(Laya.Event.CLOSE, this, this.$onClose);
             this.$socket.on(Laya.Event.ERROR, this, this.$onError);
             this.$socket.on(Laya.Event.MESSAGE, this, this.$onMessage);
-            this.$socket.connectByUrl("ws://" + ip + ":" + port);
+
+            if ((suncom.Global.debugMode & suncom.DebugMode.TEST) && suncom.Test.ENABLE_MICRO_SERVER === true) {
+
+            }
+            else {
+                this.$socket.connectByUrl("ws://" + ip + ":" + port);
+            }
 
             if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
                 suncom.Logger.log(suncom.DebugMode.ANY, `Netconnection=> 请求连接 ws://${this.$ip}:${this.$port}`);

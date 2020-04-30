@@ -1,6 +1,7 @@
 
 module sunnet {
 	/**
+	 * 网络模块配置
 	 * export
 	 */
 	export namespace Config {
