@@ -804,7 +804,7 @@ declare module suncom {
         /**
          * 期望之外的，执行此方法时直接触发ASSERT_FAILED
          */
-        function notExpected(): void;
+        function notExpected(message?: string): void;
 
         /**
          * 测试表达式是否为true

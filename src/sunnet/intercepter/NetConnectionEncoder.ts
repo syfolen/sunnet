@@ -10,6 +10,13 @@ module sunnet {
 		 * 拦截数据
 		 */
         send(cmd: number, bytes: Uint8Array, ip: string, port: number): Array<any> {
+            if (suncom.Global.debugMode & suncom.DebugMode.TEST) {
+                if (suncom.Test.ENABLE_MICRO_SERVER === true) {
+                    this.$connection.testPacket(cmd);
+                    return null;
+                }
+            }
+
             const output: Laya.Byte = this.$connection.output || null;
             if (output === null) {
                 suncom.Logger.error(suncom.DebugMode.ANY, `Encoder 网络己断开！！！`);

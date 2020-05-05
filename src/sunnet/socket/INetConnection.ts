@@ -70,6 +70,21 @@ module sunnet {
         getCurrentServerTimestamp(): number;
 
         /**
+         * 测试连接状态
+         */
+        testChangeState(state: MSWSStateEnum): void;
+
+        /**
+         * 测试数据包上行
+         */
+        testPacket(cmd: number): void;
+
+        /**
+         * 测试协议下行
+         */
+        testProtocal(name: string, data: any): void;
+
+        /**
          * 网络连接名称
          */
         readonly name: string;

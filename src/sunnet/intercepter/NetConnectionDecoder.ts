@@ -11,19 +11,35 @@ module sunnet {
 		 * 数据接收拦截接口
 		 */
         recv(cmd: number, srvId: number, bytes: Uint8Array, data: any): Array<any> {
-            const input: Laya.Byte = this.$connection.input || null;
-            if (input === null) {
-                suncom.Logger.error(suncom.DebugMode.ANY, `Decoder 网络己断开！！！`);
-                return;
+            let done: boolean = false;
+
+            if (suncom.Global.debugMode & suncom.DebugMode.TEST) {
+                if (suncom.Test.ENABLE_MICRO_SERVER === true && cmd > 0) {
+                    if (data !== null) {
+                        const protocal: { Name: string } = ProtobufManager.getInstance().getProtocalByCommand(cmd);
+                        bytes = ProtobufManager.getInstance().encode("msg." + protocal.Name, data);
+                    }
+                    done = true;
+                    data = void 0;
+                }
             }
 
-            cmd = input.getUint16();
-            srvId = input.getUint16();
+            if (done === false) {
+                const input: Laya.Byte = this.$connection.input || null;
+                if (input === null) {
+                    suncom.Logger.error(suncom.DebugMode.ANY, `Decoder 网络己断开！！！`);
+                    return null;
+                }
 
-            const buffer: ArrayBuffer = input.buffer.slice(input.pos);
-            input.pos += buffer.byteLength;
+                cmd = input.getUint16();
+                srvId = input.getUint16();
 
-            bytes = new Uint8Array(buffer);
+                const buffer: ArrayBuffer = input.buffer.slice(input.pos);
+                input.pos += buffer.byteLength;
+
+                done = true;
+                bytes = new Uint8Array(buffer);
+            }
 
             if (cmd === Config.HEARTBEAT_RESPONSE_COMMAND) {
                 if (suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) {

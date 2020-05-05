@@ -8,7 +8,12 @@ module sunnet {
         /**
          * 数据包列表
          */
-        export const packets: Array<IMSWSPacket> = [];
+        export const packets: IMSWSPacket[] = [];
+
+        /**
+         * 客户端与服务端的时差
+         */
+        export const timeDiff: number = suncom.Common.random(-8000, 8000);
 
         /**
          * 序列化WebSocket状态包
@@ -25,13 +30,20 @@ module sunnet {
 
         /**
          * 序列化WebSocket协议包
+         * @timeFileds: 若有值，则视为时间偏移
+         * @hashFileds: 无论是否有值，哈希值均会被重写
          * export
          */
-        export function serializeWebSocketProtocalPacket(packet: IMSWSProtocalPacket): void {
+        export function serializeWebSocketProtocalPacket(packet: IMSWSProtocalPacket, timeFields?: string[], hashFields?: string[]): void {
             if (suncom.Global.debugMode & suncom.DebugMode.TEST) {
                 packet.kind = MSWSPacketKindEnum.PROTOCAL;
                 packets.push(packet);
                 initializePacket(packet);
+                if (packet.data === void 0) { packet.data = null; }
+                if (packet.replyName === void 0) { packet.replyName = null; }
+                if (packet.repeatTimes === void 0) { packet.repeatTimes = 0; }
+                initializePacketDefaultValue(packet, timeFields, hashFields);
+                suncom.Test.expect(packet.repeatTimes).interpret("消息的下行次数必须大于或等于0").toBeGreaterOrEqualThan(0);
             }
         }
 
@@ -39,16 +51,110 @@ module sunnet {
          * 执行逻辑
          */
         export function run(): void {
-            // 状态消息执行失败时，允许重新执行
-            if (packets.length > 0 && notifyStatePacket(packets[0] as IMSWSStatePacket) === false && packets.length > 0) {
+            while (packets.length > 0) {
                 const packet: IMSWSPacket = packets[0];
-                if (packet.kind === MSWSPacketKindEnum.PROTOCAL) {
-                    notifyProtocalPacket(packet);
+                let success: boolean = false;
+                if (packet.kind === MSWSPacketKindEnum.STATE) {
+                    success = notifyStatePacket(packet as IMSWSStatePacket);
                 }
                 else {
-                    notifyProtocalPacket(packet);
+                    success = notifyProtocalPacket(packet as IMSWSProtocalPacket);
+                }
+                if (success === false) {
+                    break;
+                }
+                if (packets.length > 0 && packets[0].asNewMsg === true) {
+                    break;
                 }
             }
+        }
+
+        /**
+         * 接收客户端消息
+         */
+        export function recv(cmd: number): void {
+            if (suncom.Global.debugMode & suncom.DebugMode.TEST) {
+                if (suncom.Test.ENABLE_MICRO_SERVER === true) {
+                    if (packets.length > 0) {
+                        const packet: IMSWSPacket = packets[0];
+                        const protocal: { Name: string } = ProtobufManager.getInstance().getProtocalByCommand(cmd);
+                        if (packet.waitName === protocal.Name && packet.waitTimes > 0) {
+                            packet.waitCount++;
+                            if (packet.waitCount === packet.waitTimes) {
+                                run();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        /**
+         * 广播WebSocket状态消息
+         */
+        function notifyStatePacket(packet: IMSWSStatePacket): boolean {
+            suncom.Test.assertTrue(packet.kind === MSWSPacketKindEnum.STATE);
+
+            const connection: INetConnection = M.connetionMap[packet.connName] || null;
+            if (connection === null) {
+                return false;
+            }
+            // 网络未连接时，不会下行任何状态数据包
+            if (connection.state === NetConnectionStateEnum.DISCONNECTED) {
+                return false;
+            }
+            if (notYet(packet) === true) {
+                return false;
+            }
+            if (connection.state === NetConnectionStateEnum.CONNECTING) {
+                suncom.Test.assertTrue(packet.state === MSWSStateEnum.CONNECTED || packet.state === MSWSStateEnum.ERROR, `当前网络正在连接，仅允许下行CONNECTED或ERROR状态`);
+            }
+            else if (connection.state === NetConnectionStateEnum.CONNECTED) {
+                suncom.Test.assertTrue(packet.state === MSWSStateEnum.CLOSE || packet.state === MSWSStateEnum.ERROR, `当前网络己连接，仅允许下行CLOSE或ERROR状态`);
+            }
+            packets.shift();
+            connection.testChangeState(packet.state);
+            return true;
+        }
+
+        /**
+         * 广播WebSocket协议消息
+         */
+        function notifyProtocalPacket(packet: IMSWSProtocalPacket): boolean {
+            suncom.Test.assertTrue(packet.kind === MSWSPacketKindEnum.PROTOCAL);
+            if (notYet(packet) === true) {
+                return false;
+            }
+            const connection: INetConnection = M.connetionMap[packet.connName] || null;
+            suncom.Test.expect(connection).not.toBeNull();
+            initializePacketValue(packet);
+            connection.testProtocal(packet.replyName, packet.data);
+            if (packet.repeatTimes === 0) {
+                packets.shift();
+            }
+            else {
+                packet.repeatTimes--;
+                packet.waitCount = 0;
+                delete packet.createTime;
+            }
+            return true;
+        }
+
+        /**
+         * 数据包未就绪
+         */
+        function notYet(packet: IMSWSPacket): boolean {
+            if (packet.waitName !== null && packet.waitCount < packet.waitTimes) {
+                return true;
+            }
+            if (packet.createTime === void 0) { packet.createTime = suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM); }
+            if (packet.createTime + packet.delay > suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM)) {
+                return true;
+            }
+            if (packet.asNewMsg === true && packet.createTime + packet.delay === suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM)) {
+                return true;
+            }
+            return false;
         }
 
         /**
@@ -56,45 +162,69 @@ module sunnet {
          */
         function initializePacket(packet: IMSWSPacket): void {
             if (packet.delay === void 0) { packet.delay = 0; }
+            if (packet.connName === void 0) { packet.connName = "default"; }
+            if (packet.asNewMsg === void 0) { packet.asNewMsg = true; }
+            if (packet.waitName === void 0) { packet.waitName = null; }
             if (packet.waitTimes === void 0) { packet.waitTimes = 1; }
+            packet.waitCount = 0;
             suncom.Test.expect(packet.delay).interpret("消息下行延时必须大于或等于0").toBeGreaterOrEqualThan(0);
             suncom.Test.expect(packet.waitTimes).interpret("消息上行等待次数必须大于0").toBeGreaterThan(0);
         }
 
         /**
-         * 广播WebSocket状态消息
+         * 初始化数据包的默认值
          */
-        function notifyStatePacket(packet: IMSWSStatePacket): boolean {
-            if (packet.kind === MSWSPacketKindEnum.STATE) {
-                if (notYet(packet) === true) {
-                    return false;
-                }
+        function initializePacketDefaultValue(packet: IMSWSProtocalPacket, timeFields: string[] = [], hashFields: string[] = []): void {
+            if (packet.data === null) {
+                return;
             }
-            return false;
-        }
-
-        /**
-         * 广播WebSocket协议消息
-         */
-        function notifyProtocalPacket(packet: IMSWSProtocalPacket): void {
-
-        }
-
-        /**
-         * 记录开始下行的时间戳
-         */
-        function markPacketTimestamp(packet: IMSWSPacket): void {
-        }
-
-        /**
-         * 数据包未就绪
-         */
-        function notYet(packet: IMSWSPacket): boolean {
-            if (packet.timestamp === void 0) { packet.timestamp = suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM); }
-            if (packet.timestamp + packet.delay > suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM)) {
-                return false;
+            packet.hashFileds = hashFields;
+            packet.timeFields = [];
+            for (let i: number = 0; i < timeFields.length; i++) {
+                const value: dcodeIO.Long = getFieldValue(packet.data, timeFields[i], dcodeIO.Long.fromNumber(0));
+                packet.timeFields.push({
+                    arg1: value.toNumber(),
+                    arg2: timeFields[i]
+                });
             }
-            return true;
+        }
+
+        /**
+         * 初始化数据包的值
+         */
+        function initializePacketValue(packet: IMSWSProtocalPacket): void {
+            if (packet.data === null) {
+                return;
+            }
+            for (let i: number = 0; i < packet.hashFileds.length; i++) {
+                setFieldValue(packet.data, packet.hashFileds[i], suncom.Common.createHashId());
+            }
+            for (let i: number = 0; i < packet.timeFields.length; i++) {
+                const timeFiled: IPCMIntString = packet.timeFields[i];
+                setFieldValue(packet.data, timeFiled.arg2, dcodeIO.Long.fromNumber(new Date().valueOf() + timeFiled.arg1));
+            }
+        }
+
+        /**
+         * 获取指定字段的值
+         */
+        function getFieldValue(data: any, field: string, defaultValue: any): any {
+            const array: string[] = field.split(".");
+            while (array.length > 0) {
+                data = data[array.shift()];
+            }
+            return data === void 0 ? defaultValue : data;
+        }
+
+        /**
+         * 设置指定字段的值
+         */
+        function setFieldValue(data: any, field: string, value: any): void {
+            const array: string[] = field.split(".");
+            while (array.length > 1) {
+                data = data[array.shift()];
+            }
+            data[array.shift()] = value;
         }
     }
 }

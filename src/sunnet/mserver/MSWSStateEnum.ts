@@ -6,12 +6,6 @@ module sunnet {
      */
     export enum MSWSStateEnum {
         /**
-         * 正在连接
-         * export
-         */
-        CONNECTING,
-
-        /**
          * 己连接
          * export
          */
