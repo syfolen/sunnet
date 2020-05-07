@@ -14,6 +14,11 @@ module sunnet {
         kind?: MSWSPacketKindEnum;
 
         /**
+         * 测试序号
+         */
+        seqId: number;
+
+        /**
          * 网络连接包字，默认为：default
          */
         connName?: string;

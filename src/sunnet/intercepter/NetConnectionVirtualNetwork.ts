@@ -77,16 +77,6 @@ module sunnet {
 				const data: IDecodedData = this.$datas[0];
 				// 己延时处理
 				if (time > data.time + data.delay) {
-					if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
-						if (data.msg.id === Config.HEARTBEAT_RESPONSE_COMMAND) {
-							if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
-								suncom.Logger.log(suncom.DebugMode.ANY, `心跳解析成功 ==> cmd:${data.msg.id}, data:${JSON.stringify(data.msg.data)}`);
-							}
-						}
-						else if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
-							suncom.Logger.log(suncom.DebugMode.ANY, `消息解析成功 ==> cmd:${data.msg.id}, data:${JSON.stringify(data.msg.data)}`);
-						}
-					}
 					suncore.MsgQ.send(suncore.MsgQModEnum.NSL, MsgQIdEnum.NSL_RECV_DATA, this.$datas.shift().msg);
 				}
 			}

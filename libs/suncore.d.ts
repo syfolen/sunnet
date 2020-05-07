@@ -276,6 +276,16 @@ declare module suncore {
     }
 
     /**
+     * 测试序号信息
+     */
+    interface ITestSeqInfo {
+        /**
+         * 序列号
+         */
+        seqId: number;
+    }
+
+    /**
      * 任务抽象类
      * 说明：
      * 1. Task必定为MMI层对象，这是不可更改的
@@ -437,12 +447,14 @@ declare module suncore {
         constructor(testId: number);
 
         /**
-         * 执行函数
-         * @return: 为true时表示任务立刻完成，若返回false，则需要在其它函数中将done置为true，否则任务永远无法结束
-         * 说明：
-         * 1. 若无特别情况，一般不需要再对此方法进行重新
+         * TestTask的run方法不需要重写
          */
         run(): boolean;
+
+        /**
+         * 移除所有btn的注册
+         */
+        cancel(): void;
 
         /**
          * 新增测试用例
@@ -499,6 +511,16 @@ declare module suncore {
          * 跳过指定测试（每个都只跳过一次）
          */
         protected $skipEach(testIdArray: number[]): void;
+
+        /**
+         * 设置测试序号
+         */
+        static createTestSeqId(): number;
+
+        /**
+         * 当前序列号
+         */
+        static readonly currentTestSeqId: number;
     }
 
     /**

@@ -25,6 +25,9 @@ module sunnet {
                 packets.push(packet);
                 initializePacket(packet);
                 suncom.Test.expect(packet.state).interpret("必须指定WebSocket状态包的状态值").not.toBeUndefined();
+                const out: suncore.ITestSeqInfo = { seqId: 0 };
+                puremvc.Facade.getInstance().sendNotification(suncom.NotifyKey.TEST_PROTOCAL, [packet.kind, 1, "reg", out]);
+                packet.seqId = out.seqId;
             }
         }
 
@@ -41,9 +44,12 @@ module sunnet {
                 initializePacket(packet);
                 if (packet.data === void 0) { packet.data = null; }
                 if (packet.replyName === void 0) { packet.replyName = null; }
-                if (packet.repeatTimes === void 0) { packet.repeatTimes = 0; }
+                if (packet.repeatTimes === void 0) { packet.repeatTimes = 1; }
                 initializePacketDefaultValue(packet, timeFields, hashFields);
-                suncom.Test.expect(packet.repeatTimes).interpret("消息的下行次数必须大于或等于0").toBeGreaterOrEqualThan(0);
+                suncom.Test.expect(packet.repeatTimes).interpret("消息的下行次数必须大于或等于1").toBeGreaterOrEqualThan(1);
+                const out: suncore.ITestSeqInfo = { seqId: 0 };
+                puremvc.Facade.getInstance().sendNotification(suncom.NotifyKey.TEST_PROTOCAL, [packet.kind, packet.repeatTimes, "reg", out]);
+                packet.seqId = out.seqId;
             }
         }
 
@@ -114,6 +120,7 @@ module sunnet {
             }
             packets.shift();
             connection.testChangeState(packet.state);
+            puremvc.Facade.getInstance().sendNotification(suncom.NotifyKey.TEST_PROTOCAL, [packet.kind, 1, "exe"]);
             return true;
         }
 
@@ -125,18 +132,19 @@ module sunnet {
             if (notYet(packet) === true) {
                 return false;
             }
+            if (packet.repeatTimes === 1) {
+                packets.shift();
+            }
             const connection: INetConnection = M.connetionMap[packet.connName] || null;
             suncom.Test.expect(connection).not.toBeNull();
             initializePacketValue(packet);
             connection.testProtocal(packet.replyName, packet.data);
-            if (packet.repeatTimes === 0) {
-                packets.shift();
-            }
-            else {
+            if (packet.repeatTimes > 1) {
                 packet.repeatTimes--;
                 packet.waitCount = 0;
                 delete packet.createTime;
             }
+            puremvc.Facade.getInstance().sendNotification(suncom.NotifyKey.TEST_PROTOCAL, [packet.kind, 1, "exe"]);
             return true;
         }
 
@@ -144,6 +152,9 @@ module sunnet {
          * 数据包未就绪
          */
         function notYet(packet: IMSWSPacket): boolean {
+            if (packet.seqId !== suncore.TestTask.currentTestSeqId) {
+                return true;
+            }
             if (packet.waitName !== null && packet.waitCount < packet.waitTimes) {
                 return true;
             }
@@ -166,6 +177,7 @@ module sunnet {
             if (packet.asNewMsg === void 0) { packet.asNewMsg = true; }
             if (packet.waitName === void 0) { packet.waitName = null; }
             if (packet.waitTimes === void 0) { packet.waitTimes = 1; }
+            suncom.Test.expect(packet.seqId).toBeUndefined();
             packet.waitCount = 0;
             suncom.Test.expect(packet.delay).interpret("消息下行延时必须大于或等于0").toBeGreaterOrEqualThan(0);
             suncom.Test.expect(packet.waitTimes).interpret("消息上行等待次数必须大于0").toBeGreaterThan(0);

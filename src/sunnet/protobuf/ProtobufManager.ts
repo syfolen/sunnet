@@ -108,7 +108,7 @@ module sunnet {
          * export
          */
         encode(name: string, data: any): Uint8Array {
-            if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
+            if (suncom.Global.debugMode & suncom.DebugMode.DEBUG) {
                 if (name === "msg.Common_Heartbeat") {
                     if (suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) {
                         suncom.Logger.log(suncom.DebugMode.ANY, `打包心跳成功 ==> ${JSON.stringify(data)}`);
@@ -126,7 +126,18 @@ module sunnet {
          * export
          */
         decode(name: string, bytes: Uint8Array): any {
-            return this.getProtoClass(name).decode(bytes);
+            const data: any = this.getProtoClass(name).decode(bytes);
+            if (suncom.Global.debugMode & suncom.DebugMode.DEBUG) {
+                if (name === "msg.Common_Heartbeat") {
+                    if (suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) {
+                        suncom.Logger.log(suncom.DebugMode.ANY, `解析心跳成功 ==> ${JSON.stringify(data)}`);
+                    }
+                }
+                else if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
+                    suncom.Logger.log(suncom.DebugMode.ANY, `解析数据成功 ==> ${JSON.stringify(data)}`);
+                }
+            }
+            return data;
         }
     }
 }

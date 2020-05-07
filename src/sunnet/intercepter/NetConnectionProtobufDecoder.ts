@@ -20,11 +20,6 @@ module sunnet {
             if (newData === null) {
                 return [cmd, srvId, bytes, data];
             }
-            if (Config.VIRTUAL_NETWORK_LEVEL === VirtualNetworkLevelEnum.NONE) {
-                if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
-                    suncom.Logger.log(suncom.DebugMode.ANY, "消息解析成功 ==> " + JSON.stringify(newData));
-                }
-            }
             if (newData === bytes) {
                 throw Error("请勿返回未处理的消息！！！");
             }

@@ -85,6 +85,11 @@ module sunnet {
         testProtocal(name: string, data: any): void;
 
         /**
+         * 打印数据己发送的消息
+         */
+        logMsgIsSent(cmd: number, bytes: Uint8Array, ip: string, port: number): void;
+
+        /**
          * 网络连接名称
          */
         readonly name: string;

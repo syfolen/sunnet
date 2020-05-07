@@ -277,6 +277,22 @@ module sunnet {
         }
 
         /**
+         * 打印数据己发送的消息
+         */
+        logMsgIsSent(cmd: number, bytes: Uint8Array, ip: string, port: number): void {
+            const protocal: { Name: string } = ProtobufManager.getInstance().getProtocalByCommand(cmd);
+            const data: any = protocal === null ? null : ProtobufManager.getInstance().decode("msg." + protocal.Name, bytes);
+            if (cmd === Config.HEARTBEAT_REQUEST_COMMAND) {
+                if (suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) {
+                    suncom.Logger.log(suncom.DebugMode.ANY, `发送心跳 name:${protocal.Name}, data:${JSON.stringify(data)}`);
+                }
+            }
+            else if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
+                suncom.Logger.log(suncom.DebugMode.ANY, `发送消息 name:${protocal.Name}, data:${JSON.stringify(data)}`);
+            }
+        }
+
+        /**
          * 取消当前正在派发的事件
          * export
          */

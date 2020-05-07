@@ -41,17 +41,6 @@ module sunnet {
                 bytes = new Uint8Array(buffer);
             }
 
-            if (cmd === Config.HEARTBEAT_RESPONSE_COMMAND) {
-                if (suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) {
-                    suncom.Logger.log(suncom.DebugMode.ANY, "响应心跳");
-                }
-            }
-            else if (Config.VIRTUAL_NETWORK_LEVEL === VirtualNetworkLevelEnum.NONE) {
-                if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
-                    suncom.Logger.log(suncom.DebugMode.ANY, "NetConnection=> 响应消息 cmd:" + cmd + ", srvId:" + srvId + ", length:" + bytes.byteLength);
-                }
-            }
-
             // 清除缓冲区中的数据
             // input.clear();
 

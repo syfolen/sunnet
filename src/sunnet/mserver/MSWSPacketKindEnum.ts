@@ -7,7 +7,7 @@ module sunnet {
         /**
          * 状态消息
          */
-        STATE,
+        STATE = 1,
 
         /**
          * 协议消息

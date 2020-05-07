@@ -15,6 +15,16 @@ module sunnet {
          * export
          */
         export function notify(name: string, data: any, cancelable?: boolean): void {
+            if (name === "msg.Common_Heartbeat") {
+                if (suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) {
+                    suncom.Logger.log(suncom.DebugMode.ANY, "响应心跳");
+                }
+            }
+            else if (Config.VIRTUAL_NETWORK_LEVEL === VirtualNetworkLevelEnum.NONE) {
+                if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
+                    suncom.Logger.log(suncom.DebugMode.ANY, "响应消息 name:" + name + ", data:" + JSON.stringify(data));
+                }
+            }
             $notifier.dispatchEvent(name, data, cancelable);
         }
 

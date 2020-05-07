@@ -13,6 +13,7 @@ module sunnet {
             if (suncom.Global.debugMode & suncom.DebugMode.TEST) {
                 if (suncom.Test.ENABLE_MICRO_SERVER === true) {
                     this.$connection.testPacket(cmd);
+                    this.$connection.logMsgIsSent(cmd, bytes, ip, port);
                     return null;
                 }
             }
@@ -30,15 +31,7 @@ module sunnet {
             // 写入包体，这里实际上可以直接写入Uint8Array
             bytes !== null && output.writeArrayBuffer(bytes);
             this.$connection.flush();
-
-            if (cmd === Config.HEARTBEAT_REQUEST_COMMAND) {
-                if (suncom.Global.debugMode & suncom.DebugMode.NETWORK_HEARTBEAT) {
-                    suncom.Logger.log(suncom.DebugMode.ANY, `发送心跳 cmd:${cmd.toString()}, bytes:${bytes === null ? 0 : bytes.byteLength}`);
-                }
-            }
-            else if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
-                suncom.Logger.log(suncom.DebugMode.ANY, `发送消息 cmd:${cmd.toString()}, bytes:${bytes === null ? 0 : bytes.byteLength}`);
-            }
+            this.$connection.logMsgIsSent(cmd, bytes, ip, port);
 
             return null;
         }
