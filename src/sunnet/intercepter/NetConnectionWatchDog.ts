@@ -34,6 +34,9 @@ module sunnet {
          * 销毁拦截器
          */
         destroy(): void {
+            if (this.$destroyed === true) {
+                return;
+            }
             this.$connection.removeEventListener(EventKey.KILL_WATCH_DOG, this.$onKillWatchDog, this);
             super.destroy();
         }

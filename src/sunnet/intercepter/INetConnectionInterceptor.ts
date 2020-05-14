@@ -4,13 +4,7 @@ module sunnet {
      * 网络消息拦截器接口
      * export
      */
-    export interface INetConnectionInterceptor {
-
-        /**
-         * 销毁拦截器
-         * export
-         */
-        destroy(): void;
+    export interface INetConnectionInterceptor extends puremvc.INotifier {
 
         /**
          * 数据发送拦截接口

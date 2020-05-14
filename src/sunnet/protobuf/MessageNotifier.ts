@@ -20,7 +20,7 @@ module sunnet {
                     suncom.Logger.log(suncom.DebugMode.ANY, "响应心跳");
                 }
             }
-            else if (Config.VIRTUAL_NETWORK_LEVEL === VirtualNetworkLevelEnum.NONE) {
+            else {
                 if (suncom.Global.debugMode & suncom.DebugMode.NETWORK) {
                     suncom.Logger.log(suncom.DebugMode.ANY, "响应消息 name:" + name + ", data:" + JSON.stringify(data));
                 }

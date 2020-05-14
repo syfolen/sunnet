@@ -4,7 +4,7 @@ module sunnet {
      * 消息处理管道
      * 此类以责任链模式处理即将发送或己接收的网络数据，专门为 core.NetConnection 服务
      */
-    export class NetConnectionPipeline implements INetConnectionInterceptor, INetConnectionPipeline {
+    export class NetConnectionPipeline extends puremvc.Notifier implements INetConnectionInterceptor, INetConnectionPipeline {
         /**
          * 拦截器列表
          */
@@ -16,6 +16,7 @@ module sunnet {
         protected $connection: INetConnection;
 
         constructor(connection: INetConnection) {
+            super();
             this.$connection = connection;
         }
 
@@ -23,6 +24,11 @@ module sunnet {
          * 销毁拦截器
          */
         destroy(): void {
+            if (this.$destroyed === true) {
+                return;
+            }
+            super.destroy();
+
             while (this.$items.length > 0) {
                 const item: INetConnectionPipelineItem = this.$items.shift();
                 item.interceptor.destroy();

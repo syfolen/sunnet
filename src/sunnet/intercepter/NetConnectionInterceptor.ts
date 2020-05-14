@@ -26,6 +26,11 @@ module sunnet {
          * export
          */
         destroy(): void {
+            if (this.$destroyed === true) {
+                return;
+            }
+            super.destroy();
+
             this.$connection.removeEventListener(EventKey.SOCKET_CONNECTED, this.$onConnected, this);
             this.$connection.removeEventListener(EventKey.SOCKET_DISCONNECTED, this.$onDisconnected, this);
             this.$connection = null;

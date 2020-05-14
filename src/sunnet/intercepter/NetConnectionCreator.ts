@@ -23,6 +23,9 @@ module sunnet {
         }
 
         destroy(): void {
+            if (this.$destroyed === true) {
+                return;
+            }
             this.$connection.removeEventListener(EventKey.CACHE_SEND_BYTES, this.$onCacheSendBytes, this);
             this.$connection.removeEventListener(EventKey.FLUSH_CACHED_BYTES, this.$onFlushCachedBytes, this);
             this.$connection.removeEventListener(EventKey.CLEAR_REQUEST_DATA, this.$onClearRequestData, this);
