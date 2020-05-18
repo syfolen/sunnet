@@ -6,7 +6,7 @@ module sunnet {
      */
     export namespace NotifyKey {
         /**
-         * 网络状态变化通知
+         * 网络状态变化通知 { name: string, state: NetConnectionStateEnum, byError: boolean }
          * export
          */
         export const SOCKET_STATE_CHANGE: string = "sunnet.NotifyKey.SOCKET_STATE_CHANGE";

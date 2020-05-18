@@ -120,7 +120,7 @@ module sunnet {
             // 模拟断开网络
             this.addEventListener(EventKey.CLOSE_CONNECT_BY_VIRTUAL, this.$onError, this);
             // 通知网络状态变更
-            this.facade.sendNotification(NotifyKey.SOCKET_STATE_CHANGE, [this.$name, this.$state]);
+            this.facade.sendNotification(NotifyKey.SOCKET_STATE_CHANGE, [this.$name, this.$state, false]);
         }
 
         /**
@@ -169,7 +169,7 @@ module sunnet {
             // 通知网络状态变更
             if (this.$state !== NetConnectionStateEnum.DISCONNECTED) {
                 this.$state = NetConnectionStateEnum.DISCONNECTED;
-                this.facade.sendNotification(NotifyKey.SOCKET_STATE_CHANGE, [this.$name, this.$state]);
+                this.facade.sendNotification(NotifyKey.SOCKET_STATE_CHANGE, [this.$name, this.$state, byError]);
             }
         }
 
@@ -346,7 +346,7 @@ module sunnet {
 
             // 重置异常关闭的标记
             this.$closedByError = false;
-            this.facade.sendNotification(NotifyKey.SOCKET_STATE_CHANGE, [this.$name, this.$state]);
+            this.facade.sendNotification(NotifyKey.SOCKET_STATE_CHANGE, [this.$name, this.$state, false]);
         }
 
         /**
