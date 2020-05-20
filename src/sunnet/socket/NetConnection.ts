@@ -252,7 +252,7 @@ module sunnet {
          */
         private $onTestPacket(hashId: number, cmd: number): void {
             if (this.$hashId === hashId) {
-                MicroServer.recv(cmd);
+                this.facade.sendNotification(suncom.NotifyKey.TEST_RECV, cmd);
             }
         }
 

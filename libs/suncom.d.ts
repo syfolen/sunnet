@@ -760,7 +760,7 @@ declare module suncom {
          * 测试下行协议 { id: number, act: string, out: suncore.ITestSeqInfo }
          * @act: "exe" or "reg", exe为执行下行行为，reg为注册下行行为
          */
-        const TEST_PROTOCAL: string;
+        const TEST_RECV: string;
 
         /**
          * 测试注册按钮事件 { id: number, button?: any, once: boolean = true }
