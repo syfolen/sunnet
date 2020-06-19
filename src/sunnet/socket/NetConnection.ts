@@ -84,6 +84,33 @@ module sunnet {
             this.$name = name;
             this.$pipeline = new NetConnectionPipeline(this);
             M.connetionMap[name] = this;
+            this.facade.registerObserver(suntdd.NotifyKey.GET_WEBSOCKET_INFO, this.$onGetWebSocketInfo, this);
+            this.facade.registerObserver(suntdd.NotifyKey.TEST_WEBSOCKET_STATE, this.$onTestWebSocketState, this);
+            this.facade.registerObserver(suntdd.NotifyKey.TEST_WEBSOCKET_PROTOCAL, this.$onTestWebSocketPacket, this);
+        }
+
+        private $onGetWebSocketInfo(out: suntdd.IMSWSInfo): void {
+            const connection: INetConnection = M.connetionMap[out.name] || null;
+            if (connection === null) {
+                return;
+            }
+            if (connection.state === NetConnectionStateEnum.CONNECTED) {
+                out.state = suntdd.MSWSConnectionStateEnum.CONNECTED;
+            }
+            else if (connection.state === NetConnectionStateEnum.CONNECTING) {
+                out.state = suntdd.MSWSConnectionStateEnum.CONNECTING;
+            }
+            else {
+                out.state = suntdd.MSWSConnectionStateEnum.DISCONNECTED;
+            }
+        }
+
+        private $onTestWebSocketState(state: suntdd.MSWSStateEnum): void {
+            this.testChangeState(state);
+        }
+
+        private $onTestWebSocketPacket(name: string, data: any): void {
+            this.testProtocal(name, data);
         }
 
         /**
@@ -107,7 +134,7 @@ module sunnet {
             this.$socket.on(Laya.Event.MESSAGE, this, this.$onMessage);
             this.$hashId = suncom.Common.createHashId();
 
-            if ((suncom.Global.debugMode & suncom.DebugMode.TEST) && suncom.Test.ENABLE_MICRO_SERVER === true) {
+            if (suncom.Global.debugMode & suncom.DebugMode.TDD) {
 
             }
             else {
@@ -204,17 +231,10 @@ module sunnet {
         }
 
         /**
-         * 获取当前服务器时间戳
-         */
-        getCurrentServerTimestamp(): number {
-            return this.$srvTime + suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM) - this.$clientTime;
-        }
-
-        /**
          * 连接状态测试接口
          */
-        testChangeState(state: MSWSStateEnum): void {
-            if (suncom.Global.debugMode & suncom.DebugMode.TEST) {
+        testChangeState(state: suntdd.MSWSStateEnum): void {
+            if (suncom.Global.debugMode & suncom.DebugMode.TDD) {
                 const handler: suncom.IHandler = suncom.Handler.create(this, this.$onTestChangeState, [this.$hashId, state]);
                 suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_0, handler);
             }
@@ -223,15 +243,15 @@ module sunnet {
         /**
          * 连接状态测试执行函数
          */
-        private $onTestChangeState(hashId: number, state: MSWSStateEnum): void {
+        private $onTestChangeState(hashId: number, state: suntdd.MSWSStateEnum): void {
             if (this.$hashId === hashId) {
-                if (state === MSWSStateEnum.CONNECTED) {
+                if (state === suntdd.MSWSStateEnum.CONNECTED) {
                     this.$onOpen();
                 }
-                else if (state === MSWSStateEnum.CLOSE) {
+                else if (state === suntdd.MSWSStateEnum.CLOSE) {
                     this.$onClose();
                 }
-                else if (state === MSWSStateEnum.ERROR) {
+                else if (state === suntdd.MSWSStateEnum.ERROR) {
                     this.$onError();
                 }
             }
@@ -241,7 +261,7 @@ module sunnet {
          * 测试数据包上行
          */
         testPacket(cmd: number): void {
-            if (suncom.Global.debugMode & suncom.DebugMode.TEST) {
+            if (suncom.Global.debugMode & suncom.DebugMode.TDD) {
                 const handler: suncom.IHandler = suncom.Handler.create(this, this.$onTestPacket, [this.$hashId, cmd]);
                 suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_0, handler);
             }
@@ -252,7 +272,8 @@ module sunnet {
          */
         private $onTestPacket(hashId: number, cmd: number): void {
             if (this.$hashId === hashId) {
-                this.facade.sendNotification(suncom.NotifyKey.TEST_RECV, cmd);
+                const protocal: { Name: string } = ProtobufManager.getInstance().getProtocalByCommand(cmd);
+                this.facade.sendNotification(suntdd.NotifyKey.TEST_WEBSOCKET_SEND_DATA, protocal && protocal.Name);
             }
         }
 
@@ -260,7 +281,7 @@ module sunnet {
          * 测试协议下行
          */
         testProtocal(name: string, data: any): void {
-            if (suncom.Global.debugMode & suncom.DebugMode.TEST) {
+            if (suncom.Global.debugMode & suncom.DebugMode.TDD) {
                 const handler: suncom.IHandler = suncom.Handler.create(this, this.$onTestProtocal, [this.$hashId, name, data]);
                 suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_0, handler);
             }

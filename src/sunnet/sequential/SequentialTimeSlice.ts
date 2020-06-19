@@ -54,7 +54,7 @@ module sunnet {
             super();
             this.$lifeTime = lifeTime;
             this.$connection = M.connetionMap[conName] || null;
-            this.$srvCreateTime = this.$connection.getCurrentServerTimestamp();
+            this.$srvCreateTime = getCurrentServerTimestamp(conName);
         }
 
         /**
@@ -97,7 +97,7 @@ module sunnet {
             this.$pastTime += delta;
 
             // 时序与服务端的时间差
-            let timeDiff: number = this.$connection.getCurrentServerTimestamp() - (this.$srvCreateTime + this.$pastTime + this.$killedTime);
+            let timeDiff: number = getCurrentServerTimestamp(this.$connection.name) - (this.$srvCreateTime + this.$pastTime + this.$killedTime);
             if (timeDiff > 0) {
                 delta *= this.$chaseMultiple;
                 if (delta > timeDiff) {
@@ -117,14 +117,6 @@ module sunnet {
             if (this.$pastTime >= this.$lifeTime) {
                 this.$onTimeup();
             }
-        }
-
-        /**
-         * 获取当前服务端时间戳
-         * export
-         */
-        getCurrentServerTimestamp(): number {
-            return this.$connection.getCurrentServerTimestamp();
         }
 
         /**

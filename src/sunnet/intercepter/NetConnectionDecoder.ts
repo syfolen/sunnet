@@ -13,15 +13,13 @@ module sunnet {
         recv(cmd: number, srvId: number, bytes: Uint8Array, data: any): Array<any> {
             let done: boolean = false;
 
-            if (suncom.Global.debugMode & suncom.DebugMode.TEST) {
-                if (suncom.Test.ENABLE_MICRO_SERVER === true && cmd > 0) {
-                    if (data !== null) {
-                        const protocal: { Name: string } = ProtobufManager.getInstance().getProtocalByCommand(cmd);
-                        bytes = ProtobufManager.getInstance().encode("msg." + protocal.Name, data);
-                    }
-                    done = true;
-                    data = void 0;
+            if (suncom.Global.debugMode & suncom.DebugMode.TDD) {
+                if (data !== null) {
+                    const protocal: { Name: string } = ProtobufManager.getInstance().getProtocalByCommand(cmd);
+                    bytes = ProtobufManager.getInstance().encode("msg." + protocal.Name, data);
                 }
+                done = true;
+                data = void 0;
             }
 
             if (done === false) {

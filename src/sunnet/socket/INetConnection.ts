@@ -65,14 +65,9 @@ module sunnet {
         flush(): void;
 
         /**
-         * 获取当前服务器时间戳
-         */
-        getCurrentServerTimestamp(): number;
-
-        /**
          * 测试连接状态
          */
-        testChangeState(state: MSWSStateEnum): void;
+        testChangeState(state: suntdd.MSWSStateEnum): void;
 
         /**
          * 测试数据包上行

@@ -10,12 +10,10 @@ module sunnet {
 		 * 拦截数据
 		 */
         send(cmd: number, bytes: Uint8Array, ip: string, port: number): Array<any> {
-            if (suncom.Global.debugMode & suncom.DebugMode.TEST) {
-                if (suncom.Test.ENABLE_MICRO_SERVER === true) {
-                    this.$connection.testPacket(cmd);
-                    this.$connection.logMsgIsSent(cmd, bytes, ip, port);
-                    return null;
-                }
+            if (suncom.Global.debugMode & suncom.DebugMode.TDD) {
+                this.$connection.testPacket(cmd);
+                this.$connection.logMsgIsSent(cmd, bytes, ip, port);
+                return null;
             }
 
             const output: Laya.Byte = this.$connection.output || null;

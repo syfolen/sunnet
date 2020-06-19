@@ -183,21 +183,6 @@ declare module suncore {
     }
 
     /**
-     * 测试用例注册可选项枚举
-     */
-    enum TestCaseRegOptionEnum {
-        /**
-         * 插入（优先执行）
-         */
-        INSERT,
-
-        /**
-         * 追加（默认）
-         */
-        APPEND
-    }
-
-    /**
      * MsgQ消息体接口
      */
     interface IMsgQMsg {
@@ -273,16 +258,6 @@ declare module suncore {
          * 2. 当done被设置为true时，此方法亦会被执行，请知悉
          */
         cancel(): void;
-    }
-
-    /**
-     * 测试序号信息
-     */
-    interface ITestSeqInfo {
-        /**
-         * 序列号
-         */
-        seqId: number;
     }
 
     /**
@@ -434,96 +409,6 @@ declare module suncore {
     }
 
     /**
-     * 测试任务
-     * 说明：
-     * 1. 测试任务消息有独立的阻塞机制，且不设分组
-     */
-    abstract class TestTask extends AbstractTask {
-        /**
-         * 测试用例编号
-         */
-        protected $testId: number;
-
-        constructor(testId: number);
-
-        /**
-         * TestTask的run方法不需要重写
-         */
-        run(): boolean;
-
-        /**
-         * 移除所有btn的注册
-         */
-        cancel(): void;
-
-        /**
-         * 新增测试用例
-         * @regOption: 默认为：APPEND
-         */
-        protected $addTest(tcId: number, taskCls: new (tcId: number) => TestTask, regOption?: TestCaseRegOptionEnum): void;
-
-        /**
-         * 在所有脚本执行以后
-         */
-        protected $afterAll(): void;
-
-        /**
-         * 在每个脚本执行以后
-         */
-        protected $afterEach(testIdArray: number[], handler: suncom.IHandler): void;
-
-        /**
-         * 在所有脚本执行以前
-         */
-        protected $beforeAll(): void;
-
-        /**
-         * 在每个脚本执行以前
-         */
-        protected $beforeEach(testIdArray: number[], handler: suncom.IHandler): void;
-
-        /**
-         * 为测试添加描述
-         */
-        protected $describe(str: string): void;
-
-        /**
-         * 为每个脚本添加描述
-         */
-        protected $describeEach(testIdArray: number[], str: string[]): void;
-
-        /**
-         * 执行指定脚本
-         */
-        protected $test(testId: number): void;
-
-        /**
-         * 执行每个脚本
-         */
-        protected $testEach(testIdArray: number[]): void;
-
-        /**
-         * 跳过指定测试（只跳过一次）
-         */
-        protected $skip(testId: number): void;
-
-        /**
-         * 跳过指定测试（每个都只跳过一次）
-         */
-        protected $skipEach(testIdArray: number[]): void;
-
-        /**
-         * 设置测试序号
-         */
-        static createTestSeqId(): number;
-
-        /**
-         * 当前序列号
-         */
-        static readonly currentTestSeqId: number;
-    }
-
-    /**
      * MsgQ机制
      * 设计说明：
      * 1. 设计MsgQ的主要目的是为了对不同的模块进行彻底的解耦
@@ -653,13 +538,6 @@ declare module suncore {
          * 添加消息
          */
         function addMessage(mod: ModuleEnum, priority: MessagePriorityEnum, handler: suncom.IHandler): void;
-
-        /**
-         * 添加测试任务
-         * 说明：
-         * 1. 测试任务只允许被添加在 SYSTEM 模块
-         */
-        function addTest(tTask: TestTask): void;
 
         /**
          * 添加自定义定时器

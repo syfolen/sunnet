@@ -13,10 +13,5 @@ module sunnet {
          * 网络连接哈希表
          */
         export const connetionMap: { [name: string]: INetConnection } = {};
-
-        /**
-         * 逻辑时序列表
-         */
-        export const seqLogicSliceList: SequentialLogicSlice[] = [];
     }
 }

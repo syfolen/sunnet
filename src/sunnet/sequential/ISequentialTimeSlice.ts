@@ -21,12 +21,6 @@ module sunnet {
         updateCreateTime(createTime?: number, pastTime?: number, chaseMultiple?: number): void;
 
         /**
-         * 获取当前服务端时间戳
-         * export
-         */
-        getCurrentServerTimestamp(): number;
-
-        /**
          * 对象的生命时长
          * export
          */
