@@ -109,10 +109,9 @@ var suncore;
             }
             this.$running = true;
             this.$onRun();
-            if (this.facade.hasObserver(NotifyKey.ENTER_FRAME, null, this) === true) {
-                throw Error("\u8BF7\u91CD\u5199$frameLoop\u65B9\u6CD5\u6765\u66FF\u4EE3ENTER_FRAME\u4E8B\u4EF6");
-            }
-            if (this.$running === true && this.$frameLoop !== BaseService.prototype.$frameLoop) {
+            suncom.Test.assertTrue(this.$running);
+            suncom.Test.assertFalse(this.facade.hasObserver(NotifyKey.ENTER_FRAME, null, this), "\u8BF7\u91CD\u5199$frameLoop\u65B9\u6CD5\u6765\u66FF\u4EE3ENTER_FRAME\u4E8B\u4EF6");
+            if (this.$frameLoop !== BaseService.prototype.$frameLoop) {
                 this.facade.registerObserver(NotifyKey.ENTER_FRAME, this.$onEnterFrame, this, false, suncom.EventPriorityEnum.EGL);
             }
         };
@@ -123,7 +122,8 @@ var suncore;
             }
             this.$running = false;
             this.$onStop();
-            if (this.$running === false && this.$frameLoop !== BaseService.prototype.$frameLoop) {
+            suncom.Test.assertFalse(this.$running);
+            if (this.$frameLoop !== BaseService.prototype.$frameLoop) {
                 this.facade.removeObserver(NotifyKey.ENTER_FRAME, this.$onEnterFrame, this);
             }
         };
@@ -421,7 +421,7 @@ var suncore;
         MessageQueue.prototype.cancelTaskByGroupId = function (mod, groupId) {
             for (var id = 0; id < this.$tasks.length; id++) {
                 var tasks = this.$tasks[id];
-                if (tasks[0].groupId === groupId) {
+                if (tasks.length > 0 && tasks[0].groupId === groupId) {
                     while (tasks.length > 0) {
                         tasks.shift().task.done = true;
                     }
@@ -475,9 +475,7 @@ var suncore;
             return _super !== null && _super.apply(this, arguments) || this;
         }
         PauseTimelineCommand.prototype.execute = function (mod, stop) {
-            if (stop === void 0) {
-                throw Error("\u5E94\u5F53\u4E3A\u53C2\u6570 stop \u6307\u5B9A\u6709\u6548\u503C");
-            }
+            suncom.Test.expect(stop).interpret("\u5E94\u5F53\u4E3A\u53C2\u6570 stop \u6307\u5B9A\u6709\u6548\u503C").toBeBoolean();
             if (stop === true) {
                 if (System.isModuleStopped(mod) === true) {
                     suncom.Logger.error(suncom.DebugMode.ANY, "\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u7ECF\u505C\u6B62\uFF01\uFF01\uFF01");
@@ -503,7 +501,8 @@ var suncore;
             }
             if (mod === ModuleEnum.SYSTEM) {
                 if (System.isModuleStopped(ModuleEnum.TIMELINE) === false || System.isModuleStopped(ModuleEnum.CUSTOM) === false) {
-                    throw Error("SYSTEM \u4E0D\u80FD\u505C\u6B62\u56E0\u4E3A CUSTOM \u6216 TIMELINE \u4F9D\u7136\u5728\u8FD0\u884C");
+                    suncom.Test.notExpected("SYSTEM \u4E0D\u80FD\u505C\u6B62\u56E0\u4E3A CUSTOM \u6216 TIMELINE \u4F9D\u7136\u5728\u8FD0\u884C");
+                    return;
                 }
             }
             M.timerManager.clearTimer(mod);
@@ -546,9 +545,7 @@ var suncore;
             return _super !== null && _super.apply(this, arguments) || this;
         }
         StartTimelineCommand.prototype.execute = function (mod, pause) {
-            if (pause === void 0) {
-                throw Error("\u5E94\u5F53\u4E3A\u53C2\u6570 pause \u6307\u5B9A\u6709\u6548\u503C");
-            }
+            suncom.Test.expect(pause).interpret("\u5E94\u5F53\u4E3A\u53C2\u6570 pause \u6307\u5B9A\u6709\u6548\u503C").toBeBoolean();
             if (System.isModulePaused(mod) === false) {
                 suncom.Logger.error(suncom.DebugMode.ANY, "\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u7ECF\u542F\u52A8\uFF01\uFF01\uFF01");
                 return;
@@ -643,7 +640,7 @@ var suncore;
                                 timer.count++;
                             }
                             else {
-                                timer.count = suncom.Common.min(Math.floor((timestamp - timer.timestamp) / timer.delay), timer.loops);
+                                timer.count = suncom.Mathf.min(Math.floor((timestamp - timer.timestamp) / timer.delay), timer.loops);
                             }
                         }
                         if (timer.active === false || (timer.loops > 0 && timer.count >= timer.loops)) {
@@ -802,7 +799,8 @@ var suncore;
         }
         MsgQ.fetch = fetch;
         function check(mod, id) {
-            var min, max;
+            var min = suncom.Mathf.MIN_SAFE_INTEGER;
+            var max = suncom.Mathf.MAX_SAFE_INTEGER;
             if (mod === MsgQModEnum.MMI) {
                 min = MsgQIdEnum.MMI_MSG_ID_BEGIN;
                 max = MsgQIdEnum.MMI_MSG_ID_END;
@@ -824,7 +822,7 @@ var suncore;
                 max = MsgQIdEnum.NSL_MSG_ID_END;
             }
             else {
-                throw Error("\u672A\u77E5\u7684\u6D88\u606F\u8303\u56F4 mod:" + mod);
+                suncom.Test.notExpected("\u672A\u77E5\u7684\u6D88\u606F\u8303\u56F4 mod:" + mod);
             }
             return id >= min && id < max;
         }
@@ -919,7 +917,7 @@ var suncore;
                     groupId = createTaskGroupId();
                 }
                 else if (groupId > 1000) {
-                    throw Error("\u81EA\u5B9A\u4E49\u7684Task GroupId\u4E0D\u5141\u8BB8\u8D85\u8FC71000");
+                    suncom.Test.notExpected("\u81EA\u5B9A\u4E49\u7684Task GroupId\u4E0D\u5141\u8BB8\u8D85\u8FC71000");
                 }
                 var message = {
                     mod: mod,

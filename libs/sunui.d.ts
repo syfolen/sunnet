@@ -226,21 +226,6 @@ declare module sunui {
     }
 
     /**
-     * 3D资源名字结构
-     */
-    interface IRes3dName {
-        /**
-         * 资源包名
-         */
-        pack: string;
-
-        /**
-         * 资源名
-         */
-        name: string;
-    }
-
-    /**
      * Retryer接口
      */
     interface IRetryer {
@@ -596,15 +581,6 @@ declare module sunui {
     }
 
     /**
-     * URL加载器（安全）
-     * 说明：
-     * 1. 该加载器的每个实例均仅只允许被执行一次
-     * 2. 此类的设计主要用于确保正在执行加载的资源不会被清理
-     */
-    class UrlSafetyLoader extends puremvc.Notifier {
-    }
-
-    /**
      * 视图关系对象
      */
     class ViewContact extends puremvc.Notifier {
@@ -615,7 +591,7 @@ declare module sunui {
          * 说明：
          * 1. 若caller为非弹出对象，则销毁前应当主动派发NotifyKey.ON_CALLER_DESTROYED事件，否则ViewContact不会自动回收
          */
-        constructor(caller: any, popup: IView);
+        constructor(popup: any, caller: any);
 
         /**
          * 注册弹框被关闭时需要执行的回调（详见ON_POPUP_CLOSED）
@@ -647,7 +623,7 @@ declare module sunui {
         /**
          * 执行弹出逻辑
          */
-        popup(props: IViewProps): ViewFacade;
+        popup(props?: IViewProps): ViewFacade;
 
         /**
          * 执行关闭逻辑
@@ -714,6 +690,14 @@ declare module sunui {
         const EXIT_SCENE: string;
 
         /**
+         * 离开场景命令 { none }
+         * 说明：
+         * 1. 此命令在完成uniCls的构建之后被派发（此时uniCls.run尚未执行）
+         * 2. 表现层中的数据应当在此处销毁
+         */
+        const LEAVE_SCENE: string;
+
+        /**
          * 弹框己移除 { view: Laya.Sprite }
          * 说明：
          * 1. 此事件会在IPopupView的$onRemove方法执行完毕之后被派发
@@ -763,43 +747,11 @@ declare module sunui {
         function unlock(url: string): void;
 
         /**
-         * 根据url创建对象
-         * @data: 可缺省参数，默认为：void 0
-         * 说明：
-         * 1. 调用此接口创建对象时，会产生一个计数，当计数为0时，资源会被彻底释放
-         * 2. 见destroy方法
-         * 参数data允许为以下几种类型：
-         * 1. aniMode：目前仅支持动画模式，0不支持换装，1、2支持换装，默认值与真正实现加载的Loader有关
-         */
-        function create(url: string, method?: (res: any, url: string) => void, caller?: Object, data?: any): void;
-
-        /**
-         * 销毁对象
-         * 说明：
-         * 1. 见create方法
-         * 2. 调用此接口销毁对象时，会移除一个计数，当计数为0时，当计数为0时，资源会被彻底释放
-         * 3. 若存在有部分逻辑未使用此接口加载资源，却调用此接口销毁资源，则可能会导致该资源被卸载或不可用，请注意
-         */
-        function destroy(url: string, method?: (res: any, url: string) => void, caller?: Object): void;
-
-        /**
-         * 创建3d对象
-         * 说明：
-         * 1. 同create方法
-         */
-        function createRes3d(name: string | IRes3dName, method: (node: any, url: string) => void, caller: Object): any;
-
-        /**
-         * 销毁3d对象
-         * 说明：
-         * 1. 同destroy方法
-         */
-        function destroyRes3d(name: string | IRes3dName, method: (node: any, url: string) => void, caller: Object): void;
-
-        /**
          * 资源预加载
-         * @method: 预加载完成时，id大于0，否则等于0，仅支持Skeleton和Texture
+         * @method: 预加载完成时，会执行此方法
          * @return: 返回资源组ID
+         * 说明：
+         * 1. 建议将业务逻辑的初始化代码放在资源加载完成之后，这样的话，在加载被取消时，也不需要对初始化进行撤销
          */
         function prepare(urls: string[], method: (id: number) => void, caller: Object): number;
 
@@ -822,12 +774,7 @@ declare module sunui {
          * 说明：
          * 1. 同createSync
          */
-        function createRes3dSync(name: string | IRes3dName): any;
-
-        /**
-         * 根据Url清理资源
-         */
-        function clearResByUrl(url: string): void;
+        function createRes3dSync(name: string): any;
 
         /**
          * 获取3D资源的配置文件地址
@@ -836,13 +783,12 @@ declare module sunui {
 
         /**
          * 获取3D资源地址
-         * @name: 如xxx或xxx.ls，若未指定扩展名，则认为是.lh
-         * @pack: 如LayaScene_xxxx中的xxxx，允许为空
+         * @name: 如xxx或xxx.lh，若未指定扩展名，则认为是.lh
          * 说明：
          * 1. 所有3d资源都必须放在${Resource.res3dRoot}目录下
          * 2. 完整的3D资源目录必须为 ${Resource.res3dRoot}/LayaScene_${pack}/Conventional/ 否则将不能正确解析
          */
-        function getRes3dUrlByName(name: string | IRes3dName): string;
+        function getRes3dUrlByName(name: string): string;
 
         /**
          * 确认加载列表中的url正确性
@@ -853,5 +799,5 @@ declare module sunui {
     /**
      * 在对象或子对象中查找
      */
-    function find(path:string, parent:Laya.Node): any;
+    function find<T>(path: string, parent: Laya.Node): T;
 }

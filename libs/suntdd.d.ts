@@ -189,10 +189,11 @@ declare module suntdd {
 
         /**
          * 等待信号
+         * @handler: 若line为false，则必须为handler指定值
          * @line: 是否进入队列，若为false，则必须指定handler，默认：true
          * @once: 是否只响应一次，若line为true，则once必然为true，默认为：true
          */
-        protected $wait(id: number, handler: suncom.IHandler, line?: boolean, once?: boolean): void;
+        protected $wait(id: number, handler?: suncom.IHandler, line?: boolean, once?: boolean): void;
 
         /**
          * 点击按钮

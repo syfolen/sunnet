@@ -39,39 +39,35 @@
     <script type="text/javascript" src="libs/suncom.js"></script>
 	<!--suncore-->
     <script type="text/javascript" src="libs/suncore.js"></script>
+	<!--suntdd-->
+    <script type="text/javascript" src="libs/suntdd.js"></script>
 	<!--sunui-->
     <script type="text/javascript" src="libs/sunui.js"></script>
 	<!--jsfile--Custom-->
+	<script src="js/sunnet/interfaces/VirtualNetworkLevelEnum.js"></script>
+	<script src="js/sunnet/intercepter/INetConnectionInterceptor.js"></script>
+	<script src="js/sunnet/intercepter/NetConnectionInterceptor.js"></script>
 
 	<!--自定义的js(src文件夹下)文件自动添加到下面jsfile模块标签里面里-->
 	<!--删除标签，ide不会自动添加js文件，请谨慎操作-->
 	<!--jsfile--startTag-->
 	<script src="js/sunnet/utils/MsgQIdEnum.js"></script>
+	<script src="js/sunnet/utils/func.js"></script>
 	<script src="js/sunnet/utils/Config.js"></script>
 	<script src="js/sunnet/socket/NetConnectionStateEnum.js"></script>
 	<script src="js/sunnet/sequential/ServerTimeUpdateFlagEnum.js"></script>
-	<script src="js/sunnet/sequential/SequentialSystem.js"></script>
-	<script src="js/sunnet/sequential/SequentialCommandTypeEnum.js"></script>
-	<script src="js/sunnet/sequential/ISequentialMessageDfn.js"></script>
-	<script src="js/sunnet/sequential/ISequentialCommandDfn.js"></script>
 	<script src="js/sunnet/protobuf/ProtobufManager.js"></script>
 	<script src="js/sunnet/protobuf/MessageNotifier.js"></script>
 	<script src="js/sunnet/protobuf/ISocketMessage.js"></script>
-	<script src="js/sunnet/protobuf/IPCMLongString.js"></script>
 	<script src="js/sunnet/pipeline/INetConnectionPipelineItem.js"></script>
-	<script src="js/sunnet/mserver/MSWSStateEnum.js"></script>
-	<script src="js/sunnet/mserver/MSWSPacketKindEnum.js"></script>
-	<script src="js/sunnet/mserver/MicroServer.js"></script>
-	<script src="js/sunnet/mserver/IMSWSPacketTransferEnum.js"></script>
-	<script src="js/sunnet/mserver/IMSWSPacket.js"></script>
 	<script src="js/sunnet/M.js"></script>
 	<script src="js/sunnet/interfaces/VirtualNetworkLevelEnum.js"></script>
 	<script src="js/sunnet/interfaces/ISocketRequestData.js"></script>
 	<script src="js/sunnet/interfaces/IProtocalTracker.js"></script>
 	<script src="js/sunnet/interfaces/IDecodedData.js"></script>
-	<script src="js/sunnet/intercepter/INetConnectionInterceptor.js"></script>
 	<script src="js/sunnet/http/HttpResStatus.js"></script>
 	<script src="js/sunnet/intercepter/NetConnectionProtobufDecoder.js"></script>
+	<script src="js/sunnet/intercepter/INetConnectionInterceptor.js"></script>
 	<script src="js/sunnet/intercepter/NetConnectionInterceptor.js"></script>
 	<script src="js/sunnet/intercepter/NetConnectionCreator.js"></script>
 	<script src="js/sunnet/intercepter/NetConnectionDecoder.js"></script>
@@ -80,18 +76,12 @@
 	<script src="js/sunnet/intercepter/NetConnectionPing.js"></script>
 	<script src="js/sunnet/intercepter/NetConnectionVirtualNetwork.js"></script>
 	<script src="js/sunnet/intercepter/NetConnectionWatchDog.js"></script>
-	<script src="js/sunnet/mserver/IMSWSProtocalPacket.js"></script>
-	<script src="js/sunnet/mserver/IMSWSStatePacket.js"></script>
-	<script src="js/sunnet/mserver/MicroService.js"></script>
 	<script src="js/sunnet/pipeline/INetConnectionPipeline.js"></script>
 	<script src="js/sunnet/pipeline/NetConnectionPipeline.js"></script>
 	<script src="js/sunnet/pipeline/NetConnectionPipelineItem.js"></script>
 	<script src="js/sunnet/sequential/ISequentialSlice.js"></script>
-	<script src="js/sunnet/sequential/ISequentialLogicSlice.js"></script>
 	<script src="js/sunnet/sequential/ISequentialTimeSlice.js"></script>
 	<script src="js/sunnet/sequential/SequentialSlice.js"></script>
-	<script src="js/sunnet/sequential/SequentialLogicSlice.js"></script>
-	<script src="js/sunnet/sequential/SequentialService.js"></script>
 	<script src="js/sunnet/sequential/SequentialTimeSlice.js"></script>
 	<script src="js/sunnet/socket/INetConnection.js"></script>
 	<script src="js/ui/layaUI.max.all.js"></script>

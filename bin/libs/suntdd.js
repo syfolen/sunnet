@@ -46,6 +46,12 @@ var suntdd;
         TestCaseRegOptionEnum[TestCaseRegOptionEnum["INSERT"] = 0] = "INSERT";
         TestCaseRegOptionEnum[TestCaseRegOptionEnum["APPEND"] = 1] = "APPEND";
     })(TestCaseRegOptionEnum = suntdd.TestCaseRegOptionEnum || (suntdd.TestCaseRegOptionEnum = {}));
+    var TestCaseStatusEnum;
+    (function (TestCaseStatusEnum) {
+        TestCaseStatusEnum[TestCaseStatusEnum["PREPARE"] = 0] = "PREPARE";
+        TestCaseStatusEnum[TestCaseStatusEnum["EXECUTE"] = 1] = "EXECUTE";
+        TestCaseStatusEnum[TestCaseStatusEnum["FINISH"] = 2] = "FINISH";
+    })(TestCaseStatusEnum = suntdd.TestCaseStatusEnum || (suntdd.TestCaseStatusEnum = {}));
     var CancelCommand = (function (_super) {
         __extends(CancelCommand, _super);
         function CancelCommand() {
@@ -122,7 +128,7 @@ var suntdd;
                 this.$doEmit();
             }
             else {
-                suncore.System.addTimer(suncore.ModuleEnum.SYSTEM, 500, this.$doEmit, this);
+                suncore.System.addTimer(suncore.ModuleEnum.SYSTEM, cfg.delay, this.$doEmit, this);
             }
         };
         DoEmitCommand.prototype.$doEmit = function () {
@@ -148,6 +154,7 @@ var suntdd;
                     handler.runWith(this.$cfg.args);
                 }
             }
+            this.$cfg.done = true;
             M.currentSignalId = 0;
         };
         return DoEmitCommand;
@@ -180,10 +187,14 @@ var suntdd;
         function MicroService() {
             var _this = _super.call(this, 0) || this;
             _this.$actions = [];
-            M.timeDiff = suncom.Common.random(-8000, 8000);
+            M.timeDiff = suncom.Mathf.random(-8000, 8000);
+            if (suncore.System.isModuleStopped(suncore.ModuleEnum.SYSTEM) === true) {
+                throw Error("\u5FAE\u670D\u52A1\u5668\u672A\u8FD0\u884C\uFF0C\u56E0\u4E3ASYSTEM\u65F6\u95F4\u8F74\u672A\u5F00\u542F");
+            }
             return _this;
         }
         MicroService.prototype.$onRun = function () {
+            this.facade.registerCommand(NotifyKey.EMIT, EmitCommand);
             this.facade.registerCommand(NotifyKey.WAIT, WaitCommand);
             this.facade.registerCommand(NotifyKey.CLICK, ClickCommand);
             this.facade.registerCommand(NotifyKey.CANCEL, CancelCommand);
@@ -198,6 +209,7 @@ var suntdd;
             this.facade.registerObserver(NotifyKey.TEST_WEBSOCKET_SEND_DATA, this.$onWebSocketSendData, this);
         };
         MicroService.prototype.$onStop = function () {
+            this.facade.removeCommand(NotifyKey.EMIT);
             this.facade.removeCommand(NotifyKey.WAIT);
             this.facade.removeCommand(NotifyKey.CLICK);
             this.facade.removeCommand(NotifyKey.CANCEL);
@@ -257,6 +269,20 @@ var suntdd;
                         }
                     }
                 }
+            }
+            if (this.$actions.length > 0) {
+                return;
+            }
+            if (M.currentTestCase === null) {
+                var cfg = M.tccQueue.shift() || null;
+                M.currentTestCase = cfg === null ? null : new cfg.taskCls(cfg.tcId);
+            }
+            else if (M.currentTestCase.status === TestCaseStatusEnum.EXECUTE) {
+                M.currentTestCase.done();
+            }
+            else if (M.currentTestCase.status === TestCaseStatusEnum.FINISH) {
+                suncom.Test.expect(this.$actions.length).toBe(0);
+                M.currentTestCase = null;
             }
         };
         MicroService.prototype.$onWebSocketSendData = function (name) {
@@ -366,8 +392,6 @@ var suntdd;
             }
             if (cfg.actTime === void 0) {
                 cfg.actTime = suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM);
-            }
-            if (cfg.actTime === suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM)) {
                 this.facade.sendNotification(NotifyKey.DO_EMIT, cfg);
             }
             else {
@@ -381,8 +405,6 @@ var suntdd;
             }
             if (cfg.actTime === void 0) {
                 cfg.actTime = suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM);
-            }
-            if (cfg.actTime === suncore.System.getModuleTimestamp(suncore.ModuleEnum.SYSTEM)) {
                 this.$addWait(cfg);
             }
             else {
@@ -529,10 +551,20 @@ var suntdd;
         __extends(TestCase, _super);
         function TestCase(caseId) {
             var _this = _super.call(this, 0) || this;
+            _this.$status = TestCaseStatusEnum.PREPARE;
             _this.$caseId = caseId;
-            _this.$beforeAll();
+            M.currentTestCase = _this;
+            suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_0, suncom.Handler.create(_this, _this.$doPrepare));
             return _this;
         }
+        TestCase.prototype.done = function () {
+            this.$afterAll();
+            this.$status = TestCaseStatusEnum.FINISH;
+        };
+        TestCase.prototype.$doPrepare = function () {
+            this.$status = TestCaseStatusEnum.EXECUTE;
+            this.$beforeAll();
+        };
         TestCase.prototype.$addTest = function (tcId, taskCls, regOption) {
             if (regOption === void 0) { regOption = TestCaseRegOptionEnum.APPEND; }
             var cfg = {
@@ -558,6 +590,7 @@ var suntdd;
             this.facade.sendNotification(NotifyKey.EMIT, [id, args, true, delay]);
         };
         TestCase.prototype.$wait = function (id, handler, line, once) {
+            if (handler === void 0) { handler = null; }
             if (line === void 0) { line = true; }
             if (once === void 0) { once = true; }
             if (line === true) {
@@ -581,6 +614,13 @@ var suntdd;
             packet.data = data;
             this.facade.sendNotification(NotifyKey.SERIALIZE_WEBSOCKET_STATE_PACKET, [packet, timeFields, hashFields]);
         };
+        Object.defineProperty(TestCase.prototype, "status", {
+            get: function () {
+                return this.$status;
+            },
+            enumerable: true,
+            configurable: true
+        });
         return TestCase;
     }(puremvc.Notifier));
     suntdd.TestCase = TestCase;
@@ -610,6 +650,7 @@ var suntdd;
     (function (M) {
         M.timeDiff = 0;
         M.currentSignalId = 0;
+        M.currentTestCase = null;
         M.tccQueue = [];
         M.waitMap = {};
         M.buttonMap = {};

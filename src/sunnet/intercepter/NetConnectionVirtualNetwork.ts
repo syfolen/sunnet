@@ -69,7 +69,7 @@ module sunnet {
 			// 每秒均可能发生网络波动
 			if (this.$currentSeconds !== seconds) {
 				this.$currentSeconds = seconds;
-				this.$isNetworkWaving = suncom.Common.random(0, 100) < this.$getProbabilyOfNetworkWave();
+				this.$isNetworkWaving = suncom.Mathf.random(0, 100) < this.$getProbabilyOfNetworkWave();
 			}
 
 			// 存在缓存数据
@@ -102,7 +102,7 @@ module sunnet {
 		 */
 		protected $getReliableTimeOfConnection(): number {
 			if (Config.VIRTUAL_NETWORK_LEVEL === VirtualNetworkLevelEnum.UNSTABLE) {
-				return suncom.Common.random(180, 300);
+				return suncom.Mathf.random(180, 300);
 			}
 			else {
 				return 1440 * 30;
@@ -135,22 +135,22 @@ module sunnet {
 		 */
 		protected $calculateMessageDelayTime(): number {
 			if (Config.VIRTUAL_NETWORK_LEVEL === VirtualNetworkLevelEnum.GOOD) {
-				return suncom.Common.random(60, 150);
+				return suncom.Mathf.random(60, 150);
 			}
 			else if (Config.VIRTUAL_NETWORK_LEVEL === VirtualNetworkLevelEnum.BAD) {
 				if (this.$isNetworkWaving === false) {
-					return suncom.Common.random(200, 800);
+					return suncom.Mathf.random(200, 800);
 				}
 				else {
-					return suncom.Common.random(1000, 2000);
+					return suncom.Mathf.random(1000, 2000);
 				}
 			}
 			else if (Config.VIRTUAL_NETWORK_LEVEL === VirtualNetworkLevelEnum.UNSTABLE) {
 				if (this.$isNetworkWaving === false) {
-					return suncom.Common.random(1000, 2500);
+					return suncom.Mathf.random(1000, 2500);
 				}
 				else {
-					return suncom.Common.random(3000, 8000);
+					return suncom.Mathf.random(3000, 8000);
 				}
 			}
 			// 一帧一个数据包
