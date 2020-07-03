@@ -109,11 +109,6 @@ var suncore;
             }
             this.$running = true;
             this.$onRun();
-            suncom.Test.assertTrue(this.$running);
-            suncom.Test.assertFalse(this.facade.hasObserver(NotifyKey.ENTER_FRAME, null, this), "\u8BF7\u91CD\u5199$frameLoop\u65B9\u6CD5\u6765\u66FF\u4EE3ENTER_FRAME\u4E8B\u4EF6");
-            if (this.$frameLoop !== BaseService.prototype.$frameLoop) {
-                this.facade.registerObserver(NotifyKey.ENTER_FRAME, this.$onEnterFrame, this, false, suncom.EventPriorityEnum.EGL);
-            }
         };
         BaseService.prototype.stop = function () {
             if (this.$running === false) {
@@ -122,17 +117,6 @@ var suncore;
             }
             this.$running = false;
             this.$onStop();
-            suncom.Test.assertFalse(this.$running);
-            if (this.$frameLoop !== BaseService.prototype.$frameLoop) {
-                this.facade.removeObserver(NotifyKey.ENTER_FRAME, this.$onEnterFrame, this);
-            }
-        };
-        BaseService.prototype.$onEnterFrame = function () {
-            if (this.$running === true) {
-                this.$frameLoop();
-            }
-        };
-        BaseService.prototype.$frameLoop = function () {
         };
         Object.defineProperty(BaseService.prototype, "running", {
             get: function () {
@@ -647,17 +631,23 @@ var suncore;
                             delete this.$timerMap[timer.timerId];
                         }
                         else {
-                            this.addTimer(timer.mod, timer.delay, timer.method, timer.caller, timer.loops, timer.real, timer.timerId, timer.timestamp, timer.timeout, timer.count);
+                            this.addTimer(timer.mod, timer.delay, timer.method, timer.caller, timer.args, timer.loops, timer.real, timer.timerId, timer.timestamp, timer.timeout, timer.count);
                         }
                         timers.shift();
                         if (timer.active === true) {
-                            timer.method.call(timer.caller, timer.count, timer.loops);
+                            if (timer.args === null) {
+                                timer.method.call(timer.caller, timer.count, timer.loops);
+                            }
+                            else {
+                                timer.method.apply(timer.caller, timer.args.concat(timer.count, timer.loops));
+                            }
                         }
                     }
                 }
             }
         };
-        TimerManager.prototype.addTimer = function (mod, delay, method, caller, loops, real, timerId, timestamp, timeout, count) {
+        TimerManager.prototype.addTimer = function (mod, delay, method, caller, args, loops, real, timerId, timestamp, timeout, count) {
+            if (args === void 0) { args = null; }
             if (loops === void 0) { loops = 1; }
             if (real === void 0) { real = false; }
             if (timerId === void 0) { timerId = 0; }
@@ -674,6 +664,14 @@ var suncore;
             if (timeout === -1) {
                 timeout = currentTimestamp;
             }
+            var firstDelay;
+            if (typeof delay === "number") {
+                firstDelay = delay;
+            }
+            else {
+                firstDelay = delay[1] || 0;
+                delay = delay[0];
+            }
             if (delay < 1) {
                 delay = 1;
             }
@@ -685,12 +683,25 @@ var suncore;
                 dev = (currentTimestamp - timestamp) % delay;
             }
             timeout = currentTimestamp + delay - dev;
+            if (firstDelay === 0) {
+                if (args === null) {
+                    method.call(caller, 0, loops);
+                }
+                else {
+                    method.apply(caller, args.concat(0, loops));
+                }
+            }
+            else if (firstDelay < delay) {
+                var offset = delay - firstDelay;
+                timeout = suncom.Mathf.clamp(timeout - offset, currentTimestamp + 1, timeout);
+            }
             var timer = {
                 mod: mod,
                 active: true,
                 delay: delay,
                 method: method,
                 caller: caller,
+                args: args,
                 real: real,
                 count: count,
                 loops: loops,
@@ -967,11 +978,11 @@ var suncore;
             }
         }
         System.addMessage = addMessage;
-        function addTimer(mod, delay, method, caller, loops, real) {
+        function addTimer(mod, delay, method, caller, args, loops, real) {
             if (loops === void 0) { loops = 1; }
             if (real === void 0) { real = false; }
             if (System.isModuleStopped(mod) === false) {
-                return M.timerManager.addTimer(mod, delay, method, caller, loops, real);
+                return M.timerManager.addTimer(mod, delay, method, caller, args, loops, real);
             }
             else {
                 suncom.Logger.error(suncom.DebugMode.ANY, "\u5C1D\u8BD5\u6DFB\u52A0\u5B9A\u65F6\u5668\uFF0C\u4F46\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
