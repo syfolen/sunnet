@@ -2,7 +2,7 @@ var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
         return extendStatics(d, b);
     };
     return function (d, b) {
@@ -15,19 +15,18 @@ var suncore;
 (function (suncore) {
     var MessagePriorityEnum;
     (function (MessagePriorityEnum) {
-        MessagePriorityEnum[MessagePriorityEnum["MIN"] = 0] = "MIN";
-        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_0"] = 1] = "PRIORITY_0";
-        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_HIGH"] = 2] = "PRIORITY_HIGH";
-        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_NOR"] = 3] = "PRIORITY_NOR";
-        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_LOW"] = 4] = "PRIORITY_LOW";
-        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_LAZY"] = 5] = "PRIORITY_LAZY";
-        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_TRIGGER"] = 6] = "PRIORITY_TRIGGER";
-        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_TASK"] = 7] = "PRIORITY_TASK";
-        MessagePriorityEnum[MessagePriorityEnum["MAX"] = 8] = "MAX";
+        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_0"] = 0] = "PRIORITY_0";
+        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_HIGH"] = 1] = "PRIORITY_HIGH";
+        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_NOR"] = 2] = "PRIORITY_NOR";
+        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_LOW"] = 3] = "PRIORITY_LOW";
+        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_LAZY"] = 4] = "PRIORITY_LAZY";
+        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_TRIGGER"] = 5] = "PRIORITY_TRIGGER";
+        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_TASK"] = 6] = "PRIORITY_TASK";
+        MessagePriorityEnum[MessagePriorityEnum["PRIORITY_PROMISE"] = 7] = "PRIORITY_PROMISE";
+        MessagePriorityEnum[MessagePriorityEnum["E_MAX"] = 8] = "E_MAX";
     })(MessagePriorityEnum = suncore.MessagePriorityEnum || (suncore.MessagePriorityEnum = {}));
     var ModuleEnum;
     (function (ModuleEnum) {
-        ModuleEnum[ModuleEnum["MIN"] = 0] = "MIN";
         ModuleEnum[ModuleEnum["SYSTEM"] = 0] = "SYSTEM";
         ModuleEnum[ModuleEnum["CUSTOM"] = 1] = "CUSTOM";
         ModuleEnum[ModuleEnum["TIMELINE"] = 2] = "TIMELINE";
@@ -48,48 +47,48 @@ var suncore;
     })(MsgQIdEnum = suncore.MsgQIdEnum || (suncore.MsgQIdEnum = {}));
     var MsgQModEnum;
     (function (MsgQModEnum) {
-        MsgQModEnum[MsgQModEnum["NIL"] = -1] = "NIL";
-        MsgQModEnum[MsgQModEnum["KAL"] = 0] = "KAL";
+        MsgQModEnum[MsgQModEnum["E_NIL"] = -1] = "E_NIL";
+        MsgQModEnum[MsgQModEnum["E_KAL"] = 0] = "E_KAL";
         MsgQModEnum[MsgQModEnum["MMI"] = 1] = "MMI";
         MsgQModEnum[MsgQModEnum["L4C"] = 2] = "L4C";
         MsgQModEnum[MsgQModEnum["CUI"] = 3] = "CUI";
         MsgQModEnum[MsgQModEnum["GUI"] = 4] = "GUI";
         MsgQModEnum[MsgQModEnum["NSL"] = 5] = "NSL";
-        MsgQModEnum[MsgQModEnum["ANY"] = 6] = "ANY";
+        MsgQModEnum[MsgQModEnum["E_ANY"] = 6] = "E_ANY";
     })(MsgQModEnum = suncore.MsgQModEnum || (suncore.MsgQModEnum = {}));
     var AbstractTask = (function (_super) {
         __extends(AbstractTask, _super);
         function AbstractTask() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
-            _this.$done = false;
-            _this.$running = false;
+            _this.$var_done = false;
+            _this.$var_running = false;
             return _this;
         }
         AbstractTask.prototype.cancel = function () {
         };
         Object.defineProperty(AbstractTask.prototype, "done", {
             get: function () {
-                return this.$done;
+                return this.$var_done;
             },
             set: function (yes) {
-                if (this.$done !== yes) {
-                    this.$done = yes;
+                if (this.$var_done !== yes) {
+                    this.$var_done = yes;
                     if (yes === true) {
                         this.cancel();
                     }
                 }
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(AbstractTask.prototype, "running", {
             get: function () {
-                return this.$running;
+                return this.$var_running;
             },
             set: function (yes) {
-                this.$running = yes;
+                this.$var_running = yes;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         return AbstractTask;
@@ -99,30 +98,30 @@ var suncore;
         __extends(BaseService, _super);
         function BaseService() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
-            _this.$running = false;
+            _this.$var_running = false;
             return _this;
         }
         BaseService.prototype.run = function () {
-            if (this.$running === true) {
+            if (this.$var_running === true) {
                 suncom.Logger.warn(suncom.DebugMode.ANY, "\u670D\u52A1[" + suncom.Common.getQualifiedClassName(this) + "]\u5DF1\u8FD0\u884C");
                 return;
             }
-            this.$running = true;
+            this.$var_running = true;
             this.$onRun();
         };
         BaseService.prototype.stop = function () {
-            if (this.$running === false) {
+            if (this.$var_running === false) {
                 suncom.Logger.warn(suncom.DebugMode.ANY, "\u670D\u52A1[" + suncom.Common.getQualifiedClassName(this) + "]\u672A\u8FD0\u884C");
                 return;
             }
-            this.$running = false;
+            this.$var_running = false;
             this.$onStop();
         };
         Object.defineProperty(BaseService.prototype, "running", {
             get: function () {
-                return this.$running;
+                return this.$var_running;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         return BaseService;
@@ -131,10 +130,10 @@ var suncore;
     var Engine = (function (_super) {
         __extends(Engine, _super);
         function Engine() {
-            var _this = _super.call(this, MsgQModEnum.KAL) || this;
+            var _this = _super.call(this, MsgQModEnum.E_KAL) || this;
             _this.$delta = 0;
             _this.$runTime = 0;
-            _this.$localTime = new Date().valueOf();
+            _this.$localTime = Date.now();
             Laya.timer.frameLoop(1, _this, _this.$onFrameLoop);
             return _this;
         }
@@ -147,7 +146,7 @@ var suncore;
         };
         Engine.prototype.$onFrameLoop = function () {
             var oldTime = this.$localTime;
-            this.$localTime = new Date().valueOf();
+            this.$localTime = Date.now();
             this.$delta = this.$localTime - oldTime;
             if (this.$delta > 0) {
                 this.$runTime += this.$delta;
@@ -180,10 +179,32 @@ var suncore;
         return Engine;
     }(puremvc.Notifier));
     suncore.Engine = Engine;
+    var Message = (function () {
+        function Message() {
+            this.mod = ModuleEnum.SYSTEM;
+            this.priority = MessagePriorityEnum.PRIORITY_0;
+            this.weights = 0;
+            this.task = null;
+            this.groupId = 0;
+            this.args = null;
+            this.method = null;
+            this.caller = null;
+            this.timeout = 0;
+        }
+        Message.prototype.recover = function () {
+            this.task = null;
+            this.args = null;
+            this.method = null;
+            this.caller = null;
+            suncom.Pool.recover("suncore.Message", this);
+        };
+        return Message;
+    }());
+    suncore.Message = Message;
     var MessageManager = (function () {
         function MessageManager() {
             this.$queues = [];
-            for (var mod = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
+            for (var mod = 0; mod < ModuleEnum.MAX; mod++) {
                 this.$queues[mod] = new MessageQueue(mod);
             }
         }
@@ -191,14 +212,14 @@ var suncore;
             this.$queues[message.mod].putMessage(message);
         };
         MessageManager.prototype.dealMessage = function () {
-            for (var mod = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
+            for (var mod = 0; mod < ModuleEnum.MAX; mod++) {
                 if (System.isModulePaused(mod) === false) {
                     this.$queues[mod].dealMessage();
                 }
             }
         };
         MessageManager.prototype.classifyMessages0 = function () {
-            for (var mod = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
+            for (var mod = 0; mod < ModuleEnum.MAX; mod++) {
                 if (System.isModuleStopped(mod) === false) {
                     this.$queues[mod].classifyMessages0();
                 }
@@ -218,18 +239,38 @@ var suncore;
             this.$tasks = [];
             this.$queues = [];
             this.$messages0 = [];
+            this.$canceled = false;
+            this.$weights = 0;
             this.$mod = mod;
-            for (var priority = MessagePriorityEnum.MIN; priority < MessagePriorityEnum.MAX; priority++) {
+            for (var priority = 0; priority < MessagePriorityEnum.E_MAX; priority++) {
                 this.$queues[priority] = [];
             }
         }
         MessageQueue.prototype.putMessage = function (message) {
             this.$messages0.push(message);
+            if (message.priority === MessagePriorityEnum.PRIORITY_PROMISE) {
+                this.$initPromiseWeights(message);
+            }
+        };
+        MessageQueue.prototype.$initPromiseWeights = function (message) {
+            var promises = this.$queues[MessagePriorityEnum.PRIORITY_PROMISE];
+            if (promises.length === 0) {
+                message.weights = this.$weights;
+            }
+            else {
+                var promise = promises[0];
+                if (promise.task.running === false) {
+                    message.weights = this.$weights;
+                }
+                else {
+                    message.weights = this.$weights = promises[0].weights + 1;
+                }
+            }
         };
         MessageQueue.prototype.dealMessage = function () {
             var dealCount = 0;
             var remainCount = 0;
-            for (var priority = MessagePriorityEnum.MIN; priority < MessagePriorityEnum.MAX; priority++) {
+            for (var priority = 0; priority < MessagePriorityEnum.E_MAX; priority++) {
                 var queue = void 0;
                 if (priority === MessagePriorityEnum.PRIORITY_TASK) {
                     queue = this.$tasks;
@@ -244,7 +285,7 @@ var suncore;
                     for (var id = this.$tasks.length - 1; id > -1; id--) {
                         var tasks = this.$tasks[id];
                         if (tasks.length > 0 && this.$dealTaskMessage(tasks[0]) === true) {
-                            tasks.shift();
+                            tasks.shift().recover();
                             dealCount++;
                         }
                         if (tasks.length > 1) {
@@ -255,11 +296,23 @@ var suncore;
                         }
                     }
                 }
+                else if (priority === MessagePriorityEnum.PRIORITY_PROMISE) {
+                    while (queue.length > 0) {
+                        dealCount++;
+                        var promise = queue[0];
+                        if (this.$dealTaskMessage(promise) === false) {
+                            break;
+                        }
+                        queue.shift().recover();
+                        if (this.$weights > promise.weights) {
+                            break;
+                        }
+                    }
+                }
                 else if (priority === MessagePriorityEnum.PRIORITY_TRIGGER) {
-                    var out = { canceled: false };
-                    while (queue.length > 0 && this.$dealTriggerMessage(queue[0], out) === true) {
-                        queue.shift();
-                        if (out.canceled === false) {
+                    while (queue.length > 0 && this.$dealTriggerMessage(queue[0]) === true) {
+                        queue.shift().recover();
+                        if (this.$canceled === false) {
                             dealCount++;
                         }
                     }
@@ -268,9 +321,11 @@ var suncore;
                     var okCount = 0;
                     var totalCount = this.$getDealCountByPriority(priority);
                     for (; queue.length > 0 && (totalCount === 0 || okCount < totalCount); okCount++) {
-                        if (this.$dealCustomMessage(queue.shift()) === false) {
+                        var message = queue.shift();
+                        if (this.$dealCustomMessage(message) === false) {
                             okCount--;
                         }
+                        message.recover();
                     }
                     dealCount += okCount;
                 }
@@ -279,8 +334,10 @@ var suncore;
             if (remainCount === 0 && dealCount === 0 && this.$messages0.length === 0) {
                 var queue = this.$queues[MessagePriorityEnum.PRIORITY_LAZY];
                 if (queue.length > 0) {
-                    this.$dealCustomMessage(queue.shift());
+                    var message = queue.shift();
+                    this.$dealCustomMessage(message);
                     dealCount++;
+                    message.recover();
                 }
             }
         };
@@ -294,15 +351,15 @@ var suncore;
             }
             return task.done === true;
         };
-        MessageQueue.prototype.$dealTriggerMessage = function (message, out) {
+        MessageQueue.prototype.$dealTriggerMessage = function (message) {
             if (message.timeout > System.getModuleTimestamp(this.$mod)) {
                 return false;
             }
-            out.canceled = message.handler.run() === false;
+            this.$canceled = message.method.apply(message.caller, message.args) === false;
             return true;
         };
         MessageQueue.prototype.$dealCustomMessage = function (message) {
-            return message.handler.run() !== false;
+            return message.method.apply(message.caller, message.args) !== false;
         };
         MessageQueue.prototype.$getDealCountByPriority = function (priority) {
             if (priority === MessagePriorityEnum.PRIORITY_0) {
@@ -317,7 +374,7 @@ var suncore;
             if (priority === MessagePriorityEnum.PRIORITY_LOW) {
                 return 1;
             }
-            throw Error("错误的消息优先级");
+            throw Error("\u9519\u8BEF\u7684\u6D88\u606F\u4F18\u5148\u7EA7");
         };
         MessageQueue.prototype.classifyMessages0 = function () {
             while (this.$messages0.length > 0) {
@@ -328,9 +385,32 @@ var suncore;
                 else if (message.priority === MessagePriorityEnum.PRIORITY_TRIGGER) {
                     this.$addTriggerMessage(message);
                 }
+                else if (message.priority === MessagePriorityEnum.PRIORITY_PROMISE) {
+                    this.$addPromiseMessage(message);
+                }
                 else {
                     this.$queues[message.priority].push(message);
                 }
+            }
+        };
+        MessageQueue.prototype.$addPromiseMessage = function (message) {
+            var messages = this.$queues[MessagePriorityEnum.PRIORITY_PROMISE];
+            var index = -1;
+            for (var i = 0; i < messages.length; i++) {
+                var promise = messages[i];
+                if (promise.task.running === true) {
+                    continue;
+                }
+                if (promise.weights < message.weights) {
+                    index = i;
+                    break;
+                }
+            }
+            if (index === -1) {
+                messages.push(message);
+            }
+            else {
+                messages.splice(index, 0, message);
             }
         };
         MessageQueue.prototype.$addTriggerMessage = function (message) {
@@ -390,7 +470,7 @@ var suncore;
                     this.$cancelMessage(tasks.shift());
                 }
             }
-            for (var priority = MessagePriorityEnum.MIN; priority < MessagePriorityEnum.MAX; priority++) {
+            for (var priority = 0; priority < MessagePriorityEnum.E_MAX; priority++) {
                 var queue = this.$queues[priority];
                 while (queue.length > 0) {
                     this.$cancelMessage(queue.shift());
@@ -401,13 +481,16 @@ var suncore;
             if (message.priority === MessagePriorityEnum.PRIORITY_TASK) {
                 message.task.done = true;
             }
+            message.recover();
         };
         MessageQueue.prototype.cancelTaskByGroupId = function (mod, groupId) {
             for (var id = 0; id < this.$tasks.length; id++) {
-                var tasks = this.$tasks[id];
-                if (tasks.length > 0 && tasks[0].groupId === groupId) {
-                    while (tasks.length > 0) {
-                        tasks.shift().task.done = true;
+                var messages = this.$tasks[id];
+                if (messages.length > 0 && messages[0].groupId === groupId) {
+                    while (messages.length > 0) {
+                        var message = messages.shift();
+                        message.task.done = true;
+                        message.recover();
                     }
                     break;
                 }
@@ -416,6 +499,27 @@ var suncore;
         return MessageQueue;
     }());
     suncore.MessageQueue = MessageQueue;
+    var MsgQMsg = (function () {
+        function MsgQMsg() {
+            this.dst = MsgQModEnum.E_ANY;
+            this.id = 0;
+            this.data = null;
+            this.batchIndex = 0;
+        }
+        MsgQMsg.prototype.setTo = function (dst, id, data, batchIndex) {
+            this.id = id;
+            this.dst = dst;
+            this.data = data;
+            this.batchIndex = batchIndex;
+            return this;
+        };
+        MsgQMsg.prototype.recover = function () {
+            this.data = null;
+            suncom.Pool.recover("suncore.MsgQMsg", this);
+        };
+        return MsgQMsg;
+    }());
+    suncore.MsgQMsg = MsgQMsg;
     var MsgQService = (function (_super) {
         __extends(MsgQService, _super);
         function MsgQService() {
@@ -423,13 +527,13 @@ var suncore;
         }
         MsgQService.prototype.$onRun = function () {
             MsgQ.setModuleActive(this.msgQMod, true);
-            this.facade.registerObserver(NotifyKey.MSG_Q_BUSINESS, this.$onMsgQBusiness, this);
+            this.facade.registerObserver(NotifyKey.MSG_Q_BUSINESS, this.$func_onMsgQBusiness, this);
         };
         MsgQService.prototype.$onStop = function () {
             MsgQ.setModuleActive(this.msgQMod, false);
-            this.facade.removeObserver(NotifyKey.MSG_Q_BUSINESS, this.$onMsgQBusiness, this);
+            this.facade.removeObserver(NotifyKey.MSG_Q_BUSINESS, this.$func_onMsgQBusiness, this);
         };
-        MsgQService.prototype.$onMsgQBusiness = function (mod) {
+        MsgQService.prototype.$func_onMsgQBusiness = function (mod) {
             var msg = null;
             if (mod === void 0 || mod === this.msgQMod) {
                 while (true) {
@@ -445,9 +549,10 @@ var suncore;
                     if (msg === null) {
                         break;
                     }
-                    this.$dealMsgQMsg(msg);
+                    this.$dealMsgQMsg(msg.id, msg.data);
+                    msg.recover();
                 }
-                MsgQ.seqId++;
+                MsgQ.batchIndex++;
             }
         };
         return MsgQService;
@@ -459,7 +564,9 @@ var suncore;
             return _super !== null && _super.apply(this, arguments) || this;
         }
         PauseTimelineCommand.prototype.execute = function (mod, stop) {
-            suncom.Test.expect(stop).interpret("\u5E94\u5F53\u4E3A\u53C2\u6570 stop \u6307\u5B9A\u6709\u6548\u503C").toBeBoolean();
+            if (stop !== true && stop !== false) {
+                throw Error("\u53C2\u6570stop\u5E94\u5F53\u4E3A\u5E03\u5C14\u503C");
+            }
             if (stop === true) {
                 if (System.isModuleStopped(mod) === true) {
                     suncom.Logger.error(suncom.DebugMode.ANY, "\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u7ECF\u505C\u6B62\uFF01\uFF01\uFF01");
@@ -485,8 +592,7 @@ var suncore;
             }
             if (mod === ModuleEnum.SYSTEM) {
                 if (System.isModuleStopped(ModuleEnum.TIMELINE) === false || System.isModuleStopped(ModuleEnum.CUSTOM) === false) {
-                    suncom.Test.notExpected("SYSTEM \u4E0D\u80FD\u505C\u6B62\u56E0\u4E3A CUSTOM \u6216 TIMELINE \u4F9D\u7136\u5728\u8FD0\u884C");
-                    return;
+                    suncom.Logger.error(suncom.DebugMode.ANY, "SYSTEM \u4E0D\u80FD\u505C\u6B62\u56E0\u4E3A CUSTOM \u6216 TIMELINE \u4F9D\u7136\u5728\u8FD0\u884C");
                 }
             }
             M.timerManager.clearTimer(mod);
@@ -511,13 +617,19 @@ var suncore;
     suncore.PauseTimelineCommand = PauseTimelineCommand;
     var SimpleTask = (function (_super) {
         __extends(SimpleTask, _super);
-        function SimpleTask(handler) {
+        function SimpleTask(caller, method, args) {
+            if (args === void 0) { args = null; }
             var _this = _super.call(this) || this;
-            _this.$handler = handler;
+            _this.$var_args = null;
+            _this.$var_caller = null;
+            _this.$var_method = null;
+            _this.$var_args = args;
+            _this.$var_caller = caller;
+            _this.$var_method = method;
             return _this;
         }
         SimpleTask.prototype.run = function () {
-            this.$handler.run();
+            this.$var_method.apply(this.$var_caller, this.$var_args);
             return true;
         };
         return SimpleTask;
@@ -529,7 +641,9 @@ var suncore;
             return _super !== null && _super.apply(this, arguments) || this;
         }
         StartTimelineCommand.prototype.execute = function (mod, pause) {
-            suncom.Test.expect(pause).interpret("\u5E94\u5F53\u4E3A\u53C2\u6570 pause \u6307\u5B9A\u6709\u6548\u503C").toBeBoolean();
+            if (pause !== true && pause !== false) {
+                throw Error("\u53C2\u6570pause\u5E94\u5F53\u4E3A\u5E03\u5C14\u503C");
+            }
             if (System.isModulePaused(mod) === false) {
                 suncom.Logger.error(suncom.DebugMode.ANY, "\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u7ECF\u542F\u52A8\uFF01\uFF01\uFF01");
                 return;
@@ -583,34 +697,53 @@ var suncore;
             get: function () {
                 return this.$paused;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         Object.defineProperty(Timeline.prototype, "stopped", {
             get: function () {
                 return this.$stopped;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         return Timeline;
     }());
     suncore.Timeline = Timeline;
+    var Timer = (function () {
+        function Timer() {
+            this.mod = ModuleEnum.SYSTEM;
+            this.active = false;
+            this.delay = 0;
+            this.method = null;
+            this.caller = null;
+            this.args = null;
+            this.real = false;
+            this.count = 0;
+            this.loops = 1;
+            this.timerId = 0;
+            this.timestamp = -1;
+            this.timeout = 0;
+        }
+        Timer.prototype.recover = function () {
+            this.method = null;
+            this.caller = null;
+            this.args = null;
+            suncom.Pool.recover("suncore.Timer", this);
+        };
+        return Timer;
+    }());
+    suncore.Timer = Timer;
     var TimerManager = (function () {
         function TimerManager() {
-            this.$seedId = 0;
             this.$timers = [];
             this.$timerMap = {};
-            for (var mod = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
+            for (var mod = 0; mod < ModuleEnum.MAX; mod++) {
                 this.$timers[mod] = [];
             }
         }
-        TimerManager.prototype.$createNewTimerId = function () {
-            this.$seedId++;
-            return this.$seedId;
-        };
         TimerManager.prototype.executeTimer = function () {
-            for (var mod = ModuleEnum.MIN; mod < ModuleEnum.MAX; mod++) {
+            for (var mod = 0; mod < ModuleEnum.MAX; mod++) {
                 if (System.isModulePaused(mod) === false) {
                     var timers = this.$timers[mod];
                     var timestamp = System.getModuleTimestamp(mod);
@@ -624,9 +757,10 @@ var suncore;
                                 timer.count++;
                             }
                             else {
-                                timer.count = suncom.Mathf.min(Math.floor((timestamp - timer.timestamp) / timer.delay), timer.loops);
+                                timer.count = Math.min(Math.floor((timestamp - timer.timestamp) / timer.delay), timer.loops);
                             }
                         }
+                        var recycle = false;
                         if (timer.active === false || (timer.loops > 0 && timer.count >= timer.loops)) {
                             delete this.$timerMap[timer.timerId];
                         }
@@ -642,6 +776,7 @@ var suncore;
                                 timer.method.apply(timer.caller, timer.args.concat(timer.count, timer.loops));
                             }
                         }
+                        timer.recover();
                     }
                 }
             }
@@ -656,7 +791,7 @@ var suncore;
             if (count === void 0) { count = 0; }
             var currentTimestamp = System.getModuleTimestamp(mod);
             if (timerId === 0) {
-                timerId = this.$createNewTimerId();
+                timerId = suncom.Common.createHashId();
             }
             if (timestamp === -1) {
                 timestamp = currentTimestamp;
@@ -695,20 +830,19 @@ var suncore;
                 var offset = delay - firstDelay;
                 timeout = suncom.Mathf.clamp(timeout - offset, currentTimestamp + 1, timeout);
             }
-            var timer = {
-                mod: mod,
-                active: true,
-                delay: delay,
-                method: method,
-                caller: caller,
-                args: args,
-                real: real,
-                count: count,
-                loops: loops,
-                timerId: timerId,
-                timestamp: timestamp,
-                timeout: timeout
-            };
+            var timer = suncom.Pool.getItemByClass("suncore.Timer", Timer);
+            timer.mod = mod;
+            timer.active = true;
+            timer.delay = delay;
+            timer.method = method;
+            timer.caller = caller;
+            timer.args = args;
+            timer.real = real;
+            timer.count = count;
+            timer.loops = loops;
+            timer.timerId = timerId;
+            timer.timestamp = timestamp;
+            timer.timeout = timeout;
             var timers = this.$timers[mod];
             var index = -1;
             var min = 0;
@@ -752,11 +886,28 @@ var suncore;
             while (timers.length > 0) {
                 var timer = timers.pop();
                 delete this.$timerMap[timer.timerId];
+                timer.recover();
             }
         };
         return TimerManager;
     }());
     suncore.TimerManager = TimerManager;
+    var PromiseTask = (function (_super) {
+        __extends(PromiseTask, _super);
+        function PromiseTask() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        PromiseTask.prototype.run = function () {
+            var method = this.$resolve.bind(this);
+            this.$var_method.apply(this.$var_caller, this.$var_args === null ? [method] : [method].concat(this.$var_args));
+            return this.done;
+        };
+        PromiseTask.prototype.$resolve = function () {
+            this.done = true;
+        };
+        return PromiseTask;
+    }(SimpleTask));
+    suncore.PromiseTask = PromiseTask;
     var M;
     (function (M) {
         M.engine = null;
@@ -769,7 +920,7 @@ var suncore;
     (function (MsgQ) {
         var $queues = {};
         var $modStats = {};
-        MsgQ.seqId = 1;
+        MsgQ.batchIndex = 1;
         function send(dst, id, data) {
             if (isModuleActive(dst) === false) {
                 suncom.Logger.warn(suncom.DebugMode.ANY, "\u6D88\u606F\u53D1\u9001\u5931\u8D25\uFF0C\u6A21\u5757\u5DF1\u6682\u505C mod:" + MsgQModEnum[dst]);
@@ -779,27 +930,22 @@ var suncore;
                 suncom.Logger.warn(suncom.DebugMode.ANY, "\u6D88\u606F\u53D1\u9001\u5931\u8D25\uFF0C\u6D88\u606FID\u975E\u6CD5 mod:" + dst + ", id:" + id);
                 return;
             }
-            var array = $queues[dst] || null;
-            if (array === null) {
+            var array = $queues[dst];
+            if (array === void 0) {
                 array = $queues[dst] = [];
             }
-            var msg = {
-                dst: dst,
-                seqId: MsgQ.seqId,
-                id: id,
-                data: data
-            };
-            array.push(msg);
+            var msg = suncom.Pool.getItemByClass("suncore.MsgQMsg", MsgQMsg);
+            array.push(msg.setTo(dst, id, data, MsgQ.batchIndex));
         }
         MsgQ.send = send;
         function fetch(mod, id) {
-            var queue = $queues[mod] || null;
-            if (queue === null || queue.length === 0) {
+            var queue = $queues[mod];
+            if (queue === void 0 || queue.length === 0) {
                 return null;
             }
             for (var i = 0; i < queue.length; i++) {
                 var msg = queue[i];
-                if (mod === MsgQModEnum.NSL || msg.seqId < MsgQ.seqId) {
+                if (mod === MsgQModEnum.NSL || msg.batchIndex < MsgQ.batchIndex) {
                     if (id === void 0 || msg.id === id) {
                         queue.splice(i, 1);
                         return msg;
@@ -833,7 +979,7 @@ var suncore;
                 max = MsgQIdEnum.NSL_MSG_ID_END;
             }
             else {
-                suncom.Test.notExpected("\u672A\u77E5\u7684\u6D88\u606F\u8303\u56F4 mod:" + mod);
+                throw Error("\u672A\u77E5\u7684\u6D88\u606F\u8303\u56F4 mod:" + mod);
             }
             return id >= min && id < max;
         }
@@ -844,6 +990,10 @@ var suncore;
         function setModuleActive(mod, active) {
             $modStats[mod] = active;
             if (active === false) {
+                var array = $queues[mod] || [];
+                while (array.length > 0) {
+                    array.pop().recover();
+                }
                 delete $queues[mod];
             }
         }
@@ -922,20 +1072,20 @@ var suncore;
             }
         }
         System.getModuleTimestamp = getModuleTimestamp;
-        function addTask(mod, groupId, task) {
+        function addTask(mod, task, groupId) {
+            if (groupId === void 0) { groupId = 0; }
             if (System.isModuleStopped(mod) === false) {
                 if (groupId === -1) {
                     groupId = createTaskGroupId();
                 }
                 else if (groupId > 1000) {
-                    suncom.Test.notExpected("\u81EA\u5B9A\u4E49\u7684Task GroupId\u4E0D\u5141\u8BB8\u8D85\u8FC71000");
+                    throw Error("\u81EA\u5B9A\u4E49\u7684Task GroupId\u4E0D\u5141\u8BB8\u8D85\u8FC71000");
                 }
-                var message = {
-                    mod: mod,
-                    task: task,
-                    groupId: groupId,
-                    priority: MessagePriorityEnum.PRIORITY_TASK
-                };
+                var message = suncom.Pool.getItemByClass("suncore.Message", Message);
+                message.mod = mod;
+                message.task = task;
+                message.groupId = groupId;
+                message.priority = MessagePriorityEnum.PRIORITY_TASK;
                 M.messageManager.putMessage(message);
             }
             else {
@@ -949,14 +1099,16 @@ var suncore;
             M.messageManager.cancelTaskByGroupId(mod, groupId);
         }
         System.cancelTaskByGroupId = cancelTaskByGroupId;
-        function addTrigger(mod, delay, handler) {
+        function addTrigger(mod, delay, caller, method, args) {
+            if (args === void 0) { args = null; }
             if (System.isModuleStopped(mod) === false) {
-                var message = {
-                    mod: mod,
-                    handler: handler,
-                    timeout: System.getModuleTimestamp(mod) + delay,
-                    priority: MessagePriorityEnum.PRIORITY_TRIGGER
-                };
+                var message = suncom.Pool.getItemByClass("suncore.Message", Message);
+                message.mod = mod;
+                message.args = args;
+                message.caller = caller;
+                message.method = method;
+                message.timeout = System.getModuleTimestamp(mod) + delay;
+                message.priority = MessagePriorityEnum.PRIORITY_TRIGGER;
                 M.messageManager.putMessage(message);
             }
             else {
@@ -964,13 +1116,29 @@ var suncore;
             }
         }
         System.addTrigger = addTrigger;
-        function addMessage(mod, priority, handler) {
+        function addPromise(mod, caller, method, args) {
+            if (args === void 0) { args = null; }
             if (System.isModuleStopped(mod) === false) {
-                var message = {
-                    mod: mod,
-                    handler: handler,
-                    priority: priority
-                };
+                var message = suncom.Pool.getItemByClass("suncore.Message", Message);
+                message.mod = mod;
+                message.task = new PromiseTask(caller, method, args);
+                message.priority = MessagePriorityEnum.PRIORITY_PROMISE;
+                M.messageManager.putMessage(message);
+            }
+            else {
+                suncom.Logger.error(suncom.DebugMode.ANY, "\u5C1D\u8BD5\u6DFB\u52A0Promise\u6D88\u606F\uFF0C\u4F46\u6A21\u5757 " + ModuleEnum[mod] + " \u5DF1\u505C\u6B62\uFF01\uFF01\uFF01");
+            }
+        }
+        System.addPromise = addPromise;
+        function addMessage(mod, priority, caller, method, args) {
+            if (args === void 0) { args = null; }
+            if (System.isModuleStopped(mod) === false) {
+                var message = suncom.Pool.getItemByClass("suncore.Message", Message);
+                message.mod = mod;
+                message.args = args;
+                message.caller = caller;
+                message.method = method;
+                message.priority = priority;
                 M.messageManager.putMessage(message);
             }
             else {
@@ -995,3 +1163,4 @@ var suncore;
         System.removeTimer = removeTimer;
     })(System = suncore.System || (suncore.System = {}));
 })(suncore || (suncore = {}));
+//# sourceMappingURL=suncore.js.map

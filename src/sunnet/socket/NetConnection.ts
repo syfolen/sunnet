@@ -235,8 +235,7 @@ module sunnet {
          */
         testChangeState(state: suntdd.MSWSStateEnum): void {
             if (suncom.Global.debugMode & suncom.DebugMode.TDD) {
-                const handler: suncom.IHandler = suncom.Handler.create(this, this.$onTestChangeState, [this.$hashId, state]);
-                suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_0, handler);
+                suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_0, this, this.$onTestChangeState, [this.$hashId, state]);
             }
         }
 
@@ -262,8 +261,7 @@ module sunnet {
          */
         testPacket(cmd: number): void {
             if (suncom.Global.debugMode & suncom.DebugMode.TDD) {
-                const handler: suncom.IHandler = suncom.Handler.create(this, this.$onTestPacket, [this.$hashId, cmd]);
-                suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_0, handler);
+                suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_0, this, this.$onTestPacket, [this.$hashId, cmd]);
             }
         }
 
@@ -282,8 +280,7 @@ module sunnet {
          */
         testProtocal(name: string, data: any): void {
             if (suncom.Global.debugMode & suncom.DebugMode.TDD) {
-                const handler: suncom.IHandler = suncom.Handler.create(this, this.$onTestProtocal, [this.$hashId, name, data]);
-                suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_0, handler);
+                suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_0, this, this.$onTestProtocal, [this.$hashId, name, data]);
             }
         }
 

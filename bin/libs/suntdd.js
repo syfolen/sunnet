@@ -2,7 +2,7 @@ var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
         return extendStatics(d, b);
     };
     return function (d, b) {
@@ -207,6 +207,7 @@ var suntdd;
             this.facade.registerObserver(NotifyKey.ADD_WAIT, this.$addWait, this);
             this.facade.registerObserver(NotifyKey.ADD_ACTION, this.$addAction, this);
             this.facade.registerObserver(NotifyKey.TEST_WEBSOCKET_SEND_DATA, this.$onWebSocketSendData, this);
+            this.facade.registerObserver(suncore.NotifyKey.ENTER_FRAME, this.$onEnterFrame, this);
         };
         MicroService.prototype.$onStop = function () {
             this.facade.removeCommand(NotifyKey.EMIT);
@@ -222,8 +223,9 @@ var suntdd;
             this.facade.removeObserver(NotifyKey.ADD_WAIT, this.$addWait, this);
             this.facade.removeObserver(NotifyKey.ADD_ACTION, this.$addAction, this);
             this.facade.removeObserver(NotifyKey.TEST_WEBSOCKET_SEND_DATA, this.$onWebSocketSendData, this);
+            this.facade.removeObserver(suncore.NotifyKey.ENTER_FRAME, this.$onEnterFrame, this);
         };
-        MicroService.prototype.$frameLoop = function () {
+        MicroService.prototype.$onEnterFrame = function () {
             var protocalNotified = false;
             while (this.$actions.length > 0) {
                 var action = this.$actions[0];
@@ -353,7 +355,7 @@ var suntdd;
                 suncom.Test.assertTrue(packet.state === MSWSStateEnum.CLOSE || packet.state === MSWSStateEnum.ERROR, "\u5F53\u524D\u7F51\u7EDC\u5DF1\u8FDE\u63A5\uFF0C\u4EC5\u5141\u8BB8\u4E0B\u884CCLOSE\u6216ERROR\u72B6\u6001");
             }
             this.facade.sendNotification(NotifyKey.TEST_WEBSOCKET_STATE, packet.state);
-            return TestActionResultEnum.COMPLETE & TestActionResultEnum.SUSPEND;
+            return TestActionResultEnum.COMPLETE | TestActionResultEnum.SUSPEND;
         };
         MicroService.prototype.$notYet = function (packet) {
             if (packet.waitName !== null && packet.waitCount < packet.waitTimes) {
@@ -554,7 +556,7 @@ var suntdd;
             _this.$status = TestCaseStatusEnum.PREPARE;
             _this.$caseId = caseId;
             M.currentTestCase = _this;
-            suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_0, suncom.Handler.create(_this, _this.$doPrepare));
+            suncore.System.addMessage(suncore.ModuleEnum.SYSTEM, suncore.MessagePriorityEnum.PRIORITY_0, _this, _this.$doPrepare);
             return _this;
         }
         TestCase.prototype.done = function () {
@@ -612,13 +614,13 @@ var suntdd;
         };
         TestCase.prototype.$serializeWebSocketProtocalPacket = function (packet, data, timeFields, hashFields) {
             packet.data = data;
-            this.facade.sendNotification(NotifyKey.SERIALIZE_WEBSOCKET_STATE_PACKET, [packet, timeFields, hashFields]);
+            this.facade.sendNotification(NotifyKey.SERIALIZE_WEBSOCKET_PROTOCAL_PACKET, [packet, timeFields, hashFields]);
         };
         Object.defineProperty(TestCase.prototype, "status", {
             get: function () {
                 return this.$status;
             },
-            enumerable: true,
+            enumerable: false,
             configurable: true
         });
         return TestCase;
@@ -688,3 +690,4 @@ var suntdd;
         Test.regButton = regButton;
     })(Test = suntdd.Test || (suntdd.Test = {}));
 })(suntdd || (suntdd = {}));
+//# sourceMappingURL=suntdd.js.map

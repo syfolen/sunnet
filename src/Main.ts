@@ -17,8 +17,8 @@ class NSLService extends suncore.MsgQService {
 	/**
 	 * 处理MsgQ消息
 	 */
-	protected $dealMsgQMsg(msg: suncore.IMsgQMsg): void {
-		console.log(`dst:${suncore.MsgQModEnum[msg.dst]}, id:${msg.id}, ${msg.data}`);
+	protected $dealMsgQMsg(id: number, data: any): void {
+		console.log(`id:${id}, ${data}`);
 	}
 }
 

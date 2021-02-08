@@ -19,7 +19,7 @@ declare module suncore {
          * 说明：
          * 1. 请谨慎定义此消息的回调执行器的返回值，详见 LAZY 消息说明
          */
-        PRIORITY_0,
+        PRIORITY_0 = 0,
 
         /**
          * 每帧至多响应十次消息
@@ -66,7 +66,19 @@ declare module suncore {
          * 1. 任务消息在执行时，会阻塞整个消息队列，直至任务完成
          * 2. 新的任务只会在下一帧被开始执行
          */
-        PRIORITY_TASK
+        PRIORITY_TASK,
+
+        /**
+         * 承诺消息
+         * 说明：
+         * 1. 此消息是取代原生js的Promise机制用的
+         * 2. 与任务消息类似，承诺也是阻塞式执行的
+         * 3. 影响承诺执行优先级的除了承诺的被添加顺序之外，还有承诺的批次
+         * 4. 当你在承诺执行的过程中添加新的承诺时，这些承诺将被视为新的批次
+         * 5. 新批次的承诺拥有更高的执行优先级，它们将在当前承诺执行完毕之后开始执行
+         * 6. 当当前批次中的所有承诺全部执行完毕之后，上一批承诺将会继续执行，直至整个消息队列为空
+         */
+        PRIORITY_PROMISE
     }
 
     /**
@@ -81,15 +93,10 @@ declare module suncore {
      */
     enum ModuleEnum {
         /**
-         * 枚举开始
-         */
-        MIN = 0,
-
-        /**
          * 系统模块
          * 此模块为常驻模块，该模块下的消息永远不会被清理
          */
-        SYSTEM = MIN,
+        SYSTEM = 0,
 
         /**
          * 通用模块
@@ -183,32 +190,12 @@ declare module suncore {
     }
 
     /**
-     * MsgQ消息体接口
-     */
-    interface IMsgQMsg {
-        /**
-         * 响应消息的模块
-         */
-        dst: MsgQModEnum;
-
-        /**
-         * 消息编号
-         */
-        id: number;
-
-        /**
-         * 消息挂载的数据
-         */
-        data: any;
-    }
-
-    /**
-     * 服务接口（主要用于逻辑层架构）
+     * 服务（主要用于逻辑层架构）
      * 说明：
      * 1. 每个服务均有独立的生命周期。
      * 2. 服务被设计用来处理与表现层无关的有状态业务。
      */
-    interface IService {
+    interface IService extends puremvc.INotifier {
         /**
          * 服务是否正在运行
          */
@@ -226,13 +213,13 @@ declare module suncore {
     }
 
     /**
-     * 任务接口
+     * 任务抽象类
      * 说明：
      * 1. Task必定为MMI层对象，这是不可更改的
      * 2. Task一旦开始则不允许取消，可直接设置done为true来强制结束
      * 3. Task对象有自己的生命周期管理机制，故不建议在外部持有
      */
-    interface ITask {
+    interface ITask extends puremvc.INotifier {
         /**
          * 是否己完成
          * 说明：
@@ -243,11 +230,11 @@ declare module suncore {
         /**
          * 是否正在运行
          */
-        readonly running: boolean;
+        running: boolean;
 
         /**
          * 执行函数
-         * @return: 为true时表示任务立刻完成
+         * @return: 为true时表示任务立刻完成，若返回false，则需要在其它函数中将done置为true，否则任务永远无法结束
          */
         run(): boolean;
 
@@ -260,71 +247,21 @@ declare module suncore {
         cancel(): void;
     }
 
-    /**
-     * 任务抽象类
-     * 说明：
-     * 1. Task必定为MMI层对象，这是不可更改的
-     * 2. Task一旦开始则不允许取消，可直接设置done为true来强制结束
-     * 3. Task对象有自己的生命周期管理机制，故不建议在外部持有
-     */
     abstract class AbstractTask extends puremvc.Notifier implements ITask {
-        /**
-         * 任务是否己经完成（内置属性，请勿操作）
-         */
-        private $done: boolean;
 
-        /**
-         * 是否正在运行（内置属性，请勿操作）
-         */
-        private $running: boolean;
-
-        /**
-         * 是否正在运行
-         */
         running: boolean;
 
-        /**
-         * 是否己完成
-         * 说明：
-         * 1. 请勿重写此getter和setter函数，否则可能会出问题
-         */
         done: boolean;
 
-        /**
-         * 执行函数
-         * @return: 为true时表示任务立刻完成，若返回false，则需要在其它函数中将done置为true，否则任务永远无法结束
-         */
         abstract run(): boolean;
 
-        /**
-         * 任务被取消
-         * 说明：
-         * 1. 当消息因时间轴停止而被清理时，此方法会被自动执行，用于清理Task内部的数据
-         * 2. 当done被设置为true时，此方法亦会被执行，请知悉
-         */
         cancel(): void;
     }
 
-    /**
-     * 服务（主要用于逻辑层架构）
-     * 说明：
-     * 1. 每个服务均有独立的生命周期。
-     * 2. 服务被设计用来处理与表现层无关的有状态业务。
-     */
     abstract class BaseService extends puremvc.Notifier implements IService {
-        /**
-         * 服务是否己启动（内置属性，请勿操作）
-         */
-        private $running: boolean;
 
-        /**
-         * 服务启动入口
-         */
         run(): void;
 
-        /**
-         * 服务停止接口
-         */
         stop(): void;
 
         /**
@@ -337,9 +274,6 @@ declare module suncore {
          */
         protected abstract $onStop(): void;
 
-        /**
-         * 服务是否正在运行
-         */
         readonly running: boolean;
     }
 
@@ -363,7 +297,7 @@ declare module suncore {
         /**
          * 处理MsgQ消息
          */
-        protected abstract $dealMsgQMsg(msg: IMsgQMsg): void;
+        protected abstract $dealMsgQMsg(id: number, data: any): void;
     }
 
     /**
@@ -383,10 +317,10 @@ declare module suncore {
      */
     class SimpleTask extends AbstractTask {
 
-        constructor(handler: suncom.IHandler);
+        constructor(caller: Object, method: Function, args?: any[]);
 
         /**
-         * 执行函数
+         * 执行函数，只能返回: true
          */
         run(): boolean;
     }
@@ -512,12 +446,12 @@ declare module suncore {
 
         /**
          * 添加任务
-         * @groupId: 不同编组并行执行，若为-1，则自动给预一个groupId
+         * @groupId: 不同编组并行执行，若为-1，则自动给预一个groupId，默认为: 0
          * @return: 返回任务的groupId，若为-1，则说明任务添加失败
          * 说明：
          * 1. 自定义的groupId的值不允许超过1000
          */
-        function addTask(mod: ModuleEnum, groupId: number, task: ITask): number;
+        function addTask(mod: ModuleEnum, task: ITask, groupId?: number): number;
 
         /**
          * 取消任务
@@ -527,12 +461,18 @@ declare module suncore {
         /**
          * 添加触发器
          */
-        function addTrigger(mod: ModuleEnum, delay: number, handler: suncom.IHandler): void;
+        function addTrigger(mod: ModuleEnum, delay: number, caller: Object, method: Function, args?: any[]): void;
+
+        /**
+         * 添加承诺
+         * @method: 此方法被调用时，第一个参数必然是resolve方法，你应当在method方法执行完毕时调用resolve方法，否则该promise将永远不会结束
+         */
+        function addPromise(mod: ModuleEnum, caller: Object, method: Function, args?: any[]): void;
 
         /**
          * 添加消息
          */
-        function addMessage(mod: ModuleEnum, priority: MessagePriorityEnum, handler: suncom.IHandler): void;
+        function addMessage(mod: ModuleEnum, priority: MessagePriorityEnum, caller: Object, method: Function, args?: any[]): void;
 
         /**
          * 添加自定义定时器
